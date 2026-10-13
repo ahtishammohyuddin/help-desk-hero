@@ -11,7 +11,12 @@
   <!-- Import map: lets our code write `import * as THREE from 'three'`
        and the browser fetches Three.js from a free CDN. No install or build step. -->
   <script type="importmap">
-    { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js" } }
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+      }
+    }
   </script>
 </head>
 <body>
@@ -19,6 +24,23 @@
     <span class="brand-name">Help Desk Hero</span>
     <button id="help-btn" class="icon-btn" aria-label="How to play" title="How to play">?</button>
     <button id="sound-btn" class="icon-btn" aria-label="Sound on or off" title="Sound on or off (M)">♪</button>
+    <button id="quality-btn" class="pill-btn" title="Smooth runs faster on laptops. Detailed has softer shadows and sharper edges.">Graphics: Detailed</button>
+  </div>
+
+  <div id="minimap" class="card">
+    <canvas id="minimap-canvas" aria-label="Map of the office"></canvas>
+    <div class="map-key"><span class="key-you"></span>You <span class="key-help"></span>Needs help</div>
+  </div>
+  <div id="fps" hidden></div>
+  <div id="gpu-warning" class="card" hidden role="alert">
+    <b>The game is running slowly because your browser is not using your graphics card.</b>
+    <ol>
+      <li>In Chrome, open Settings, then System.</li>
+      <li>Turn on "Use graphics acceleration when available".</li>
+      <li>Click Relaunch, then open the game again.</li>
+    </ol>
+    <p class="small">Using Edge? The same switch is in Settings, then System and performance.</p>
+    <button id="gpu-warning-close" class="btn ghost">OK</button>
   </div>
 
   <aside id="side">

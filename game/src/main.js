@@ -7,7 +7,8 @@ import { FollowCamera } from './camera.js';
 import { createEmployees } from './employees.js';
 import { Input } from './input.js';
 import { nearestWithin } from './logic.js';
-import { buildOffice, PLAYER_START } from './office.js';
+import { Minimap } from './minimap.js';
+import { BOUNDS, buildOffice, PLAYER_START } from './office.js';
 import { createPlayer } from './player.js';
 import { confetti } from './confetti.js';
 import { sound } from './sound.js';
@@ -55,7 +56,16 @@ function start() {
     console.error(err);
     return;
   }
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+
+  // Which chip is drawing the 3D? If it is a software renderer, the browser is not using the
+  // graphics card and everything is many times slower, so we lower the resolution and tell the player.
+  const gpuName = (() => {
+    const gl = renderer.getContext();
+    const info = gl.getExtension('WEBGL_debug_renderer_info');
+    return String(info ? gl.getParameter(info.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER));
+  })();
+  const softwareRendering = /swiftshader|llvmpipe|software|basic render/i.test(gpuName);
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -83,6 +93,62 @@ function start() {
   const player = createPlayer(scene, PLAYER_START);
   const followCam = new FollowCamera(camera, renderer.domElement);
   const input = new Input();
+  const minimap = new Minimap($('minimap-canvas'), BOUNDS, colliders);
+
+  // ---------- graphics quality ----------
+  // "smooth": normal resolution and simpler shadows, for laptops. "detailed": sharper and softer.
+  const QUALITY_KEY = 'hdh-quality';
+  let quality = 'detailed';
+  let qualityChosen = false; // true once the player picks, so auto-switching never overrides them
+  try {
+    const saved = localStorage.getItem(QUALITY_KEY);
+    if (saved === 'smooth' || saved === 'detailed') {
+      quality = saved;
+      qualityChosen = true;
+    }
+  } catch {
+    /* storage blocked */
+  }
+  function applyQuality(next) {
+    quality = next;
+    const smooth = next === 'smooth';
+    // Without a graphics card, drawing fewer pixels is the only thing that really helps.
+    renderer.setPixelRatio(smooth ? (softwareRendering ? 0.5 : 1) : Math.min(window.devicePixelRatio, 1.5));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    // Shadows are the most expensive part of each frame, so Smooth turns them off completely.
+    renderer.shadowMap.enabled = !smooth;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    sun.castShadow = !smooth;
+    sun.shadow.mapSize.set(2048, 2048);
+    if (sun.shadow.map) {
+      sun.shadow.map.dispose();
+      sun.shadow.map = null; // rebuilt at the new size on the next frame
+    }
+    scene.traverse((obj) => {
+      if (obj.material) obj.material.needsUpdate = true;
+    });
+    $('quality-btn').textContent = `Graphics: ${smooth ? 'Smooth' : 'Detailed'}`;
+  }
+  applyQuality(quality);
+  $('quality-btn').addEventListener('click', () => {
+    applyQuality(quality === 'smooth' ? 'detailed' : 'smooth');
+    qualityChosen = true;
+    try {
+      localStorage.setItem(QUALITY_KEY, quality);
+    } catch {
+      /* ignore */
+    }
+  });
+  const showFps = new URLSearchParams(window.location.search).has('fps');
+  $('fps').hidden = !showFps;
+
+  if (softwareRendering) {
+    if (!qualityChosen) applyQuality('smooth');
+    $('gpu-warning').hidden = false;
+  }
+  $('gpu-warning-close').addEventListener('click', () => {
+    $('gpu-warning').hidden = true;
+  });
 
   // ---------- game state ----------
   const progress = loadProgress();
@@ -423,9 +489,17 @@ function start() {
   const clock = new THREE.Clock();
   const tmp = new THREE.Vector3();
   let hudTimer = 0;
+  let mapTimer = 0;
+  // Frame-rate tracking: for the optional FPS counter, and to switch slow machines to Smooth.
+  let fpsFrames = 0;
+  let fpsTime = 0;
+  let autoCheckFrames = 0;
+  let autoCheckTime = 0;
+  let autoChecked = false;
 
   function frame() {
-    const dt = Math.min(clock.getDelta(), 0.05); // cap so a slow frame can't teleport the player
+    const rawDt = clock.getDelta(); // real time since the last frame
+    const dt = Math.min(rawDt, 0.05); // cap so a slow frame can't teleport the player
     const time = clock.elapsedTime;
 
     player.update(dt, input.state, followCam.yaw, colliders, talkingTo !== null || helpOpen);
@@ -459,8 +533,9 @@ function start() {
       const onScreen = tmp.z < 1 && Math.abs(tmp.x) < 1.1 && Math.abs(tmp.y) < 1.1;
       person.label.hidden = !(onScreen && (ticket || dist < LABEL_RADIUS));
       if (!person.label.hidden) {
-        person.label.style.left = `${(tmp.x * 0.5 + 0.5) * window.innerWidth}px`;
-        person.label.style.top = `${(-tmp.y * 0.5 + 0.5) * window.innerHeight}px`;
+        const lx = (tmp.x * 0.5 + 0.5) * window.innerWidth;
+        const ly = (-tmp.y * 0.5 + 0.5) * window.innerHeight;
+        person.label.style.transform = `translate(${lx.toFixed(1)}px, ${ly.toFixed(1)}px) translate(-50%, -100%)`;
         if (refreshHud) {
           const bar = ticket
             ? `<div class="lbar"><div style="width:${Math.max(0, (ticket.secondsLeft / ticket.sla) * 100)}%;background:${PRIORITIES[ticket.priority].color}"></div></div>`
@@ -479,13 +554,47 @@ function start() {
       led.material.emissiveIntensity = Math.sin(time * led.speed + led.phase) > 0.2 ? 1.2 : 0.1;
     }
 
+    // Minimap, about 15 times a second (plenty for a map, and cheap)
+    mapTimer -= dt;
+    if (mapTimer <= 0) {
+      mapTimer = 0.066;
+      minimap.draw({
+        player: player.position,
+        playerAngle: player.group.rotation.y,
+        cameraYaw: followCam.yaw,
+        people: employees,
+        ticketFor: (name) => queue.forEmployee(name),
+        time,
+      });
+    }
+    document.body.classList.toggle('talking', talkingTo !== null);
+
     renderer.render(scene, camera);
+
+    fpsFrames += 1;
+    fpsTime += rawDt;
+    if (fpsTime >= 0.5) {
+      if (showFps) $('fps').textContent = `${Math.round(fpsFrames / fpsTime)} fps, ${renderer.info.render.calls} draw calls, ${gpuName}`;
+      fpsFrames = 0;
+      fpsTime = 0;
+    }
+    if (!autoChecked && !qualityChosen && time > 2) {
+      autoCheckFrames += 1;
+      autoCheckTime += rawDt;
+      if (autoCheckTime >= 3) {
+        autoChecked = true;
+        if (autoCheckFrames / autoCheckTime < 40 && quality === 'detailed') {
+          applyQuality('smooth');
+          ui.toast('Switched to smooth graphics so the game runs better on this computer.');
+        }
+      }
+    }
     requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
 
   // Handy for debugging in the browser console: helpDeskHero.queue.open
-  window.helpDeskHero = { player, followCam, employees, scene, queue, details, progress };
+  window.helpDeskHero = { player, followCam, employees, scene, queue, details, progress, renderer, applyQuality, gpuName };
 }
 
 start();

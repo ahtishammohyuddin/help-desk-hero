@@ -17,7 +17,7 @@
   --bad: #d93b40;
   --bad-soft: #fdecec;
   --font: 'Atkinson Hyperlegible', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --shadow: 0 6px 24px rgba(31, 42, 55, 0.14), 0 1px 3px rgba(31, 42, 55, 0.08);
+  --shadow: 0 2px 6px rgba(31, 42, 55, 0.16);
   --radius: 14px;
 }
 
@@ -103,10 +103,10 @@ kbd {
 /* ---------- name tags above people ---------- */
 #labels { position: fixed; inset: 0; pointer-events: none; }
 .label {
-  position: absolute; transform: translate(-50%, -100%);
+  position: absolute; left: 0; top: 0; will-change: transform;
   display: flex; flex-direction: column; align-items: center; gap: 3px;
   padding: 3px 9px; border-radius: 99px;
-  background: var(--paper); box-shadow: var(--shadow);
+  background: var(--paper); border: 1px solid var(--line);
   font-size: 13px; font-weight: 700; white-space: nowrap;
 }
 .label .chip { font-size: 11px; }
@@ -279,3 +279,31 @@ kbd {
 
 /* Keep who you are helping (and the timer) visible while the window scrolls */
 .sheet .tp-head { position: sticky; top: -18px; z-index: 1; margin: -18px -20px 12px; padding: 18px 20px 10px; background: var(--paper); border-radius: 18px 18px 0 0; }
+
+/* ---------- graphics toggle, minimap, FPS counter ---------- */
+.pill-btn {
+  height: 32px; padding: 0 12px; border: 0; border-radius: 99px;
+  background: var(--wash); color: var(--ink); font-size: 13px; font-weight: 700; cursor: pointer;
+}
+.pill-btn:hover { background: var(--blue-soft); color: var(--blue); }
+
+#minimap { position: fixed; left: 16px; bottom: 16px; padding: 10px 10px 8px; }
+#minimap-canvas { display: block; width: 210px; height: 210px; }
+.map-key { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 6px; font-size: 12px; color: var(--muted); }
+.key-you, .key-help { display: inline-block; width: 10px; height: 10px; border-radius: 50%; }
+.key-you { background: var(--blue); border-radius: 2px; transform: rotate(45deg); }
+.key-help { background: #ff9f43; margin-left: 8px; }
+
+#fps { position: fixed; left: 50%; bottom: 8px; transform: translateX(-50%); padding: 2px 8px; border-radius: 6px; background: rgba(31, 42, 55, 0.75); color: #fff; font-size: 12px; font-variant-numeric: tabular-nums; }
+
+@media (max-width: 760px) {
+  #minimap-canvas { width: 120px; height: 120px; }
+  .map-key { display: none; }
+  .pill-btn { display: none; }
+}
+/* On smaller screens the ticket window needs the space, so the map steps aside while talking */
+@media (max-width: 1120px) { body.talking #minimap { display: none; } }
+
+#gpu-warning { position: fixed; left: 50%; top: 70px; transform: translateX(-50%); z-index: 30; width: min(460px, calc(100vw - 32px)); border-left: 4px solid var(--warn); font-size: 15px; line-height: 1.5; }
+#gpu-warning ol { margin: 8px 0; padding-left: 20px; }
+#gpu-warning .btn { margin-top: 10px; }

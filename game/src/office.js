@@ -5,6 +5,7 @@
 // The office floor covers X -20..20 and Z -14..14. One unit is roughly one metre.
 
 import * as THREE from 'three';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
 export const BOUNDS = { minX: -20, maxX: 20, minZ: -14, maxZ: 14 };
 export const PLAYER_START = { x: -15, z: 9 };
@@ -34,6 +35,9 @@ const COLORS = {
 
 /** Builds everything into `scene`. Returns colliders and things that animate. */
 export function buildOffice(scene) {
+  // Furniture is built into `root` first, then merged into a few big meshes (one per material).
+  // Drawing 30 merged meshes is far faster than drawing 350 small ones, which is what made the game lag.
+  const root = new THREE.Group();
   const colliders = [];
   const blinkers = []; // server LEDs
 
@@ -53,7 +57,7 @@ export function buildOffice(scene) {
     mesh.position.set(x, y + h / 2, z);
     mesh.castShadow = cast;
     mesh.receiveShadow = true;
-    scene.add(mesh);
+    root.add(mesh);
     if (collide) addCollider(x, z, w, d);
     return mesh;
   }
@@ -67,7 +71,7 @@ export function buildOffice(scene) {
     mesh.rotation.x = -Math.PI / 2;
     mesh.position.set((minX + maxX) / 2, y, (minZ + maxZ) / 2);
     mesh.receiveShadow = true;
-    scene.add(mesh);
+    root.add(mesh);
   }
 
   // ---------- floor ----------
@@ -102,15 +106,16 @@ export function buildOffice(scene) {
   box(5, H, 0.1, COLORS.glass, 17.5, 0, -6, glass);
   box(0.1, H, 8, COLORS.glass, 10, 0, -10, glass);
   box(2, 0.12, 0.12, 0x6c7783, 14, H - 0.12, -6); // door frame top
+  // Three blink groups share three materials, so all LEDs merge into three meshes.
+  const ledMaterials = [0, 1, 2].map(() => new THREE.MeshStandardMaterial({ color: 0x0b1a0f, emissive: 0x39ff6a, emissiveIntensity: 1 }));
+  ledMaterials.forEach((material, k) => blinkers.push({ material, speed: 2 + k * 1.7, phase: k * 2.1 }));
   for (let i = 0; i < 5; i++) {
     const rx = 11.6 + i * 1.6;
     box(1.1, 2.2, 1, COLORS.rack, rx, 0, -12.8, { collide: true });
     for (let row = 0; row < 6; row++) {
-      const on = new THREE.MeshStandardMaterial({ color: 0x0b1a0f, emissive: 0x39ff6a, emissiveIntensity: 1 });
-      const led = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.04, 0.02), on);
+      const led = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.04, 0.02), ledMaterials[(i + row) % 3]);
       led.position.set(rx - 0.35 + (row % 2) * 0.12, 0.5 + row * 0.25, -12.29);
-      scene.add(led);
-      blinkers.push({ material: on, speed: 1.5 + Math.random() * 4, phase: Math.random() * 10 });
+      root.add(led);
     }
   }
   box(1.4, 0.75, 0.7, COLORS.desk, 18.2, 0, -8.2, { collide: true }); // admin bench
@@ -161,6 +166,7 @@ export function buildOffice(scene) {
     plant(px, pz);
   }
 
+  mergeStatic(root, scene);
   return { colliders, blinkers };
 
   // ---------- small furniture helpers ----------
@@ -180,7 +186,7 @@ export function buildOffice(scene) {
     g.add(stand, frame, screen);
     g.position.set(x, 0.79, z);
     g.rotation.y = facing;
-    scene.add(g);
+    root.add(g);
   }
 
   function chair(x, z, facing) {
@@ -197,7 +203,7 @@ export function buildOffice(scene) {
     g.add(seat, back, post, base);
     g.position.set(x, 0, z);
     g.rotation.y = facing;
-    scene.add(g);
+    root.add(g);
   }
 
   /** Four desks: two facing north, two facing south, with a low divider. */
@@ -223,7 +229,7 @@ export function buildOffice(scene) {
     const leaves = new THREE.Mesh(new THREE.IcosahedronGeometry(0.55, 0), mat(COLORS.plant, { flatShading: true }));
     leaves.position.set(x, 0.95, z);
     pot.castShadow = leaves.castShadow = true;
-    scene.add(pot, leaves);
+    root.add(pot, leaves);
     addCollider(x, z, 0.6, 0.6);
   }
 
@@ -234,7 +240,7 @@ export function buildOffice(scene) {
       mat(0x8ccbe8, { transparent: true, opacity: 0.7 }),
     );
     bottle.position.set(x, 1.23, z);
-    scene.add(bottle);
+    root.add(bottle);
   }
 
   /** A flat sign with text, drawn on a canvas and used as a texture. */
@@ -256,5 +262,31 @@ export function buildOffice(scene) {
     mesh.position.set(x, y, z);
     mesh.rotation.y = rotY;
     scene.add(mesh);
+  }
+}
+
+/**
+ * Bake every mesh in `root` into one mesh per (material, casts-shadow) pair and add those to the scene.
+ * Positions and rotations are applied to the geometry, so the result looks identical.
+ */
+function mergeStatic(root, scene) {
+  root.updateMatrixWorld(true);
+  const buckets = new Map();
+  root.traverse((obj) => {
+    if (!obj.isMesh) return;
+    const geometry = (obj.geometry.index ? obj.geometry.toNonIndexed() : obj.geometry.clone()).applyMatrix4(obj.matrixWorld);
+    for (const name of Object.keys(geometry.attributes)) {
+      if (name !== 'position' && name !== 'normal') geometry.deleteAttribute(name); // no textures here
+    }
+    const key = `${obj.material.uuid}|${obj.castShadow}`;
+    if (!buckets.has(key)) buckets.set(key, { material: obj.material, cast: obj.castShadow, geometries: [] });
+    buckets.get(key).geometries.push(geometry);
+  });
+  for (const { material, cast, geometries } of buckets.values()) {
+    const mesh = new THREE.Mesh(mergeGeometries(geometries), material);
+    mesh.castShadow = cast && !material.transparent;
+    mesh.receiveShadow = true;
+    scene.add(mesh);
+    geometries.forEach((g) => g.dispose());
   }
 }

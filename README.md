@@ -33,6 +33,8 @@ Walk to the employee with the "!" and press E. Answer with 1-4, H for a hint (co
 A wrong first answer gets an explanation and a free hint, then one more try for 50% XP.
 After answering, press Q to ask the senior tech up to 3 follow-up questions. First-try answers in a row build a streak (x1.2 XP at 3, x1.5 at 5).
 Move with WASD or the arrow keys, drag to rotate the camera, scroll to zoom, M toggles sound.
+The minimap (bottom left) shows everyone who needs help as a dot in their priority colour.
+If the game feels slow, click Graphics: Smooth (top left). Add `?fps=1` to the address to show the frame rate.
 (Opening `index.html` by double-clicking does not work: browsers only load JavaScript modules from a web server.)
 
 To use a backend hosted elsewhere, add `?api=https://your-backend` to the game address.

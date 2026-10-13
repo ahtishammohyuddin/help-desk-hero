@@ -40,12 +40,12 @@ export function renderStatus(progress) {
   const from = rank.min;
   const to = rank.next ? rank.next.min : rank.min;
   const pct = rank.next ? ((progress.xp - from) / (to - from)) * 100 : 100;
-  const accuracy = progress.attempts ? Math.round((progress.solved / progress.attempts) * 100) : null;
+  const accuracy = progress.attempts ? Math.round((progress.firstTry / progress.attempts) * 100) : null;
   $('status').innerHTML = `
     <div class="rank">${esc(rank.name)}</div>
     <div class="xpbar"><div style="width:${pct.toFixed(1)}%"></div></div>
     <div class="xptext">${progress.xp} XP${rank.next ? ` · ${rank.next.min - progress.xp} to ${esc(rank.next.name)}` : ' · top rank'}</div>
-    <div class="stats">Solved ${progress.solved}${accuracy === null ? '' : ` · Accuracy ${accuracy}%`}</div>`;
+    <div class="stats">Solved ${progress.solved}${accuracy === null ? '' : ` · First try ${accuracy}%`}</div>`;
 }
 
 // ---------- ticket queue ----------
@@ -92,13 +92,23 @@ export function renderTicketPanel(person, ticket, detail) {
   } else {
     const p = detail.problem;
     const hints = detail.hints.map((h, i) => `<li><b>Hint ${i + 1}:</b> ${esc(h)}</li>`).join('');
+    const ruledOut = new Set(detail.wrong.map((w) => w.id));
     const options = p.options
-      .map((o, i) => `<button class="opt" data-index="${i}" ${detail.answering ? 'disabled' : ''}><kbd>${i + 1}</kbd>${esc(o.text)}</button>`)
+      .map((o, i) => {
+        const out = ruledOut.has(o.id);
+        return `<button class="opt${out ? ' out' : ''}" data-index="${i}" ${detail.answering || out ? 'disabled' : ''}><kbd>${i + 1}</kbd>${esc(o.text)}</button>`;
+      })
       .join('');
+    const lastWrong = detail.wrong[detail.wrong.length - 1];
+    const retry = lastWrong
+      ? `<div class="retry"><div class="retry-t">Not quite.</div><div>${esc(lastWrong.why)}</div>
+         <div class="retry-sub">Read the hint and try once more. Fixing it now still earns 50% XP.</div></div>`
+      : '';
     body = `
       <p class="tp-quote">"${esc(detail.description)}"</p>
+      ${retry}
       ${hints ? `<ul class="tp-hints">${hints}</ul>` : ''}
-      <div class="tp-ask">What do you do?</div>
+      <div class="tp-ask">${lastWrong ? 'Second try: what do you do?' : 'What do you do?'}</div>
       <div class="opts">${options}</div>`;
     const hintsLeft = p.hint_count - detail.hints.length;
     foot = `${hintsLeft > 0 ? `<kbd>H</kbd> hint (${hintsLeft} left, costs XP) · ` : ''}<kbd>1</kbd>-<kbd>${p.options.length}</kbd> answer · <kbd>E</kbd> later`;
@@ -111,17 +121,33 @@ export function renderTicketPanel(person, ticket, detail) {
 
 function resultHtml(detail) {
   const r = detail.result;
-  const chosen = r.explanations.find((e) => e.option_id === r.chosen_option_id);
+  const byId = (id) => r.explanations.find((e) => e.option_id === id);
+  const chosen = byId(r.chosen_option_id);
   const correct = r.explanations.find((e) => e.correct);
-  const verdict = r.is_correct
-    ? `<div class="verdict good">Correct! <span class="xpgain">+${r.xp} XP</span></div>`
-    : `<div class="verdict bad">Not quite.</div>`;
-  const yours = `<div class="expl ${r.is_correct ? 'good' : 'bad'}"><div class="expl-t">Your choice: ${esc(chosen.text)}</div><div>${esc(chosen.why)}</div></div>`;
+  const xp = r.xp > 0 ? ` <span class="xpgain">+${r.xp} XP</span>` : '';
+  let verdict;
+  if (r.is_correct && r.attempt === 1) verdict = `<div class="verdict good">Correct!${xp}</div>`;
+  else if (r.is_correct) verdict = `<div class="verdict good">Fixed on the second try!${xp}</div>`;
+  else verdict = `<div class="verdict bad">Not solved this time.</div><div class="retry-sub">Here is what a senior tech would do, so you know it next time.</div>`;
+
+  // Show the mistakes first, then the fix, so the player sees what changed.
+  const mistakes = detail.wrong
+    .map((w, i) => {
+      const e = byId(w.id);
+      return `<div class="expl bad"><div class="expl-t">${detail.wrong.length > 1 ? `Try ${i + 1}` : 'First try'}: ${esc(e.text)}</div><div>${esc(e.why)}</div></div>`;
+    })
+    .join('');
+  const last = r.is_correct
+    ? ''
+    : `<div class="expl bad"><div class="expl-t">Second try: ${esc(chosen.text)}</div><div>${esc(chosen.why)}</div></div>`;
+  const yours = r.is_correct
+    ? `<div class="expl good"><div class="expl-t">${r.attempt === 1 ? 'Your choice' : 'Your fix'}: ${esc(chosen.text)}</div><div>${esc(chosen.why)}</div></div>`
+    : '';
   const right = r.is_correct
     ? ''
     : `<div class="expl good"><div class="expl-t">Best answer: ${esc(correct.text)}</div><div>${esc(correct.why)}</div></div>`;
   const tip = r.real_world_tip ? `<div class="tip"><b>From the field:</b> ${esc(r.real_world_tip)}</div>` : '';
-  return verdict + yours + right + tip;
+  return verdict + mistakes + last + yours + right + tip;
 }
 
 export function updateTicketTimer(ticket, closed = false) {

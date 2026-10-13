@@ -196,3 +196,57 @@ def test_cors_allows_configured_origin(problems_dir, monkeypatch):
     assert allowed.headers["access-control-allow-origin"] == "https://my-game.netlify.app"
     other = client.get("/health", headers={"Origin": "https://evil.example"})
     assert "access-control-allow-origin" not in other.headers
+
+
+# ---------- second chance (/check) ----------
+
+def test_check_correct_first_try_reveals_everything(client):
+    body = client.post("/problems/L1-HW-03/check", json={"option_id": 0, "attempt": 1}).json()
+    assert body["is_correct"] is True and body["final"] is True
+    assert body["correct_option_id"] == 0
+    assert len(body["explanations"]) == 3
+    assert body["hint"] is None
+
+
+def test_check_wrong_first_try_hides_the_answer(client):
+    response = client.post("/problems/L1-HW-03/check", json={"option_id": 1, "attempt": 1, "next_hint": 1})
+    body = response.json()
+    assert body["is_correct"] is False
+    assert body["final"] is False
+    assert body["attempts_left"] == 1
+    assert "drastic" in body["chosen_why"]
+    assert body["hint"] == "Is the computer itself on?"
+    # Nothing that identifies the correct option may be sent before the final try.
+    assert body["correct_option_id"] is None
+    assert body["explanations"] is None
+    assert "Check the monitor power and cable" not in response.text
+
+
+def test_check_hint_number_follows_hints_already_seen(client):
+    body = client.post("/problems/L1-HW-03/check", json={"option_id": 1, "attempt": 1, "next_hint": 2}).json()
+    assert body["hint"] == "What connects the PC to the screen?"
+    body = client.post("/problems/L1-HW-03/check", json={"option_id": 1, "attempt": 1, "next_hint": 3}).json()
+    assert body["hint"] is None  # no hints left, still no answer revealed
+    assert body["correct_option_id"] is None
+
+
+def test_check_second_try_correct(client):
+    body = client.post("/problems/L1-HW-03/check", json={"option_id": 0, "attempt": 2}).json()
+    assert body["is_correct"] is True and body["final"] is True and body["attempt"] == 2
+
+
+def test_check_wrong_last_try_reveals_answer(client):
+    body = client.post("/problems/L1-HW-03/check", json={"option_id": 2, "attempt": 2}).json()
+    assert body["is_correct"] is False and body["final"] is True
+    assert body["correct_option_id"] == 0
+    assert body["attempts_left"] == 0
+
+
+@pytest.mark.parametrize("payload", [{"option_id": 0, "attempt": 0}, {"option_id": 0, "attempt": 3}, {"attempt": 1}])
+def test_check_validates_input(client, payload):
+    assert client.post("/problems/L1-HW-03/check", json=payload).status_code == 422
+
+
+def test_check_unknown_option_and_unreviewed(client):
+    assert client.post("/problems/L1-HW-03/check", json={"option_id": 7}).status_code == 400
+    assert client.post("/problems/L1-HW-05/check", json={"option_id": 0}).status_code == 404

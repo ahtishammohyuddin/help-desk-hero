@@ -31,12 +31,17 @@ export function maxLevelFor(xp) {
 /**
  * XP for one ticket.
  * Base is 10 per problem level, times the priority multiplier.
- * -25% per hint used (never below 25% of the base), half XP if the SLA was breached,
- * +25% speed bonus if answered with more than half the SLA time left. Wrong answers earn 0.
+ * Solved on the second try (after a mistake): half XP.
+ * -25% per hint the player asked for (never below 25% of the base), half XP if the SLA was
+ * breached, +25% speed bonus if answered with more than half the SLA time left.
+ * Not solved: 0.
  */
-export function xpFor({ level, priority, correct, hintsUsed = 0, secondsLeft, sla }) {
+export const SECOND_TRY_XP = 0.5;
+
+export function xpFor({ level, priority, correct, attempt = 1, hintsUsed = 0, secondsLeft, sla }) {
   if (!correct) return 0;
   let xp = 10 * level * PRIORITIES[priority].xp;
+  if (attempt > 1) xp *= SECOND_TRY_XP;
   xp *= Math.max(0.25, 1 - 0.25 * hintsUsed);
   if (secondsLeft <= 0) xp *= 0.5;
   else if (secondsLeft > sla / 2) xp *= 1.25;

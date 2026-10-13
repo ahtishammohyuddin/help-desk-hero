@@ -30,6 +30,7 @@ python -m http.server 5173 --directory game       # terminal 2
 ```
 Open http://localhost:5173 . Tickets arrive in the queue with a priority (P1-P4) and an SLA timer.
 Walk to the employee with the "!" and press E. Answer with 1-4, H for a hint (costs XP).
+A wrong first answer gets an explanation and a free hint, then one more try for 50% XP.
 Move with WASD or the arrow keys, drag to rotate the camera, scroll to zoom, M toggles sound.
 (Opening `index.html` by double-clicking does not work: browsers only load JavaScript modules from a web server.)
 
@@ -50,6 +51,7 @@ Open http://127.0.0.1:8000/docs for the interactive API page.
 | `GET /problems?level=&category=` | List reviewed problems (titles only) |
 | `GET /problems/{id}` | One problem for play, with no answers or explanations |
 | `POST /problems/{id}/answer` | Check an answer, returns explanations for every option |
+| `POST /problems/{id}/check` | One try (used by the game). A wrong first try returns only why that choice is wrong plus a hint; the correct answer is revealed only on the final try |
 | `GET /problems/{id}/hints/{n}` | Hint number n (1 is the gentlest) |
 | `POST /problems/{id}/rephrase` | Fresh AI wording of the employee's complaint |
 | `POST /problems/{id}/ask` | "Ask the senior tech" follow-up question |

@@ -24,11 +24,13 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 function loadProgress() {
   try {
     const saved = JSON.parse(localStorage.getItem(SAVE_KEY));
-    if (saved && Number.isFinite(saved.xp)) return { xp: saved.xp, solved: saved.solved || 0, attempts: saved.attempts || 0 };
+    if (saved && Number.isFinite(saved.xp)) {
+      return { xp: saved.xp, solved: saved.solved || 0, attempts: saved.attempts || 0, firstTry: saved.firstTry || 0 };
+    }
   } catch {
     /* no saved data or storage blocked */
   }
-  return { xp: 0, solved: 0, attempts: 0 };
+  return { xp: 0, solved: 0, attempts: 0, firstTry: 0 };
 }
 function saveProgress(progress) {
   try {
@@ -137,7 +139,11 @@ function start() {
   // Load the problem and the AI-reworded complaint as soon as the ticket arrives,
   // so there is no waiting when the player walks over.
   function fetchTicket(ticket) {
-    const detail = { state: 'loading', hints: [], problem: null, description: '', result: null, answering: false };
+    const detail = {
+      state: 'loading', hints: [], problem: null, description: '', result: null, answering: false,
+      attempt: 1, // which try is next (1 or 2)
+      wrong: [], // wrong tries so far: { id, why }
+    };
     details.set(ticket.number, detail);
     Promise.all([api.getProblem(ticket.problemId), api.rephrase(ticket.problemId).catch(() => null)])
       .then(([problem, reworded]) => {
@@ -161,18 +167,29 @@ function start() {
     const detail = details.get(ticket.number);
     if (detail.state !== 'ready' || detail.result || detail.answering) return;
     const option = detail.problem.options[index];
-    if (!option) return;
+    if (!option || detail.wrong.some((w) => w.id === option.id)) return; // already ruled out
 
     detail.answering = true;
     detail.answerError = false;
     sound.click();
     refreshTicketPanel();
     try {
-      const result = await api.answer(ticket.problemId, option.id);
+      const result = await api.check(ticket.problemId, option.id, detail.attempt, detail.hints.length + 1);
+
+      if (!result.final) {
+        // Wrong, but there is another try: explain this choice, add a free hint, keep the ticket open.
+        detail.wrong.push({ id: option.id, why: result.chosen_why });
+        if (result.hint) detail.hints.push(result.hint);
+        detail.attempt += 1;
+        sound.wrong();
+        return;
+      }
+
       const xp = xpFor({
         level: ticket.level,
         priority: ticket.priority,
         correct: result.is_correct,
+        attempt: result.attempt,
         hintsUsed: ticket.hintsUsed,
         secondsLeft: ticket.secondsLeft,
         sla: ticket.sla,
@@ -181,12 +198,14 @@ function start() {
       progress.xp += xp;
       progress.attempts += 1;
       if (result.is_correct) progress.solved += 1;
+      if (result.is_correct && result.attempt === 1) progress.firstTry += 1;
       saveProgress(progress);
       detail.result = { ...result, xp };
 
       queue.close(ticket.number);
       byName.get(ticket.employee).marker.visible = false;
       ui.renderStatus(progress);
+      ui.renderQueue(queue.open);
       if (result.is_correct) {
         sound.correct();
         if (xp > 0) ui.xpPop(xp);
@@ -215,7 +234,7 @@ function start() {
     try {
       const { hint } = await api.hint(ticket.problemId, detail.hints.length + 1);
       detail.hints.push(hint);
-      ticket.hintsUsed = detail.hints.length;
+      ticket.hintsUsed += 1; // only hints the player asks for cost XP
       sound.click();
       refreshTicketPanel();
     } catch {

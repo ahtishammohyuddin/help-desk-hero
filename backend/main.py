@@ -31,8 +31,11 @@ from backend.ai_service import AIService
 from backend.limits import RateLimiter
 from backend.problems import ProblemStore
 from backend.schemas import (
+    MAX_ATTEMPTS,
     AnswerRequest,
     AnswerResult,
+    CheckRequest,
+    CheckResult,
     Explanation,
     Health,
     HintResponse,
@@ -155,6 +158,38 @@ def create_app(problems_dir: Path | None = None, ai_client: object = FROM_ENV) -
             ],
             real_world_tip=problem.get("real_world_tip"),
         )
+
+    @app.post("/problems/{problem_id}/check", response_model=CheckResult)
+    def check_answer(request: Request, problem_id: str, body: CheckRequest) -> CheckResult:
+        """One try at a ticket. Used by the game; gives a second chance after a wrong first try."""
+        problem = find_or_404(request, problem_id)
+        options = problem["options"]
+        if not 0 <= body.option_id < len(options):
+            raise HTTPException(status_code=400, detail="Unknown option id")
+
+        chosen = options[body.option_id]
+        correct_id = next(i for i, o in enumerate(options) if o["correct"])
+        is_correct = body.option_id == correct_id
+        final = is_correct or body.attempt >= MAX_ATTEMPTS
+        result = CheckResult(
+            problem_id=problem["id"],
+            attempt=body.attempt,
+            chosen_option_id=body.option_id,
+            is_correct=is_correct,
+            final=final,
+            attempts_left=0 if final else MAX_ATTEMPTS - body.attempt,
+            chosen_why=chosen["why"],
+        )
+        if final:
+            result.correct_option_id = correct_id
+            result.explanations = [
+                Explanation(option_id=i, text=o["text"], correct=o["correct"], why=o["why"])
+                for i, o in enumerate(options)
+            ]
+            result.real_world_tip = problem.get("real_world_tip")
+        elif body.next_hint <= len(problem["hints"]):
+            result.hint = problem["hints"][body.next_hint - 1]
+        return result
 
     @app.get("/problems/{problem_id}/hints/{number}", response_model=HintResponse)
     def get_hint(

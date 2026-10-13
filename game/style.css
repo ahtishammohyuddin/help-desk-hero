@@ -264,3 +264,10 @@ kbd {
   font: 700 14px var(--font);
   cursor: pointer;
 }
+
+/* ---------- second chance ---------- */
+.opt.out { opacity: 0.4; text-decoration: line-through; cursor: not-allowed; border-color: rgba(255, 135, 135, 0.4); }
+.retry { margin: 0 0 12px; padding: 10px 12px; border-radius: 10px; background: rgba(255, 135, 135, 0.1); border-left: 3px solid #ff8787; font-size: 14px; line-height: 1.5; }
+.retry-t { font-weight: 800; color: #ff8787; margin-bottom: 2px; }
+.retry-sub { font-size: 13px; color: var(--muted); margin-top: 4px; }
+.verdict + .retry-sub { margin: -6px 0 10px; }

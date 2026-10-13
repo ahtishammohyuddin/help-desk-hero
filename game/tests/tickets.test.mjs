@@ -55,6 +55,12 @@ test('fast answers get a 25% bonus, breached SLAs lose half', () => {
   assert.equal(xpFor({ ...base, secondsLeft: -5 }), 5);
 });
 
+test('solving on the second try earns half XP', () => {
+  assert.equal(xpFor({ ...base, level: 2, attempt: 2 }), 10);
+  assert.equal(xpFor({ ...base, level: 2, attempt: 1 }), 20);
+  assert.equal(xpFor({ ...base, level: 2, attempt: 2, correct: false }), 0);
+});
+
 test('each hint costs 25%, but never below a quarter', () => {
   assert.equal(xpFor({ ...base, level: 4, hintsUsed: 1 }), 30);
   assert.equal(xpFor({ ...base, level: 4, hintsUsed: 9 }), 10);

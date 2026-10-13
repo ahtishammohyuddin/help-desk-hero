@@ -67,6 +67,36 @@ class AnswerResult(BaseModel):
     real_world_tip: str | None = None
 
 
+MAX_ATTEMPTS = 2  # first try, plus one second chance
+
+
+class CheckRequest(BaseModel):
+    option_id: int
+    attempt: int = Field(1, ge=1, le=MAX_ATTEMPTS)  # which try this is
+    next_hint: int = Field(1, ge=1, le=20)  # the hint number to send if this try is wrong
+
+
+class CheckResult(BaseModel):
+    """Result of one try.
+
+    While `final` is false, the correct answer is NOT included: only why the chosen
+    option is wrong, plus a hint. Everything is revealed once the ticket is final
+    (answered correctly, or the last try was used).
+    """
+
+    problem_id: str
+    attempt: int
+    chosen_option_id: int
+    is_correct: bool
+    final: bool
+    attempts_left: int
+    chosen_why: str
+    hint: str | None = None
+    correct_option_id: int | None = None
+    explanations: list[Explanation] | None = None
+    real_world_tip: str | None = None
+
+
 class HintResponse(BaseModel):
     problem_id: str
     number: int  # which hint this is, starting at 1

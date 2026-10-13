@@ -40,6 +40,8 @@ export const api = {
   getProblem: (id) => request(`/problems/${enc(id)}`),
   rephrase: (id) => request(`/problems/${enc(id)}/rephrase`, { method: 'POST', timeout: 20000 }),
   answer: (id, optionId) => request(`/problems/${enc(id)}/answer`, { method: 'POST', body: { option_id: optionId } }),
+  check: (id, optionId, attempt, nextHint) =>
+    request(`/problems/${enc(id)}/check`, { method: 'POST', body: { option_id: optionId, attempt, next_hint: nextHint } }),
   hint: (id, n) => request(`/problems/${enc(id)}/hints/${n}`),
   ask: (id, question, history = []) =>
     request(`/problems/${enc(id)}/ask`, { method: 'POST', body: { question, history }, timeout: 20000 }),

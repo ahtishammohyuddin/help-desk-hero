@@ -6,7 +6,8 @@
   "character": {
     "name": "Aleena",
     "department": "HR",
-    "personality": "organised, upgrading her phone this weekend"
+    "personality": "organised, upgrading her phone this weekend",
+    "gender": "female"
   },
   "symptom": "User is getting a new phone and wants to keep using her authenticator app",
   "user_description": "I'm getting a new phone this weekend. How do I move my authenticator app so I don't get locked out?",

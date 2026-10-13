@@ -6,7 +6,8 @@
   "character": {
     "name": "Adeel",
     "department": "HR",
-    "personality": "friendly, in a rush"
+    "personality": "friendly, in a rush",
+    "gender": "male"
   },
   "symptom": "User cannot remember their password",
   "user_description": "Hi, I've forgotten my password and I can't log in. Can you just reset it for me? I'm in a hurry.",

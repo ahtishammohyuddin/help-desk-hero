@@ -6,7 +6,8 @@
   "character": {
     "name": "Sehrish",
     "department": "Design",
-    "personality": "curious, a bit worried"
+    "personality": "curious, a bit worried",
+    "gender": "female"
   },
   "symptom": "PC fans spin constantly and Task Manager shows an unfamiliar process using lots of CPU",
   "user_description": "My computer is hot and noisy. Task Manager shows a process called something I don't recognise using nearly all the processor.",

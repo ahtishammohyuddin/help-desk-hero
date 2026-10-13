@@ -6,7 +6,8 @@
   "character": {
     "name": "Mariam",
     "department": "Admin",
-    "personality": "polite, slightly frustrated"
+    "personality": "polite, slightly frustrated",
+    "gender": "female"
   },
   "symptom": "PDF files open in an unwanted program",
   "user_description": "Every PDF now opens in some strange program instead of the one I normally use. How do I put it back?",

@@ -6,7 +6,8 @@
   "character": {
     "name": "Eman",
     "department": "Legal",
-    "personality": "careful, protective of the document"
+    "personality": "careful, protective of the document",
+    "gender": "female"
   },
   "symptom": "Word crashes only when opening a particular document",
   "user_description": "Word crashes every time I open one contract. All my other documents are fine. Please don't lose it!",

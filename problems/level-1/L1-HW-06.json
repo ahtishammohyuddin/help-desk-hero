@@ -6,7 +6,8 @@
   "character": {
     "name": "Hina",
     "department": "Marketing",
-    "personality": "cheerful, chatty"
+    "personality": "cheerful, chatty",
+    "gender": "female"
   },
   "symptom": "No audio from the PC speakers",
   "user_description": "I can't hear anything from my computer. I'm supposed to join a video call in five minutes!",

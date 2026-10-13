@@ -6,7 +6,8 @@
   "character": {
     "name": "Anam",
     "department": "HR",
-    "personality": "organised, a little hesitant"
+    "personality": "organised, a little hesitant",
+    "gender": "female"
   },
   "symptom": "An employee has changed her name and needs her accounts updated",
   "user_description": "One of our staff has changed her surname. Can you update her email and login to the new name?",

@@ -6,7 +6,8 @@
   "character": {
     "name": "Zainab",
     "department": "Legal",
-    "personality": "careful, protective of her files"
+    "personality": "careful, protective of her files",
+    "gender": "female"
   },
   "symptom": "USB drive does not appear when plugged in",
   "user_description": "I plugged in my USB drive with my documents and nothing shows up. Please don't delete my files!",

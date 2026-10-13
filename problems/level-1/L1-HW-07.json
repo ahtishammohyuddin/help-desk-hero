@@ -6,7 +6,8 @@
   "character": {
     "name": "Kamran",
     "department": "Sales",
-    "personality": "easygoing, often travelling"
+    "personality": "easygoing, often travelling",
+    "gender": "male"
   },
   "symptom": "Laptop battery level is not going up while plugged in",
   "user_description": "My laptop says plugged in but the battery percentage isn't going up. I'm leaving for a client meeting in an hour.",

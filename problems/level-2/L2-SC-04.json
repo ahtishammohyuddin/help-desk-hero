@@ -6,7 +6,8 @@
   "character": {
     "name": "Warda",
     "department": "Finance",
-    "personality": "eager to help, unsure"
+    "personality": "eager to help, unsure",
+    "gender": "female"
   },
   "symptom": "An email appearing to come from the CEO asks for urgent gift card purchases",
   "user_description": "I got an email from the CEO saying he's in a meeting and needs me to buy gift cards urgently and send him the codes. He says to keep it quiet.",

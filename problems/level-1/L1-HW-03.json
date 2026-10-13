@@ -6,7 +6,8 @@
   "character": {
     "name": "Ahmed",
     "department": "Accounts",
-    "personality": "polite, rushed"
+    "personality": "polite, rushed",
+    "gender": "male"
   },
   "symptom": "Screen is black but the computer fans are running",
   "user_description": "My screen just went black but I can hear the computer is still on!",

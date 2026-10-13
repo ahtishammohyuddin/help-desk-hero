@@ -11,7 +11,7 @@ VALID = {
     "level": 1,
     "category": "Hardware",
     "title": "Black screen, PC running",
-    "character": {"name": "Ahmed", "department": "Accounts", "personality": "polite, rushed"},
+    "character": {"name": "Ahmed", "department": "Accounts", "personality": "polite, rushed", "gender": "male"},
     "symptom": "Screen is black but the computer fans are running",
     "user_description": "My screen just went black but I can hear the computer is still on!",
     "options": [
@@ -160,6 +160,13 @@ def test_character_fields_required():
     errors = validate_problem(problem)
     assert has_error(errors, "character.department")
     assert has_error(errors, "character.personality")
+
+
+@pytest.mark.parametrize("gender", [None, "", "Male", "other", 1])
+def test_character_gender_must_be_female_or_male(gender):
+    problem = make()
+    problem["character"]["gender"] = gender
+    assert has_error(validate_problem(problem), "character.gender")
 
 
 def test_reviewed_must_be_boolean():

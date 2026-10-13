@@ -6,7 +6,8 @@
   "character": {
     "name": "Fahad",
     "department": "Procurement",
-    "personality": "calm, short on time"
+    "personality": "calm, short on time",
+    "gender": "male"
   },
   "symptom": "Windows cannot connect to a shared printer",
   "user_description": "I tried to add the department printer and it says 'Windows cannot connect to the printer'. Other people can use it.",

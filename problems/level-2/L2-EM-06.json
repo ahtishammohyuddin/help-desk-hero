@@ -6,7 +6,8 @@
   "character": {
     "name": "Rafay",
     "department": "Customer Service",
-    "personality": "keen, new to the team"
+    "personality": "keen, new to the team",
+    "gender": "male"
   },
   "symptom": "User cannot see the team's shared mailbox in Outlook",
   "user_description": "I've been given access to the support mailbox, but I can't see it in Outlook. How do I get to it?",

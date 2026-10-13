@@ -6,7 +6,8 @@
   "character": {
     "name": "Mehwish",
     "department": "Procurement",
-    "personality": "frustrated, apologetic"
+    "personality": "frustrated, apologetic",
+    "gender": "female"
   },
   "symptom": "Account locked after several wrong password attempts",
   "user_description": "It says my account is locked after I typed my password wrong a few times. I'm sure I'm typing it right now!",

@@ -6,7 +6,8 @@
   "character": {
     "name": "Rubina",
     "department": "Accounts",
-    "personality": "polite, a bit embarrassed"
+    "personality": "polite, a bit embarrassed",
+    "gender": "female"
   },
   "symptom": "Laptop will not join the office Wi-Fi, password rejected",
   "user_description": "I'm trying to connect my laptop to the office Wi-Fi but it keeps saying the password is wrong.",

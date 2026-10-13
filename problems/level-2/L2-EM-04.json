@@ -6,7 +6,8 @@
   "character": {
     "name": "Furqan",
     "department": "Finance",
-    "personality": "irritated, interrupted constantly"
+    "personality": "irritated, interrupted constantly",
+    "gender": "male"
   },
   "symptom": "Outlook repeatedly shows a password prompt",
   "user_description": "Outlook keeps popping up asking for my password, every few minutes. I type it in and a bit later it asks again.",

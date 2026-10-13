@@ -6,7 +6,8 @@
   "character": {
     "name": "Rabia",
     "department": "Operations",
-    "personality": "worried, close to panic"
+    "personality": "worried, close to panic",
+    "gender": "female"
   },
   "symptom": "Excel shows (Not Responding) with two hours of unsaved work",
   "user_description": "Excel has frozen and the title says 'Not Responding'. I haven't saved for two hours. Please don't lose my work!",

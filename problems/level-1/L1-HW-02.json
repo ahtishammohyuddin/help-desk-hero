@@ -6,7 +6,8 @@
   "character": {
     "name": "Imran",
     "department": "Sales",
-    "personality": "calm, not very technical"
+    "personality": "calm, not very technical",
+    "gender": "male"
   },
   "symptom": "Mouse pointer does not move, keyboard works",
   "user_description": "My mouse pointer is stuck in the middle of the screen. I can type, but I can't click on anything.",

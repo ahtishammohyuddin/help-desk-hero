@@ -6,7 +6,8 @@
   "character": {
     "name": "Nida",
     "department": "Accounts",
-    "personality": "polite, rushed"
+    "personality": "polite, rushed",
+    "gender": "female"
   },
   "symptom": "Printer shows as Offline on the computer",
   "user_description": "My computer says the printer is offline, but I can see it's switched on. I need to print an invoice now.",

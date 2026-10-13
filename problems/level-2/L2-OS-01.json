@@ -6,7 +6,8 @@
   "character": {
     "name": "Zubair",
     "department": "Operations",
-    "personality": "patient, but running out of time"
+    "personality": "patient, but running out of time",
+    "gender": "male"
   },
   "symptom": "PC has shown 'Working on updates' at the same percentage for hours",
   "user_description": "My PC has said 'Working on updates, 30 percent' since this morning. It hasn't moved. Is it broken?",

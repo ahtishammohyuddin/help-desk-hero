@@ -6,7 +6,8 @@
   "character": {
     "name": "Mahnoor",
     "department": "Accounts",
-    "personality": "frightened, wants it fixed fast"
+    "personality": "frightened, wants it fixed fast",
+    "gender": "female"
   },
   "symptom": "Browser shows a loud warning that the PC is infected and gives a phone number",
   "user_description": "A big red screen says my computer has a virus and I must call a number immediately! It's making an alarm sound!",

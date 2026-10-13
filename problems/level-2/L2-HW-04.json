@@ -6,7 +6,8 @@
   "character": {
     "name": "Samina",
     "department": "Marketing",
-    "personality": "cheerful, a little rushed"
+    "personality": "cheerful, a little rushed",
+    "gender": "female"
   },
   "symptom": "Video meeting app says no camera found",
   "user_description": "Teams says it can't find my camera. I have a client call in ten minutes!",

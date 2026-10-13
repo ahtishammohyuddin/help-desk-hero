@@ -6,7 +6,8 @@
   "character": {
     "name": "Naila",
     "department": "Design",
-    "personality": "creative, worried about a deadline"
+    "personality": "creative, worried about a deadline",
+    "gender": "female"
   },
   "symptom": "Design software says the licence has expired",
   "user_description": "My design program says my licence has expired and it won't let me edit anything. I have a client deadline tomorrow!",

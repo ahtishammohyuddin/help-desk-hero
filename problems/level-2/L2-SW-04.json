@@ -6,7 +6,8 @@
   "character": {
     "name": "Kamil",
     "department": "Procurement",
-    "personality": "calm, a little confused"
+    "personality": "calm, a little confused",
+    "gender": "male"
   },
   "symptom": "Two versions of the same PDF reader are installed and files open unpredictably",
   "user_description": "I have two PDF programs that look nearly the same. Sometimes one opens, sometimes the other, and some features don't work.",

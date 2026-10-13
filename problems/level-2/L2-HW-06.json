@@ -6,7 +6,8 @@
   "character": {
     "name": "Kiran",
     "department": "Accounts",
-    "personality": "worried, not technical"
+    "personality": "worried, not technical",
+    "gender": "female"
   },
   "symptom": "PC beeps repeatedly at power on and does not start",
   "user_description": "I turned on my computer and it beeped several times. Now the screen is just black and Windows doesn't start.",

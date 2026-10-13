@@ -6,7 +6,8 @@
   "character": {
     "name": "Sadia",
     "department": "Accounts",
-    "personality": "organised, impatient"
+    "personality": "organised, impatient",
+    "gender": "female"
   },
   "symptom": "Warning that the mailbox is full and email cannot be sent or received",
   "user_description": "I've got a message saying my mailbox is full. I'm not getting new emails and I can't send any.",

@@ -6,7 +6,8 @@
   "character": {
     "name": "Shahid",
     "department": "Admin",
-    "personality": "calm, slightly puzzled"
+    "personality": "calm, slightly puzzled",
+    "gender": "male"
   },
   "symptom": "One PC has no internet while colleagues are working fine",
   "user_description": "I can't open any websites on my computer, but the person next to me is online with no problem.",

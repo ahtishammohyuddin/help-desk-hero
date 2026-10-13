@@ -6,7 +6,8 @@
   "character": {
     "name": "Rehan",
     "department": "Operations",
-    "personality": "angry, stressed, under pressure"
+    "personality": "angry, stressed, under pressure",
+    "gender": "male"
   },
   "symptom": "User is shouting about a recurring problem",
   "user_description": "This is the THIRD time this week! You people never fix anything! I've got a client waiting and nothing works!",

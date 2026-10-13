@@ -92,7 +92,8 @@ def test_list_rejects_bad_level(client):
 
 def test_list_summary_has_no_answers(client):
     first = client.get("/problems").json()[0]
-    assert set(first) == {"id", "level", "category", "title"}
+    assert set(first) == {"id", "level", "category", "title", "character_name", "gender"}
+    assert first["character_name"] == "Ahmed" and first["gender"] == "male"
 
 
 # ---------- single problem ----------

@@ -6,7 +6,8 @@
   "character": {
     "name": "Noman",
     "department": "Sales",
-    "personality": "hurried, a little embarrassed"
+    "personality": "hurried, a little embarrassed",
+    "gender": "male"
   },
   "symptom": "User cannot find a document they saved yesterday",
   "user_description": "I saved a proposal yesterday and now I can't find it anywhere. I don't remember which folder I used.",

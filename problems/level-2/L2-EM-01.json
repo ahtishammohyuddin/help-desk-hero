@@ -6,7 +6,8 @@
   "character": {
     "name": "Iqra",
     "department": "Sales",
-    "personality": "anxious, waiting on a client reply"
+    "personality": "anxious, waiting on a client reply",
+    "gender": "female"
   },
   "symptom": "An email sits in the Outbox and never sends",
   "user_description": "I sent an important email to a client an hour ago and it's still sitting in my Outbox. It just won't go.",

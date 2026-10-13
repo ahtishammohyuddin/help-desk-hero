@@ -6,7 +6,8 @@
   "character": {
     "name": "Asma",
     "department": "Admin",
-    "personality": "patient, a little annoyed"
+    "personality": "patient, a little annoyed",
+    "gender": "female"
   },
   "symptom": "Documents keep going to a printer on another floor",
   "user_description": "Every time I print, my document comes out on the printer on the third floor. I have to walk all the way up!",

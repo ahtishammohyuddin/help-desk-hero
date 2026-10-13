@@ -6,7 +6,8 @@
   "character": {
     "name": "Sidra",
     "department": "Sales",
-    "personality": "worried, working from home"
+    "personality": "worried, working from home",
+    "gender": "female"
   },
   "symptom": "VPN fails to connect from the user's home",
   "user_description": "I'm working from home and the VPN just spins and then says it can't connect. I need my company files.",

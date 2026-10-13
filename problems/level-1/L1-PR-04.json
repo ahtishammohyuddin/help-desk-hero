@@ -6,7 +6,8 @@
   "character": {
     "name": "Rizwan",
     "department": "Procurement",
-    "personality": "calm, a little impatient"
+    "personality": "calm, a little impatient",
+    "gender": "male"
   },
   "symptom": "A document is stuck in the print queue and nothing else prints",
   "user_description": "I sent a document to print an hour ago and it never came out. Now nothing else will print either.",

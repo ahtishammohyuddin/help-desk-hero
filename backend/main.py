@@ -119,7 +119,10 @@ def create_app(problems_dir: Path | None = None, ai_client: object = FROM_ENV) -
         level: int | None = Query(None, ge=1, le=5),
         category: str | None = None,
     ) -> list[dict]:
-        return store_of(request).list(level=level, category=category)
+        return [
+            {**p, "character_name": p["character"]["name"], "gender": p["character"]["gender"]}
+            for p in store_of(request).list(level=level, category=category)
+        ]
 
     @app.get("/problems/{problem_id}", response_model=ProblemPublic)
     def get_problem(request: Request, problem_id: str) -> ProblemPublic:

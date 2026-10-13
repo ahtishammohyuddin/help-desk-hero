@@ -6,7 +6,8 @@
   "character": {
     "name": "Ayesha",
     "department": "Reception",
-    "personality": "polite, anxious about computers"
+    "personality": "polite, anxious about computers",
+    "gender": "female"
   },
   "symptom": "User is confused by the technician's technical language",
   "user_description": "You said I need to 'check the cache and restart the daemon'. I'm sorry, I don't understand any of that.",

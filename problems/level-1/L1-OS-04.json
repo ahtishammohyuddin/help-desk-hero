@@ -6,7 +6,8 @@
   "character": {
     "name": "Saima",
     "department": "Reception",
-    "personality": "polite, not technical"
+    "personality": "polite, not technical",
+    "gender": "female"
   },
   "symptom": "Everything on screen looks stretched, blurry or too big",
   "user_description": "Since I plugged my laptop into the meeting room screen, everything looks huge and blurry. It's still like that at my desk.",

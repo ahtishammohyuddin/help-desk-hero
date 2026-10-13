@@ -6,7 +6,8 @@
   "character": {
     "name": "Asad",
     "department": "Admin",
-    "personality": "patient, practical"
+    "personality": "patient, practical",
+    "gender": "male"
   },
   "symptom": "Printer stopped with a paper jam message",
   "user_description": "The printer stopped halfway and says there's a paper jam. I can see some paper sticking out.",

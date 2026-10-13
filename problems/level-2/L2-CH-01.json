@@ -6,7 +6,8 @@
   "character": {
     "name": "Umair",
     "department": "Sales",
-    "personality": "demanding, under pressure"
+    "personality": "demanding, under pressure",
+    "gender": "male"
   },
   "symptom": "User demands his ticket is fixed before others",
   "user_description": "I need my problem fixed right now! I've been waiting an hour and my ticket should be at the top.",

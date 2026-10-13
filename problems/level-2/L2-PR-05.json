@@ -6,7 +6,8 @@
   "character": {
     "name": "Tahira",
     "department": "HR",
-    "personality": "puzzled, a bit embarrassed"
+    "personality": "puzzled, a bit embarrassed",
+    "gender": "female"
   },
   "symptom": "Pages come out of the printer completely blank",
   "user_description": "I printed a letter and a blank page came out. The printer sounded like it was working normally.",

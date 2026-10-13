@@ -6,7 +6,8 @@
   "character": {
     "name": "Danish",
     "department": "Design",
-    "personality": "keen, a bit pushy"
+    "personality": "keen, a bit pushy",
+    "gender": "male"
   },
   "symptom": "A user wants a new program installed",
   "user_description": "I found a great PDF editing tool online. Can you just install it on my laptop today? I don't have time to wait.",

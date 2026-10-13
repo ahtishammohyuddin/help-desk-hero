@@ -6,7 +6,8 @@
   "character": {
     "name": "Nargis",
     "department": "Finance",
-    "personality": "organised, a little impatient"
+    "personality": "organised, a little impatient",
+    "gender": "female"
   },
   "symptom": "Second monitor shows nothing and Windows does not see it",
   "user_description": "I plugged in the second monitor you gave me but it stays black. Windows doesn't seem to know it is there.",

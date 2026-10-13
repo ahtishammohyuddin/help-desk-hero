@@ -23,12 +23,15 @@ class ProblemSummary(BaseModel):
     level: int
     category: str
     title: str
+    character_name: str  # lets the game send the ticket to the matching employee
+    gender: str
 
 
 class Character(BaseModel):
     name: str
     department: str
     personality: str
+    gender: str
 
 
 class PublicOption(BaseModel):

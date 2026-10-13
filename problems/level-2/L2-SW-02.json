@@ -6,7 +6,8 @@
   "character": {
     "name": "Salar",
     "department": "Finance",
-    "personality": "polite, impatient"
+    "personality": "polite, impatient",
+    "gender": "male"
   },
   "symptom": "Installing approved software asks for an administrator password",
   "user_description": "I need to install the new reporting tool the company approved, but it keeps asking for an admin password.",

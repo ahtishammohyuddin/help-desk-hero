@@ -6,7 +6,8 @@
   "character": {
     "name": "Usman",
     "department": "Operations",
-    "personality": "polite, a bit confused"
+    "personality": "polite, a bit confused",
+    "gender": "male"
   },
   "symptom": "Monitor power light is on but shows No Signal",
   "user_description": "Someone moved my desk this morning. Now my monitor says 'No Signal' but the monitor light is on and the PC seems to be running.",

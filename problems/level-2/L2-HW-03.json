@@ -6,7 +6,8 @@
   "character": {
     "name": "Waqas",
     "department": "Operations",
-    "personality": "calm, tidy about cables"
+    "personality": "calm, tidy about cables",
+    "gender": "male"
   },
   "symptom": "Nothing connected to the docking station works",
   "user_description": "I put my laptop on the docking station like always, but the monitors, keyboard and mouse are all dead.",

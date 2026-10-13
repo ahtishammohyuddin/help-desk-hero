@@ -6,7 +6,8 @@
   "character": {
     "name": "Hafsa",
     "department": "Procurement",
-    "personality": "annoyed, almost missed a supplier quote"
+    "personality": "annoyed, almost missed a supplier quote",
+    "gender": "female"
   },
   "symptom": "A supplier's emails keep going to the Junk folder",
   "user_description": "A supplier we use every week keeps ending up in my Junk folder. I nearly missed their quote today.",

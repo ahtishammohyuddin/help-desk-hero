@@ -6,7 +6,8 @@
   "character": {
     "name": "Junaid",
     "department": "Field Sales",
-    "personality": "relaxed, always on the move"
+    "personality": "relaxed, always on the move",
+    "gender": "male"
   },
   "symptom": "Company phone does not charge when plugged in",
   "user_description": "I plug my work phone in overnight and the battery is still flat in the morning.",

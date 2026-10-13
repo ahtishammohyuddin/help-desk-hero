@@ -6,7 +6,8 @@
   "character": {
     "name": "Talha",
     "department": "Operations",
-    "personality": "friendly, pushes gently"
+    "personality": "friendly, pushes gently",
+    "gender": "male"
   },
   "symptom": "User asks for access to a restricted finance folder",
   "user_description": "I need access to the finance reports folder. My manager said it's fine. Can you just add me?",

@@ -6,7 +6,8 @@
   "character": {
     "name": "Danial",
     "department": "Project Office",
-    "personality": "calm, but missing meetings"
+    "personality": "calm, but missing meetings",
+    "gender": "male"
   },
   "symptom": "User never receives meeting invitations from a colleague",
   "user_description": "My manager says she's sent me three meeting invites but I haven't received any. I'm missing meetings!",

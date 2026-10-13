@@ -6,7 +6,8 @@
   "character": {
     "name": "Zoya",
     "department": "Marketing",
-    "personality": "excited about a new phone"
+    "personality": "excited about a new phone",
+    "gender": "female"
   },
   "symptom": "User has a new phone and wants her work email on it",
   "user_description": "I got a new phone. How do I get my work email onto it?",

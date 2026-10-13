@@ -6,7 +6,8 @@
   "character": {
     "name": "Maheen",
     "department": "Accounts",
-    "personality": "brief, in a hurry"
+    "personality": "brief, in a hurry",
+    "gender": "female"
   },
   "symptom": "A ticket just says 'it's broken' with no details",
   "user_description": "Ticket says: 'My computer is broken. Fix it.' That is the whole ticket.",

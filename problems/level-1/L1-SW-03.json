@@ -6,7 +6,8 @@
   "character": {
     "name": "Aiman",
     "department": "Marketing",
-    "personality": "chatty, keeps lots of tabs open"
+    "personality": "chatty, keeps lots of tabs open",
+    "gender": "female"
   },
   "symptom": "Web browser has become very slow",
   "user_description": "My browser is so slow, pages take forever to load. I always have loads of tabs open. Is the internet down?",

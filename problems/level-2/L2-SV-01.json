@@ -6,7 +6,8 @@
   "character": {
     "name": "Naveed",
     "department": "IT Operations",
-    "personality": "senior, busy, direct"
+    "personality": "senior, busy, direct",
+    "gender": "male"
   },
   "symptom": "A shared drive on the file server is nearly out of space",
   "user_description": "The finance share is at 97 percent. People are already getting save errors. Can you free some space quickly?",

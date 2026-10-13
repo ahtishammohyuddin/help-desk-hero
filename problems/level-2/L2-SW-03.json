@@ -6,7 +6,8 @@
   "character": {
     "name": "Hania",
     "department": "Admissions",
-    "personality": "slightly worried, not technical"
+    "personality": "slightly worried, not technical",
+    "gender": "female"
   },
   "symptom": "Pop-ups and a changed homepage appear in the browser",
   "user_description": "Ads keep popping up and my homepage has changed to something I've never seen. Did I get a virus?",

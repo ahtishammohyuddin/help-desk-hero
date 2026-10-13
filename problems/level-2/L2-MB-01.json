@@ -6,7 +6,8 @@
   "character": {
     "name": "Irfan",
     "department": "Sales",
-    "personality": "busy, always on the road"
+    "personality": "busy, always on the road",
+    "gender": "male"
   },
   "symptom": "Work email on the phone has stopped updating",
   "user_description": "My work email on my phone hasn't updated since yesterday. It works fine on my laptop.",

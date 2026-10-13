@@ -126,6 +126,48 @@ test('timers count down and an empty queue brings the next ticket closer', () =>
   assert.equal(q.update(8.5, PEOPLE, 1).length, 1); // would have waited 30s, capped to 8
 });
 
+// ---------- gender matching ----------
+
+const STAFF = [
+  { name: 'Ahmed', gender: 'male' }, { name: 'Imran', gender: 'male' },
+  { name: 'Sana', gender: 'female' }, { name: 'Nida', gender: 'female' },
+];
+const GENDERED = [
+  { id: 'F1', level: 1, category: 'Hardware', gender: 'female', character_name: 'Hira' },
+  { id: 'F2', level: 1, category: 'Hardware', gender: 'female', character_name: 'Nida' },
+  { id: 'M1', level: 1, category: 'Hardware', gender: 'male', character_name: 'Salman' },
+  { id: 'M2', level: 1, category: 'Hardware', gender: 'male', character_name: 'Usman' },
+];
+
+test('every ticket goes to an employee of the same gender as the problem character', () => {
+  for (let seed = 1; seed <= 30; seed++) {
+    const q = new TicketQueue({ rng: seeded(seed), firstDelay: 0, minGap: 0, maxGap: 0, maxOpen: 4 });
+    q.setPool(GENDERED);
+    for (let i = 0; i < 4; i++) q.update(0.01, STAFF, 1);
+    for (const t of q.open) {
+      const problem = GENDERED.find((p) => p.id === t.problemId);
+      const person = STAFF.find((e) => e.name === t.employee);
+      assert.equal(person.gender, problem.gender, `seed ${seed}: ${t.problemId} went to ${t.employee}`);
+    }
+  }
+});
+
+test("a character who works in the office reports their own problem", () => {
+  const q = new TicketQueue({ rng: seeded(5), firstDelay: 0, minGap: 0, maxGap: 0, maxOpen: 1 });
+  q.setPool([GENDERED[1]]); // F2 belongs to Nida
+  const [t] = q.update(0.01, STAFF, 1);
+  assert.equal(t.employee, 'Nida');
+});
+
+test('if only men are free, only male problems are handed out', () => {
+  const q = new TicketQueue({ rng: seeded(9), firstDelay: 0, minGap: 0, maxGap: 0, maxOpen: 5 });
+  q.setPool(GENDERED);
+  const men = STAFF.filter((e) => e.gender === 'male');
+  for (let i = 0; i < 5; i++) q.update(0.01, men, 1);
+  assert.equal(q.open.length, 2); // two men, two male problems
+  assert.ok(q.open.every((t) => t.problemId.startsWith('M')));
+});
+
 test('forEmployee finds the open ticket', () => {
   const q = new TicketQueue({ rng: seeded(), firstDelay: 0 });
   q.setPool(POOL);

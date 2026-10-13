@@ -6,7 +6,8 @@
   "character": {
     "name": "Ibrahim",
     "department": "IT Support",
-    "personality": "observant, conscientious"
+    "personality": "observant, conscientious",
+    "gender": "male"
   },
   "symptom": "A technician finds an unlocked PC with an open email in an empty office",
   "user_description": "I walked past an empty desk and the PC is unlocked with someone's email open on the screen. What should I do?",

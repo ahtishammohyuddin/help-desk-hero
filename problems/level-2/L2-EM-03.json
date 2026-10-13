@@ -6,7 +6,8 @@
   "character": {
     "name": "Saba",
     "department": "Admissions",
-    "personality": "organised, going on leave tomorrow"
+    "personality": "organised, going on leave tomorrow",
+    "gender": "female"
   },
   "symptom": "User wants an automatic out-of-office reply",
   "user_description": "I'm on leave from tomorrow for two weeks. How do I make Outlook tell people I'm away?",

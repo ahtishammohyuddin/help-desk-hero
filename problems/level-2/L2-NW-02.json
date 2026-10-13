@@ -6,7 +6,8 @@
   "character": {
     "name": "Shoaib",
     "department": "Finance",
-    "personality": "calm, needs reports for a meeting"
+    "personality": "calm, needs reports for a meeting",
+    "gender": "male"
   },
   "symptom": "Mapped shared drive shows a red cross and will not open",
   "user_description": "My S: drive has a red cross on it and says the network path can't be found. Yesterday it was fine.",

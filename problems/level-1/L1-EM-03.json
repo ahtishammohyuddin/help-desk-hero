@@ -6,7 +6,8 @@
   "character": {
     "name": "Tariq",
     "department": "Sales",
-    "personality": "busy, somewhat impatient"
+    "personality": "busy, somewhat impatient",
+    "gender": "male"
   },
   "symptom": "Email will not send because the attachment is too large",
   "user_description": "I'm trying to email a big presentation to a client and it keeps bouncing. How can I get it to them?",

@@ -6,7 +6,8 @@
   "character": {
     "name": "Imtiaz",
     "department": "Sales",
-    "personality": "easygoing, always travelling"
+    "personality": "easygoing, always travelling",
+    "gender": "male"
   },
   "symptom": "Laptop gets very hot, fan is loud, and it shuts itself off",
   "user_description": "My laptop gets really hot and the fan sounds like a jet engine. Then it just switches itself off in the middle of work.",

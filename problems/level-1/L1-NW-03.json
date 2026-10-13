@@ -6,7 +6,8 @@
   "character": {
     "name": "Kashif",
     "department": "Warehouse",
-    "personality": "practical, short on time"
+    "personality": "practical, short on time",
+    "gender": "male"
   },
   "symptom": "PC shows a 'network cable unplugged' message",
   "user_description": "My PC says 'network cable unplugged' and I've got no internet or shared drives.",

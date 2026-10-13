@@ -6,7 +6,8 @@
   "character": {
     "name": "Shazia",
     "department": "Legal",
-    "personality": "careful, quality-conscious"
+    "personality": "careful, quality-conscious",
+    "gender": "female"
   },
   "symptom": "Printouts have dark lines or streaks running down the page",
   "user_description": "Every page I print has ugly streaks running down it. It's a contract for a client, so I can't send this.",

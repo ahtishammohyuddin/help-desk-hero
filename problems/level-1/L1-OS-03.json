@@ -6,7 +6,8 @@
   "character": {
     "name": "Haris",
     "department": "Design",
-    "personality": "creative, disorganised"
+    "personality": "creative, disorganised",
+    "gender": "male"
   },
   "symptom": "Windows warns that the C: drive is almost full",
   "user_description": "I keep getting a message that my disk is almost full and my computer is getting slow. I have a lot of project files.",

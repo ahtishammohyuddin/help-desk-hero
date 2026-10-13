@@ -6,7 +6,8 @@
   "character": {
     "name": "Babar",
     "department": "Finance",
-    "personality": "practical, frustrated"
+    "personality": "practical, frustrated",
+    "gender": "male"
   },
   "symptom": "Printer's scan to email function stopped working",
   "user_description": "The scanner used to email my scans to me but since yesterday nothing arrives. The printer says it sent them.",

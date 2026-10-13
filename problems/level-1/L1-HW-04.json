@@ -6,7 +6,8 @@
   "character": {
     "name": "Farah",
     "department": "Finance",
-    "personality": "anxious, deadline pressure"
+    "personality": "anxious, deadline pressure",
+    "gender": "female"
   },
   "symptom": "No lights or fans when the power button is pressed",
   "user_description": "My computer is completely dead. I press the power button and nothing happens at all, no lights, no sound.",

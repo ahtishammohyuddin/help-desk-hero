@@ -6,7 +6,8 @@
   "character": {
     "name": "Sobia",
     "department": "Accounts",
-    "personality": "stressed, embarrassed"
+    "personality": "stressed, embarrassed",
+    "gender": "female"
   },
   "symptom": "User lost her phone and cannot approve sign-ins",
   "user_description": "I lost my phone and I need it to sign in. I can't get into anything and I have deadlines today.",

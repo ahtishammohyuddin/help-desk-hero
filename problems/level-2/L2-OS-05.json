@@ -6,7 +6,8 @@
   "character": {
     "name": "Adnan",
     "department": "Sales",
-    "personality": "confused, in a hurry"
+    "personality": "confused, in a hurry",
+    "gender": "male"
   },
   "symptom": "Websites show 'Your connection is not private' warnings",
   "user_description": "Every website is showing a scary warning about my connection not being private. Even the ones I use every day.",

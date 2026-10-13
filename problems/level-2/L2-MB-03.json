@@ -6,7 +6,8 @@
   "character": {
     "name": "Shaheer",
     "department": "Operations",
-    "personality": "practical, takes lots of photos"
+    "personality": "practical, takes lots of photos",
+    "gender": "male"
   },
   "symptom": "Phone says storage is full and apps stop working",
   "user_description": "My phone says storage is full. I can't take photos or update apps, and the email app is acting strange.",

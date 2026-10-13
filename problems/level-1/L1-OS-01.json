@@ -6,7 +6,8 @@
   "character": {
     "name": "Waleed",
     "department": "Finance",
-    "personality": "tired, a little annoyed"
+    "personality": "tired, a little annoyed",
+    "gender": "male"
   },
   "symptom": "PC has become very slow over the last few days",
   "user_description": "My computer is crawling today. Everything takes ages to open and I've got a report due. It was fine last week.",

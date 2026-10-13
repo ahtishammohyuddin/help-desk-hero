@@ -6,7 +6,8 @@
   "character": {
     "name": "Nimra",
     "department": "Sales",
-    "personality": "polite, anxious to start work"
+    "personality": "polite, anxious to start work",
+    "gender": "female"
   },
   "symptom": "Remote user's password has expired and she cannot sign in",
   "user_description": "I'm working from home and my password has expired. It won't let me sign in, and I can't come to the office.",

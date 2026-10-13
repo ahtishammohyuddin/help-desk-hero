@@ -36,6 +36,7 @@ CATEGORIES: dict[str, str] = {
 }
 
 LEVELS = (1, 2, 3, 4, 5)
+GENDERS = ("female", "male")
 MIN_OPTIONS = 3
 MAX_OPTIONS = 4
 ID_PATTERN = re.compile(r"^L([1-5])-([A-Z]{2})-(\d{2})$")
@@ -114,6 +115,9 @@ def validate_problem(problem: object) -> list[str]:
         for key in ("name", "department", "personality"):
             if not _is_nonempty_str(character.get(key)):
                 errors.append(f"character.{key} must be a non-empty string")
+        # Used to send the ticket to a matching employee (answer texts say "he"/"she").
+        if character.get("gender") not in GENDERS:
+            errors.append(f"character.gender must be one of {', '.join(GENDERS)}")
 
     # --- options ---
     options = problem["options"]

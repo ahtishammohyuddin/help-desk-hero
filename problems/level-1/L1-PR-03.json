@@ -6,7 +6,8 @@
   "character": {
     "name": "Maryam",
     "department": "Admissions",
-    "personality": "friendly, slightly impatient"
+    "personality": "friendly, slightly impatient",
+    "gender": "female"
   },
   "symptom": "Printouts are faint or fading",
   "user_description": "Everything I print is coming out very light and faded. Is the printer broken?",

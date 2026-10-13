@@ -6,7 +6,8 @@
   "character": {
     "name": "Faisal",
     "department": "Legal",
-    "personality": "calm, precise"
+    "personality": "calm, precise",
+    "gender": "male"
   },
   "symptom": "Outlook does not start or closes immediately",
   "user_description": "I click Outlook and it either does nothing or opens and disappears. I need to read an email from a client.",

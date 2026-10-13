@@ -6,7 +6,8 @@
   "character": {
     "name": "Sumaira",
     "department": "Finance",
-    "personality": "worried, stressed about a deadline"
+    "personality": "worried, stressed about a deadline",
+    "gender": "female"
   },
   "symptom": "A business application does not open",
   "user_description": "I double-click the program and nothing happens. It worked fine yesterday and I need it for month-end.",

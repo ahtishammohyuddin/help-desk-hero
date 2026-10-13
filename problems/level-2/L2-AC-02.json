@@ -6,7 +6,8 @@
   "character": {
     "name": "Hammad",
     "department": "Customer Service",
-    "personality": "helpful, a bit impatient"
+    "personality": "helpful, a bit impatient",
+    "gender": "male"
   },
   "symptom": "User wants access to the department's shared mailbox",
   "user_description": "I've joined the support team and need to see the shared support mailbox. Can you add me please?",

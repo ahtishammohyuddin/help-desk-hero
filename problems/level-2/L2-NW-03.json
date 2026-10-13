@@ -6,7 +6,8 @@
   "character": {
     "name": "Laiba",
     "department": "Marketing",
-    "personality": "curious, a little technical"
+    "personality": "curious, a little technical",
+    "gender": "female"
   },
   "symptom": "Websites will not open but Teams still works",
   "user_description": "Websites say they can't be found, but Teams and my email still work. Is the whole internet down?",

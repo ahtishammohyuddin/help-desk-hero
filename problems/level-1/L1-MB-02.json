@@ -6,7 +6,8 @@
   "character": {
     "name": "Bushra",
     "department": "Operations",
-    "personality": "patient, not very technical"
+    "personality": "patient, not very technical",
+    "gender": "female"
   },
   "symptom": "Phone cannot connect to office Wi-Fi",
   "user_description": "My phone won't connect to the office Wi-Fi, but it works fine on my home network.",

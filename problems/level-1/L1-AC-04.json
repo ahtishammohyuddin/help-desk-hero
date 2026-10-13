@@ -6,7 +6,8 @@
   "character": {
     "name": "Lubna",
     "department": "Marketing",
-    "personality": "polite, slightly flustered"
+    "personality": "polite, slightly flustered",
+    "gender": "female"
   },
   "symptom": "Login keeps failing with 'incorrect password'",
   "user_description": "It keeps saying my password is incorrect, but it's the same one I always use. I've tried twice already.",

@@ -6,7 +6,8 @@
   "character": {
     "name": "Salman",
     "department": "Sales",
-    "personality": "trusting, helpful"
+    "personality": "trusting, helpful",
+    "gender": "male"
   },
   "symptom": "User tries to give their password to the technician",
   "user_description": "My email isn't working. Here, let me write my password down so you can log in and sort it out for me.",

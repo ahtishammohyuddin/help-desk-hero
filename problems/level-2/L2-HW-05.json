@@ -6,7 +6,8 @@
   "character": {
     "name": "Owais",
     "department": "Support Centre",
-    "personality": "friendly, on calls all day"
+    "personality": "friendly, on calls all day",
+    "gender": "male"
   },
   "symptom": "Others cannot hear the user on calls, but he hears them",
   "user_description": "I can hear everyone on the call but they say they can't hear me at all.",

@@ -6,7 +6,8 @@
   "character": {
     "name": "Uzair",
     "department": "Facilities",
-    "personality": "curious, helpful"
+    "personality": "curious, helpful",
+    "gender": "male"
   },
   "symptom": "An employee found a USB stick in the car park and wants to find its owner",
   "user_description": "I found this USB stick in the car park. I'll plug it into my PC and see whose it is so I can give it back.",

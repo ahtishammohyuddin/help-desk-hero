@@ -6,7 +6,8 @@
   "character": {
     "name": "Moiz",
     "department": "Operations",
-    "personality": "puzzled, sees a pop-up"
+    "personality": "puzzled, sees a pop-up",
+    "gender": "male"
   },
   "symptom": "Windows warns of an IP address conflict and the network is unreliable",
   "user_description": "A message says there's an IP address conflict with another system on the network, and my connection keeps dropping.",

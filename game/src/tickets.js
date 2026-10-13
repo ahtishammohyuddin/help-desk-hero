@@ -80,8 +80,8 @@ function shuffle(items, rng) {
 
 /**
  * Hands out tickets over time.
- * - pool: problem summaries from the backend ({ id, level, category, title }).
- * - employees: people in the office ({ name }). Each can have one open ticket.
+ * - pool: problem summaries from the backend ({ id, level, category, title, character_name, gender }).
+ * - employees: people in the office ({ name, gender }). Each can have one open ticket.
  * Problems are not repeated until every allowed problem has been used.
  */
 export class TicketQueue {
@@ -122,8 +122,18 @@ export class TicketQueue {
     const free = employees.filter((e) => !busy.has(e.name));
     if (free.length === 0) return null;
 
-    const problem = this.#drawProblem(maxLevel);
+    // Only pick problems that a free employee can "own": answer texts say he/she,
+    // so a problem about a woman goes to a female employee and vice versa.
+    const freeGenders = new Set(free.map((e) => e.gender));
+    const fits = (p) => !p.gender || freeGenders.has(p.gender);
+    const problem = this.#drawProblem(maxLevel, fits);
     if (!problem) return null;
+
+    const matching = free.filter((e) => !problem.gender || e.gender === problem.gender);
+    // If the problem's character works in this office (same name), they report it themselves.
+    const owner =
+      matching.find((e) => e.name === problem.character_name) ??
+      matching[Math.floor(this.rng() * matching.length)];
 
     const priority = choosePriority(problem.category, this.rng);
     const ticket = {
@@ -134,31 +144,36 @@ export class TicketQueue {
       priority,
       sla: PRIORITIES[priority].sla,
       secondsLeft: PRIORITIES[priority].sla,
-      employee: free[Math.floor(this.rng() * free.length)].name,
+      employee: owner.name,
       hintsUsed: 0,
     };
     this.open.push(ticket);
     return ticket;
   }
 
-  #drawProblem(maxLevel) {
-    const allowed = this.pool.filter((p) => p.level <= maxLevel);
-    if (allowed.length === 0) return null;
+  /** Next problem from the shuffled deck that is allowed and fits(); refills the deck as needed. */
+  #drawProblem(maxLevel, fits = () => true) {
     const openIds = new Set(this.open.map((t) => t.problemId));
+    const allowed = (p) => p.level <= maxLevel && !openIds.has(p.id);
+    const ok = (p) => allowed(p) && fits(p);
 
-    // Refill the deck when it runs out, with problems not used yet in this cycle.
-    this.deck = this.deck.filter((p) => p.level <= maxLevel && !openIds.has(p.id));
-    if (this.deck.length === 0) {
-      let fresh = allowed.filter((p) => !this.used.has(p.id) && !openIds.has(p.id));
-      if (fresh.length === 0) {
-        this.used.clear(); // every problem seen: start a new cycle
-        fresh = allowed.filter((p) => !openIds.has(p.id));
+    this.deck = this.deck.filter(allowed);
+    let index = this.deck.findLastIndex(ok);
+    if (index === -1) {
+      const inDeck = new Set(this.deck.map((p) => p.id));
+      let fresh = this.pool.filter((p) => allowed(p) && !inDeck.has(p.id) && !this.used.has(p.id));
+      if (!fresh.some(fits)) {
+        this.used.clear(); // every fitting problem has been seen: start a new cycle
+        fresh = this.pool.filter((p) => allowed(p) && !inDeck.has(p.id));
       }
-      this.deck = shuffle(fresh, this.rng);
+      // New cards go underneath, so problems already in the deck come out first.
+      this.deck = [...shuffle(fresh, this.rng), ...this.deck];
+      index = this.deck.findLastIndex(ok);
+      if (index === -1) return null;
     }
-    const problem = this.deck.pop();
-    if (problem) this.used.add(problem.id);
-    return problem ?? null;
+    const [problem] = this.deck.splice(index, 1);
+    this.used.add(problem.id);
+    return problem;
   }
 
   /** Remove a ticket once it has been answered. */

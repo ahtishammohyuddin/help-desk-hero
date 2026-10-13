@@ -6,7 +6,8 @@
   "character": {
     "name": "Yasir",
     "department": "Warehouse",
-    "personality": "practical, not very technical"
+    "personality": "practical, not very technical",
+    "gender": "male"
   },
   "symptom": "Windows Update fails with a message about not enough disk space",
   "user_description": "Windows keeps saying it can't install updates because there isn't enough space. What does that mean?",

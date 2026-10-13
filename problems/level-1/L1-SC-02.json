@@ -6,7 +6,8 @@
   "character": {
     "name": "Hira",
     "department": "HR",
-    "personality": "unsure, a little worried"
+    "personality": "unsure, a little worried",
+    "gender": "female"
   },
   "symptom": "User received an urgent email asking her to verify her account via a link",
   "user_description": "I got an email saying my mailbox will be deleted in 24 hours unless I click a link to verify. Should I do it?",

@@ -6,7 +6,8 @@
   "character": {
     "name": "Fawad",
     "department": "Finance",
-    "personality": "calm, methodical"
+    "personality": "calm, methodical",
+    "gender": "male"
   },
   "symptom": "User can sign in to everything except one business application",
   "user_description": "Email, files, Teams, everything works. But the finance system keeps saying my login is wrong.",

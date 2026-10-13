@@ -6,7 +6,8 @@
   "character": {
     "name": "Arslan",
     "department": "Design",
-    "personality": "easygoing, notices the pattern"
+    "personality": "easygoing, notices the pattern",
+    "gender": "male"
   },
   "symptom": "Laptop disconnects from Wi-Fi every few minutes",
   "user_description": "My laptop keeps losing Wi-Fi every few minutes and then reconnects. My colleagues don't seem to have the problem.",

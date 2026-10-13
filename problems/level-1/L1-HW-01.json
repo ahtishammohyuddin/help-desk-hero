@@ -6,7 +6,8 @@
   "character": {
     "name": "Sana",
     "department": "HR",
-    "personality": "friendly, in a hurry"
+    "personality": "friendly, in a hurry",
+    "gender": "female"
   },
   "symptom": "Keyboard types nothing, but the mouse still works",
   "user_description": "Hi, my keyboard stopped working. I press keys and nothing appears, but my mouse is fine. I have to finish a letter!",

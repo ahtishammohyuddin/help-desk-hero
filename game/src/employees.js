@@ -10,19 +10,19 @@ const SOUTH = 0;
 const NORTH = Math.PI;
 
 export const EMPLOYEES = [
-  { name: 'Ahmed', department: 'Accounts', x: -9.1, z: -8.0, facing: EAST, shirt: 0x7d8c3c, hair: 0x2b1d14,
+  { name: 'Ahmed', gender: 'male', department: 'Accounts', x: -9.1, z: -8.0, facing: EAST, shirt: 0x7d8c3c, hair: 0x2b1d14,
     line: "Hi! Everything's fine right now. I'll call you if my screen acts up again." },
-  { name: 'Sana', department: 'HR', x: 4.1, z: -9.0, facing: WEST, shirt: 0xc4577a, hair: 0x1a1110,
+  { name: 'Sana', gender: 'female', department: 'HR', x: 4.1, z: -9.0, facing: WEST, shirt: 0xc4577a, hair: 0x1a1110,
     line: 'Oh hello! No problems today, touch wood. My keyboard has been behaving.' },
-  { name: 'Imran', department: 'Sales', x: -9.1, z: -1.0, facing: EAST, shirt: 0x4f9a6b, hair: 0x3a2a1c,
+  { name: 'Imran', gender: 'male', department: 'Sales', x: -9.1, z: -1.0, facing: EAST, shirt: 0x4f9a6b, hair: 0x3a2a1c,
     line: "All good here. Honestly I don't understand computers, so I'm glad you're around." },
-  { name: 'Farah', department: 'Finance', x: 4.1, z: -2.0, facing: WEST, shirt: 0x8a63c4, hair: 0x23160f,
+  { name: 'Farah', gender: 'female', department: 'Finance', x: 4.1, z: -2.0, facing: WEST, shirt: 0x8a63c4, hair: 0x23160f,
     line: "Month-end is coming, so please don't let anything break this week!" },
-  { name: 'Usman', department: 'Operations', x: -2.5, z: -5.0, facing: SOUTH, shirt: 0xd08a3a, hair: 0x15100c,
+  { name: 'Usman', gender: 'male', department: 'Operations', x: -2.5, z: -5.0, facing: SOUTH, shirt: 0xd08a3a, hair: 0x15100c,
     line: 'Someone moved the desks around again. Nothing broken yet though.' },
-  { name: 'Nida', department: 'Accounts', x: -15.5, z: -10.5, facing: NORTH, shirt: 0x3fa3a3, hair: 0x2a1a12,
+  { name: 'Nida', gender: 'female', department: 'Accounts', x: -15.5, z: -10.5, facing: NORTH, shirt: 0x3fa3a3, hair: 0x2a1a12,
     line: 'I print a lot of invoices. If this printer goes offline, you will hear from me.' },
-  { name: 'Saima', department: 'Reception', x: 13.3, z: 8.6, facing: SOUTH, shirt: 0xb84a4a, hair: 0x1d1310,
+  { name: 'Saima', gender: 'female', department: 'Reception', x: 13.3, z: 8.6, facing: SOUTH, shirt: 0xb84a4a, hair: 0x1d1310,
     line: 'Welcome! Let me know if you need anything. I can never find where files save.' },
 ];
 

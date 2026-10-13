@@ -6,7 +6,8 @@
   "character": {
     "name": "Hammad",
     "department": "Finance",
-    "personality": "alarmed, thinks his files are gone"
+    "personality": "alarmed, thinks his files are gone",
+    "gender": "male"
   },
   "symptom": "Windows says the user has been signed in with a temporary profile and his desktop looks empty",
   "user_description": "I logged in this morning and my desktop is empty and a message says I'm on a temporary profile. Where are all my files?",

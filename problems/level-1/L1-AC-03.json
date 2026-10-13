@@ -6,7 +6,8 @@
   "character": {
     "name": "Tahir",
     "department": "Facilities",
-    "personality": "helpful, a bit vague"
+    "personality": "helpful, a bit vague",
+    "gender": "male"
   },
   "symptom": "A new employee starts Monday and needs an account",
   "user_description": "We have a new colleague starting Monday. Can you set up everything they need? I'll let you know what later.",

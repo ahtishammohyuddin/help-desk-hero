@@ -38,6 +38,13 @@ export function maxLevelFor(xp) {
  */
 export const SECOND_TRY_XP = 0.5;
 
+/** Bonus for answering several tickets in a row right on the first try. */
+export function streakMultiplier(streak) {
+  if (streak >= 5) return 1.5;
+  if (streak >= 3) return 1.2;
+  return 1;
+}
+
 export function xpFor({ level, priority, correct, attempt = 1, hintsUsed = 0, secondsLeft, sla }) {
   if (!correct) return 0;
   let xp = 10 * level * PRIORITIES[priority].xp;

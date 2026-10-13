@@ -1,7 +1,7 @@
 // Run with: node --test game/tests/tickets.test.mjs
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { choosePriority, maxLevelFor, PRIORITIES, rankFor, TicketQueue, xpFor } from '../src/tickets.js';
+import { choosePriority, maxLevelFor, PRIORITIES, rankFor, streakMultiplier, TicketQueue, xpFor } from '../src/tickets.js';
 
 // Repeatable "random" numbers so tests always behave the same.
 function seeded(seed = 42) {
@@ -64,6 +64,10 @@ test('solving on the second try earns half XP', () => {
 test('each hint costs 25%, but never below a quarter', () => {
   assert.equal(xpFor({ ...base, level: 4, hintsUsed: 1 }), 30);
   assert.equal(xpFor({ ...base, level: 4, hintsUsed: 9 }), 10);
+});
+
+test('streak bonus starts at 3 in a row and grows at 5', () => {
+  assert.deepEqual([0, 1, 2, 3, 4, 5, 9].map(streakMultiplier), [1, 1, 1, 1.2, 1.2, 1.5, 1.5]);
 });
 
 // ---------- priorities ----------

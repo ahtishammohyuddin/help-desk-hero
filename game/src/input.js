@@ -8,12 +8,18 @@ const MOVE_KEYS = {
   ShiftLeft: 'run', ShiftRight: 'run',
 };
 
+function isTyping(e) {
+  const el = e.target;
+  return el instanceof HTMLElement && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable);
+}
+
 export class Input {
   constructor(target = window) {
     this.state = { forward: false, back: false, left: false, right: false, run: false };
     this.pressHandlers = new Map();
 
     target.addEventListener('keydown', (e) => {
+      if (isTyping(e)) return; // letters typed into a text box are not game controls
       const action = MOVE_KEYS[e.code];
       if (action) {
         this.state[action] = true;

@@ -31,6 +31,7 @@ python -m http.server 5173 --directory game       # terminal 2
 Open http://localhost:5173 . Tickets arrive in the queue with a priority (P1-P4) and an SLA timer.
 Walk to the employee with the "!" and press E. Answer with 1-4, H for a hint (costs XP).
 A wrong first answer gets an explanation and a free hint, then one more try for 50% XP.
+After answering, press Q to ask the senior tech up to 3 follow-up questions. First-try answers in a row build a streak (x1.2 XP at 3, x1.5 at 5).
 Move with WASD or the arrow keys, drag to rotate the camera, scroll to zoom, M toggles sound.
 (Opening `index.html` by double-clicking does not work: browsers only load JavaScript modules from a web server.)
 

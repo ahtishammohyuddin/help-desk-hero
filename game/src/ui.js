@@ -1,9 +1,11 @@
 // Everything drawn as HTML on top of the 3D view: status, ticket queue, ticket panel,
 // toasts and the start-up screen. Text from the server is always escaped before display.
 
-import { PRIORITIES, rankFor } from './tickets.js';
+import { PRIORITIES, rankFor, streakMultiplier } from './tickets.js';
 
 const $ = (id) => document.getElementById(id);
+
+export const MAX_QUESTIONS = 3; // senior tech questions per ticket (keeps AI use and cost low)
 
 export function esc(text) {
   return String(text ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
@@ -45,7 +47,10 @@ export function renderStatus(progress) {
     <div class="rank">${esc(rank.name)}</div>
     <div class="xpbar"><div style="width:${pct.toFixed(1)}%"></div></div>
     <div class="xptext">${progress.xp} XP${rank.next ? ` · ${rank.next.min - progress.xp} to ${esc(rank.next.name)}` : ' · top rank'}</div>
-    <div class="stats">Solved ${progress.solved}${accuracy === null ? '' : ` · First try ${accuracy}%`}</div>`;
+    <div class="stats">Solved ${progress.solved}${accuracy === null ? '' : ` · First try ${accuracy}%`}</div>
+    ${progress.streak >= 2
+      ? `<div class="streak">Streak ${progress.streak}${progress.streak >= 3 ? ` · XP ×${streakMultiplier(progress.streak)}` : ''}</div>`
+      : progress.bestStreak >= 3 ? `<div class="streak cold">Best streak ${progress.bestStreak}</div>` : ''}`;
 }
 
 // ---------- ticket queue ----------
@@ -87,8 +92,9 @@ export function renderTicketPanel(person, ticket, detail) {
     body = `<p class="tp-error">Could not load this ticket. Is the backend still running?</p>`;
     foot = '<kbd>R</kbd> retry · <kbd>E</kbd> close';
   } else if (detail.result) {
-    body = resultHtml(detail);
-    foot = '<kbd>E</kbd> close ticket';
+    body = resultHtml(detail) + seniorHtml(detail);
+    const left = MAX_QUESTIONS - detail.chat.filter((t) => t.role === 'junior').length;
+    foot = `${left > 0 ? '<kbd>Q</kbd> ask the senior tech · ' : ''}<kbd>E</kbd> close ticket`;
   } else {
     const p = detail.problem;
     const hints = detail.hints.map((h, i) => `<li><b>Hint ${i + 1}:</b> ${esc(h)}</li>`).join('');
@@ -119,12 +125,35 @@ export function renderTicketPanel(person, ticket, detail) {
   $('ticket').hidden = false;
 }
 
+function seniorHtml(detail) {
+  const asked = detail.chat.filter((t) => t.role === 'junior').length;
+  const left = MAX_QUESTIONS - asked;
+  const turns = detail.chat
+    .map((t) => {
+      if (t.role === 'junior') return `<div class="turn me">${esc(t.text)}</div>`;
+      // Fallback replies already say the senior tech is busy, so they get no "Senior tech:" label.
+      if (t.source === 'fallback') return `<div class="turn senior">${esc(t.text)}<span class="src">from the ticket notes</span></div>`;
+      return `<div class="turn senior"><b>Senior tech:</b> ${esc(t.text)}</div>`;
+    })
+    .join('');
+  const thinking = detail.asking ? '<div class="turn senior muted">Senior tech is typing<span class="dots"></span></div>' : '';
+  const form = left > 0
+    ? `<form id="ask-form" autocomplete="off">
+         <input id="ask-input" maxlength="300" placeholder="${asked ? 'Ask a follow-up...' : 'e.g. Why is that the first thing to check?'}" ${detail.asking ? 'disabled' : ''}>
+         <button type="submit" ${detail.asking ? 'disabled' : ''}>Ask</button>
+       </form>
+       <div class="senior-note">${left} question${left === 1 ? '' : 's'} left on this ticket</div>`
+    : '<div class="senior-note">That is all the senior tech has time for on this ticket.</div>';
+  return `<div class="senior"><div class="senior-title">Ask the senior tech</div>${turns}${thinking}${form}</div>`;
+}
+
 function resultHtml(detail) {
   const r = detail.result;
   const byId = (id) => r.explanations.find((e) => e.option_id === id);
   const chosen = byId(r.chosen_option_id);
   const correct = r.explanations.find((e) => e.correct);
-  const xp = r.xp > 0 ? ` <span class="xpgain">+${r.xp} XP</span>` : '';
+  const bonus = r.mult > 1 ? `<span class="mult">streak ×${r.mult}</span>` : '';
+  const xp = r.xp > 0 ? ` <span class="xpgain">+${r.xp} XP${bonus}</span>` : '';
   let verdict;
   if (r.is_correct && r.attempt === 1) verdict = `<div class="verdict good">Correct!${xp}</div>`;
   else if (r.is_correct) verdict = `<div class="verdict good">Fixed on the second try!${xp}</div>`;

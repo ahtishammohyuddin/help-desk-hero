@@ -271,3 +271,41 @@ kbd {
 .retry-t { font-weight: 800; color: #ff8787; margin-bottom: 2px; }
 .retry-sub { font-size: 13px; color: var(--muted); margin-top: 4px; }
 .verdict + .retry-sub { margin: -6px 0 10px; }
+
+/* ---------- senior tech chat ---------- */
+.senior { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--panel-border); }
+.senior-title { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+.turn { padding: 8px 11px; border-radius: 10px; margin-bottom: 6px; font-size: 14px; line-height: 1.5; }
+.turn.me { background: rgba(77, 171, 247, 0.16); margin-left: 15%; }
+.turn.senior { background: rgba(255, 255, 255, 0.06); margin-right: 8%; }
+.turn.muted { color: var(--muted); }
+.turn .src { display: block; font-size: 11px; color: var(--muted); margin-top: 3px; }
+#ask-form { display: flex; gap: 8px; margin-top: 4px; }
+#ask-input {
+  flex: 1;
+  min-width: 0;
+  padding: 9px 11px;
+  border: 1px solid var(--panel-border);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+  font: 14px var(--font);
+}
+#ask-input:focus { outline: 2px solid #4dabf7; outline-offset: 1px; }
+#ask-form button {
+  padding: 0 16px;
+  border: 0;
+  border-radius: 9px;
+  background: #4dabf7;
+  color: #0b1520;
+  font: 700 14px var(--font);
+  cursor: pointer;
+}
+#ask-form button:disabled, #ask-input:disabled { opacity: 0.5; cursor: wait; }
+.senior-note { font-size: 12px; color: var(--muted); margin-top: 6px; }
+
+/* ---------- streaks and confetti ---------- */
+.confetti { position: fixed; inset: 0; pointer-events: none; z-index: 50; }
+.streak { display: inline-block; margin-top: 6px; padding: 2px 8px; border-radius: 99px; font-size: 12px; font-weight: 800; color: #111; background: linear-gradient(90deg, #ffd43b, #ff922b); }
+.streak.cold { color: var(--muted); background: rgba(255, 255, 255, 0.08); font-weight: 600; }
+.mult { font-size: 12px; color: #ffa94d; margin-left: 4px; }

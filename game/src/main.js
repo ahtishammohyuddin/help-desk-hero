@@ -9,8 +9,9 @@ import { Input } from './input.js';
 import { nearestWithin } from './logic.js';
 import { buildOffice, PLAYER_START } from './office.js';
 import { createPlayer } from './player.js';
+import { confetti } from './confetti.js';
 import { sound } from './sound.js';
-import { maxLevelFor, PRIORITIES, rankFor, TicketQueue, xpFor } from './tickets.js';
+import { maxLevelFor, PRIORITIES, rankFor, streakMultiplier, TicketQueue, xpFor } from './tickets.js';
 import * as ui from './ui.js';
 
 const TALK_RADIUS = 1.8; // how close you must be to talk to someone
@@ -25,12 +26,15 @@ function loadProgress() {
   try {
     const saved = JSON.parse(localStorage.getItem(SAVE_KEY));
     if (saved && Number.isFinite(saved.xp)) {
-      return { xp: saved.xp, solved: saved.solved || 0, attempts: saved.attempts || 0, firstTry: saved.firstTry || 0 };
+      return {
+        xp: saved.xp, solved: saved.solved || 0, attempts: saved.attempts || 0, firstTry: saved.firstTry || 0,
+        streak: saved.streak || 0, bestStreak: saved.bestStreak || 0,
+      };
     }
   } catch {
     /* no saved data or storage blocked */
   }
-  return { xp: 0, solved: 0, attempts: 0, firstTry: 0 };
+  return { xp: 0, solved: 0, attempts: 0, firstTry: 0, streak: 0, bestStreak: 0 };
 }
 function saveProgress(progress) {
   try {
@@ -143,6 +147,8 @@ function start() {
       state: 'loading', hints: [], problem: null, description: '', result: null, answering: false,
       attempt: 1, // which try is next (1 or 2)
       wrong: [], // wrong tries so far: { id, why }
+      chat: [], // senior tech conversation: { role: 'junior' | 'senior', text, source }
+      asking: false,
     };
     details.set(ticket.number, detail);
     Promise.all([api.getProblem(ticket.problemId), api.rephrase(ticket.problemId).catch(() => null)])
@@ -185,7 +191,7 @@ function start() {
         return;
       }
 
-      const xp = xpFor({
+      const baseXp = xpFor({
         level: ticket.level,
         priority: ticket.priority,
         correct: result.is_correct,
@@ -194,13 +200,20 @@ function start() {
         secondsLeft: ticket.secondsLeft,
         sla: ticket.sla,
       });
+      // Streak: tickets in a row solved on the first try. A mistake resets it.
+      const firstTryWin = result.is_correct && result.attempt === 1;
+      progress.streak = firstTryWin ? progress.streak + 1 : 0;
+      progress.bestStreak = Math.max(progress.bestStreak, progress.streak);
+      const mult = firstTryWin ? streakMultiplier(progress.streak) : 1;
+      const xp = Math.round(baseXp * mult);
+
       const before = rankFor(progress.xp);
       progress.xp += xp;
       progress.attempts += 1;
       if (result.is_correct) progress.solved += 1;
       if (result.is_correct && result.attempt === 1) progress.firstTry += 1;
       saveProgress(progress);
-      detail.result = { ...result, xp };
+      detail.result = { ...result, xp, mult };
 
       queue.close(ticket.number);
       byName.get(ticket.employee).marker.visible = false;
@@ -212,9 +225,13 @@ function start() {
       } else {
         sound.wrong();
       }
+      if (firstTryWin && [3, 5, 10, 15, 20].includes(progress.streak)) {
+        ui.toast(`<b>${progress.streak} in a row!</b> First-try answers now earn ×${mult} XP.`, 'big');
+      }
       const after = rankFor(progress.xp);
       if (after.index > before.index) {
         setTimeout(() => sound.rankUp(), 500);
+        setTimeout(() => confetti(), 300);
         const unlocked = queue.pool.some((p) => p.level === maxLevelFor(progress.xp));
         ui.toast(`Promoted to <b>${ui.esc(after.name)}</b>!${unlocked ? ' Harder tickets unlocked.' : ''}`, 'big');
       }
@@ -241,6 +258,47 @@ function start() {
       /* hint failed: the player can try again */
     }
   }
+
+  // ---------- ask the senior tech (after a ticket is answered) ----------
+  async function askSenior(question) {
+    if (!activeTicket) return;
+    const ticket = activeTicket;
+    const detail = details.get(ticket.number);
+    const asked = detail.chat.filter((t) => t.role === 'junior').length;
+    if (!detail.result || detail.asking || asked >= ui.MAX_QUESTIONS) return;
+
+    // Earlier turns go along so follow-up questions make sense (the backend keeps the last 6).
+    const history = detail.chat.slice(-6).map((t) => ({ role: t.role, text: t.text.slice(0, 700) }));
+    detail.chat.push({ role: 'junior', text: question });
+    detail.asking = true;
+    refreshTicketPanel();
+    try {
+      const reply = await api.ask(ticket.problemId, question, history);
+      detail.chat.push({ role: 'senior', text: reply.answer, source: reply.source });
+    } catch {
+      detail.chat.pop(); // not counted: the question never reached the senior tech
+      ui.toast('Could not reach the senior tech. Check the backend and try again.');
+    } finally {
+      detail.asking = false;
+      refreshTicketPanel();
+      focusAskBox();
+    }
+  }
+
+  function focusAskBox() {
+    // After the key press finishes, so the "q" is not typed into the box.
+    setTimeout(() => document.getElementById('ask-input')?.focus(), 0);
+  }
+
+  $('ticket').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const box = document.getElementById('ask-input');
+    const question = box?.value.trim() ?? '';
+    if (question.length >= 2) askSenior(question);
+  });
+  $('ticket').addEventListener('keydown', (e) => {
+    if (e.target.id === 'ask-input' && e.key === 'Escape') e.target.blur(); // back to game keys
+  });
 
   // ---------- talking ----------
   function openConversation(person) {
@@ -278,6 +336,9 @@ function start() {
   });
   input.onPress('Escape', closeConversation);
   input.onPress('KeyH', takeHint);
+  input.onPress('KeyQ', () => {
+    if (activeTicket && details.get(activeTicket.number)?.result) focusAskBox();
+  });
   input.onPress('KeyR', () => {
     const detail = activeTicket && details.get(activeTicket.number);
     if (detail?.state === 'error') {

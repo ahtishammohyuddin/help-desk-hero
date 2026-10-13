@@ -1,11 +1,15 @@
-// Everything drawn as HTML on top of the 3D view: status, ticket queue, ticket panel,
-// toasts and the start-up screen. Text from the server is always escaped before display.
+// Everything drawn as HTML on top of the 3D view: player card, ticket list, ticket window,
+// messages, the welcome card and the start-up screen.
+// Text from the server is always escaped before display.
 
 import { PRIORITIES, rankFor, streakMultiplier } from './tickets.js';
 
 const $ = (id) => document.getElementById(id);
 
 export const MAX_QUESTIONS = 3; // senior tech questions per ticket (keeps AI use and cost low)
+
+// Plain words for priorities, so beginners don't need to know what "P2" means.
+const PRIORITY_WORDS = { P1: 'Urgent', P2: 'High', P3: 'Normal', P4: 'Low' };
 
 export function esc(text) {
   return String(text ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
@@ -16,9 +20,19 @@ export function formatTime(seconds) {
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 }
 
-function priorityBadge(priority) {
-  return `<span class="pri" style="--pri:${PRIORITIES[priority].color}">${priority}</span>`;
+export function priorityBadge(priority) {
+  return `<span class="chip" style="--c:${PRIORITIES[priority].color}">${PRIORITY_WORDS[priority]}</span>`;
 }
+
+function hex(color) {
+  return `#${color.toString(16).padStart(6, '0')}`;
+}
+
+function avatar(person, size = '') {
+  return `<span class="avatar ${size}" style="--c:${hex(person.shirt)}" aria-hidden="true">${esc(person.name[0])}</span>`;
+}
+
+const key = (k) => `<kbd>${k}</kbd>`;
 
 // ---------- start-up screen ----------
 
@@ -35,116 +49,124 @@ export function hideBoot() {
   $('boot').hidden = true;
 }
 
-// ---------- status card ----------
+// ---------- welcome / how to play ----------
+
+export function showHelp(firstTime) {
+  $('help-start').textContent = firstTime ? 'Start my shift' : 'Back to work';
+  $('help').hidden = false;
+  setTimeout(() => $('help-start').focus(), 0);
+}
+
+export function hideHelp() {
+  $('help').hidden = true;
+}
+
+// ---------- player card ----------
 
 export function renderStatus(progress) {
   const rank = rankFor(progress.xp);
-  const from = rank.min;
-  const to = rank.next ? rank.next.min : rank.min;
-  const pct = rank.next ? ((progress.xp - from) / (to - from)) * 100 : 100;
-  const accuracy = progress.attempts ? Math.round((progress.firstTry / progress.attempts) * 100) : null;
+  const pct = rank.next ? ((progress.xp - rank.min) / (rank.next.min - rank.min)) * 100 : 100;
+  const firstTry = progress.attempts ? Math.round((progress.firstTry / progress.attempts) * 100) : null;
+  const streak =
+    progress.streak >= 2
+      ? `<div class="streak">${progress.streak} in a row${progress.streak >= 3 ? `, bonus ×${streakMultiplier(progress.streak)} XP` : ''}</div>`
+      : '';
   $('status').innerHTML = `
-    <div class="rank">${esc(rank.name)}</div>
-    <div class="xpbar"><div style="width:${pct.toFixed(1)}%"></div></div>
-    <div class="xptext">${progress.xp} XP${rank.next ? ` · ${rank.next.min - progress.xp} to ${esc(rank.next.name)}` : ' · top rank'}</div>
-    <div class="stats">Solved ${progress.solved}${accuracy === null ? '' : ` · First try ${accuracy}%`}</div>
-    ${progress.streak >= 2
-      ? `<div class="streak">Streak ${progress.streak}${progress.streak >= 3 ? ` · XP ×${streakMultiplier(progress.streak)}` : ''}</div>`
-      : progress.bestStreak >= 3 ? `<div class="streak cold">Best streak ${progress.bestStreak}</div>` : ''}`;
+    <div class="rank-row"><span class="rank">${esc(rank.name)}</span><span class="xp">${progress.xp} XP</span></div>
+    <div class="bar" role="progressbar" aria-valuenow="${Math.round(pct)}" aria-valuemin="0" aria-valuemax="100"><div style="width:${pct.toFixed(1)}%"></div></div>
+    <div class="small">${rank.next ? `${rank.next.min - progress.xp} XP until ${esc(rank.next.name)}` : 'You reached the top rank'}</div>
+    <div class="small">${progress.solved} solved${firstTry === null ? '' : `, ${firstTry}% right first time`}</div>
+    ${streak}`;
 }
 
-// ---------- ticket queue ----------
+// ---------- ticket list ----------
 
-export function renderQueue(tickets) {
+export function renderQueue(tickets, people) {
   if (tickets.length === 0) {
-    $('queue').innerHTML = '<div class="empty">No open tickets. Enjoy your tea while it lasts.</div>';
+    $('queue').innerHTML = '<p class="empty">No one needs help right now. New requests will appear here.</p>';
     return;
   }
   $('queue').innerHTML = tickets
     .map((t) => {
+      const person = people.get(t.employee);
       const pct = Math.max(0, (t.secondsLeft / t.sla) * 100);
-      const breached = t.secondsLeft <= 0;
-      return `<div class="qitem${breached ? ' breached' : ''}">
-        <div class="qtop">${priorityBadge(t.priority)}<b>${esc(t.employee)}</b><span class="qnum">#${t.number}</span></div>
-        <div class="qcat">${esc(t.category)}</div>
-        <div class="qbar"><div style="width:${pct}%;background:${PRIORITIES[t.priority].color}"></div></div>
-        <div class="qtime">${breached ? 'SLA BREACHED' : formatTime(t.secondsLeft) + ' left'}</div>
+      const late = t.secondsLeft <= 0;
+      return `<div class="qitem${late ? ' late' : ''}">
+        ${avatar(person)}
+        <div class="qmain">
+          <div class="qtop"><b>${esc(t.employee)}</b>${priorityBadge(t.priority)}</div>
+          <div class="small">${esc(t.category)}</div>
+          <div class="bar thin"><div style="width:${pct}%;background:${PRIORITIES[t.priority].color}"></div></div>
+          <div class="small ${late ? 'late-text' : ''}">${late ? 'Overdue: help them soon' : `${formatTime(t.secondsLeft)} left`}</div>
+        </div>
       </div>`;
     })
     .join('');
 }
 
-// ---------- ticket panel ----------
+// ---------- ticket window ----------
 
 export function renderTicketPanel(person, ticket, detail) {
   const head = `
-    <div class="tp-head">
-      <div><div class="tp-name">${esc(person.name)}</div><div class="tp-dept">${esc(person.department)} · Ticket #${ticket.number}</div></div>
-      <div class="tp-right">${priorityBadge(ticket.priority)}<span id="tp-timer" class="tp-timer"></span></div>
-    </div>`;
+    <header class="tp-head">
+      ${avatar(person, 'big')}
+      <div class="tp-who"><div class="tp-name">${esc(person.name)}</div><div class="small">${esc(person.department)}, ticket ${ticket.number}</div></div>
+      <div class="tp-meta">${priorityBadge(ticket.priority)}<span id="tp-timer" class="timer"></span></div>
+    </header>`;
 
   let body = '';
-  let foot = '<kbd>E</kbd> close and come back later';
+  let actions = '';
 
   if (detail.state === 'loading') {
-    body = `<p class="tp-quote muted">${esc(person.name)} is explaining the problem<span class="dots"></span></p>`;
+    body = `<div class="bubble muted">${esc(person.name)} is describing the problem<span class="dots"></span></div>`;
+    actions = `<button class="btn ghost" data-action="later">Come back later ${key('E')}</button>`;
   } else if (detail.state === 'error') {
-    body = `<p class="tp-error">Could not load this ticket. Is the backend still running?</p>`;
-    foot = '<kbd>R</kbd> retry · <kbd>E</kbd> close';
+    body = `<p class="notice bad">This ticket could not load. Check that the backend is still running, then try again.</p>`;
+    actions = `<button class="btn" data-action="retry">Try again ${key('R')}</button><button class="btn ghost" data-action="later">Close ${key('E')}</button>`;
   } else if (detail.result) {
     body = resultHtml(detail) + seniorHtml(detail);
-    const left = MAX_QUESTIONS - detail.chat.filter((t) => t.role === 'junior').length;
-    foot = `${left > 0 ? '<kbd>Q</kbd> ask the senior tech · ' : ''}<kbd>E</kbd> close ticket`;
+    const asked = detail.chat.filter((t) => t.role === 'junior').length;
+    const canAsk = !detail.chatOpen && asked < MAX_QUESTIONS;
+    actions = `${canAsk ? `<button class="btn ghost" data-action="ask">Ask the senior tech ${key('Q')}</button>` : ''}
+      <button class="btn" data-action="close">Close ticket ${key('E')}</button>`;
   } else {
+    body = questionHtml(person, detail);
     const p = detail.problem;
-    const hints = detail.hints.map((h, i) => `<li><b>Hint ${i + 1}:</b> ${esc(h)}</li>`).join('');
-    const ruledOut = new Set(detail.wrong.map((w) => w.id));
-    const options = p.options
-      .map((o, i) => {
-        const out = ruledOut.has(o.id);
-        return `<button class="opt${out ? ' out' : ''}" data-index="${i}" ${detail.answering || out ? 'disabled' : ''}><kbd>${i + 1}</kbd>${esc(o.text)}</button>`;
-      })
-      .join('');
-    const lastWrong = detail.wrong[detail.wrong.length - 1];
-    const retry = lastWrong
-      ? `<div class="retry"><div class="retry-t">Not quite.</div><div>${esc(lastWrong.why)}</div>
-         <div class="retry-sub">Read the hint and try once more. Fixing it now still earns 50% XP.</div></div>`
-      : '';
-    body = `
-      <p class="tp-quote">"${esc(detail.description)}"</p>
-      ${retry}
-      ${hints ? `<ul class="tp-hints">${hints}</ul>` : ''}
-      <div class="tp-ask">${lastWrong ? 'Second try: what do you do?' : 'What do you do?'}</div>
-      <div class="opts">${options}</div>`;
     const hintsLeft = p.hint_count - detail.hints.length;
-    foot = `${hintsLeft > 0 ? `<kbd>H</kbd> hint (${hintsLeft} left, costs XP) · ` : ''}<kbd>1</kbd>-<kbd>${p.options.length}</kbd> answer · <kbd>E</kbd> later`;
-    if (detail.answerError) foot = `<span class="tp-error">Could not send your answer. Try again.</span> · ${foot}`;
+    actions = `${hintsLeft > 0 ? `<button class="btn ghost" data-action="hint">Get a hint, costs 25% XP ${key('H')}</button>` : ''}
+      <button class="btn ghost" data-action="later">Come back later ${key('E')}</button>`;
   }
 
-  $('ticket').innerHTML = `${head}<div class="tp-body">${body}</div><div class="tp-foot">${foot}</div>`;
-  $('ticket').hidden = false;
+  const sheet = $('ticket');
+  const wasOpen = !sheet.hidden;
+  sheet.innerHTML = `${head}<div class="tp-body">${body}</div><footer class="tp-actions">${actions}</footer>`;
+  sheet.hidden = false;
+  // Newest chat message in view; otherwise start at the top when the window first opens.
+  if (detail.result && detail.chatOpen) sheet.scrollTop = sheet.scrollHeight;
+  else if (!wasOpen) sheet.scrollTop = 0;
 }
 
-function seniorHtml(detail) {
-  const asked = detail.chat.filter((t) => t.role === 'junior').length;
-  const left = MAX_QUESTIONS - asked;
-  const turns = detail.chat
-    .map((t) => {
-      if (t.role === 'junior') return `<div class="turn me">${esc(t.text)}</div>`;
-      // Fallback replies already say the senior tech is busy, so they get no "Senior tech:" label.
-      if (t.source === 'fallback') return `<div class="turn senior">${esc(t.text)}<span class="src">from the ticket notes</span></div>`;
-      return `<div class="turn senior"><b>Senior tech:</b> ${esc(t.text)}</div>`;
+function questionHtml(person, detail) {
+  const p = detail.problem;
+  const ruledOut = new Set(detail.wrong.map((w) => w.id));
+  const lastWrong = detail.wrong[detail.wrong.length - 1];
+  const options = p.options
+    .map((o, i) => {
+      const out = ruledOut.has(o.id);
+      return `<button class="opt${out ? ' out' : ''}" data-index="${i}" ${detail.answering || out ? 'disabled' : ''}>
+        <span class="num">${i + 1}</span><span>${esc(o.text)}</span></button>`;
     })
     .join('');
-  const thinking = detail.asking ? '<div class="turn senior muted">Senior tech is typing<span class="dots"></span></div>' : '';
-  const form = left > 0
-    ? `<form id="ask-form" autocomplete="off">
-         <input id="ask-input" maxlength="300" placeholder="${asked ? 'Ask a follow-up...' : 'e.g. Why is that the first thing to check?'}" ${detail.asking ? 'disabled' : ''}>
-         <button type="submit" ${detail.asking ? 'disabled' : ''}>Ask</button>
-       </form>
-       <div class="senior-note">${left} question${left === 1 ? '' : 's'} left on this ticket</div>`
-    : '<div class="senior-note">That is all the senior tech has time for on this ticket.</div>';
-  return `<div class="senior"><div class="senior-title">Ask the senior tech</div>${turns}${thinking}${form}</div>`;
+  const retry = lastWrong
+    ? `<div class="notice warn"><b>Not quite.</b> ${esc(lastWrong.why)}<br>Try once more. A right answer now still earns half the XP.</div>`
+    : '';
+  const hints = detail.hints.map((h) => `<div class="hint"><b>Hint:</b> ${esc(h)}</div>`).join('');
+  return `
+    <div class="bubble">${esc(detail.description)}</div>
+    ${retry}${hints}
+    <h3 class="ask">${lastWrong ? 'Which fix would you try instead?' : 'What would you do first?'}</h3>
+    <div class="opts">${options}</div>
+    ${detail.answerError ? '<p class="notice bad">Your answer did not reach the server. Pick it again.</p>' : ''}`;
 }
 
 function resultHtml(detail) {
@@ -152,37 +174,53 @@ function resultHtml(detail) {
   const byId = (id) => r.explanations.find((e) => e.option_id === id);
   const chosen = byId(r.chosen_option_id);
   const correct = r.explanations.find((e) => e.correct);
-  const bonus = r.mult > 1 ? `<span class="mult">streak ×${r.mult}</span>` : '';
-  const xp = r.xp > 0 ? ` <span class="xpgain">+${r.xp} XP${bonus}</span>` : '';
-  let verdict;
-  if (r.is_correct && r.attempt === 1) verdict = `<div class="verdict good">Correct!${xp}</div>`;
-  else if (r.is_correct) verdict = `<div class="verdict good">Fixed on the second try!${xp}</div>`;
-  else verdict = `<div class="verdict bad">Not solved this time.</div><div class="retry-sub">Here is what a senior tech would do, so you know it next time.</div>`;
+  const bonus = r.mult > 1 ? ` (streak bonus ×${r.mult})` : '';
 
-  // Show the mistakes first, then the fix, so the player sees what changed.
-  const mistakes = detail.wrong
-    .map((w, i) => {
-      const e = byId(w.id);
-      return `<div class="expl bad"><div class="expl-t">${detail.wrong.length > 1 ? `Try ${i + 1}` : 'First try'}: ${esc(e.text)}</div><div>${esc(e.why)}</div></div>`;
+  let banner;
+  if (r.is_correct && r.attempt === 1) banner = `<div class="banner good"><span class="icon">✓</span><div><b>Solved!</b> +${r.xp} XP${bonus}</div></div>`;
+  else if (r.is_correct) banner = `<div class="banner good"><span class="icon">✓</span><div><b>Solved on your second try.</b> +${r.xp} XP</div></div>`;
+  else banner = `<div class="banner bad"><span class="icon">✕</span><div><b>Not solved this time.</b> Here is what a senior tech would do.</div></div>`;
+
+  const card = (cls, title, text) => `<div class="expl ${cls}"><div class="expl-t">${title}</div><p>${esc(text)}</p></div>`;
+  const parts = [banner];
+  detail.wrong.forEach((w) => {
+    const e = byId(w.id);
+    parts.push(card('bad', `Why "${esc(e.text)}" didn't work`, e.why));
+  });
+  if (!r.is_correct) parts.push(card('bad', `Why "${esc(chosen.text)}" didn't work`, chosen.why));
+  parts.push(card('good', `The right fix: ${esc(correct.text)}`, correct.why));
+  if (r.real_world_tip) parts.push(`<div class="tip"><b>From real help desks:</b> ${esc(r.real_world_tip)}</div>`);
+  return parts.join('');
+}
+
+function seniorHtml(detail) {
+  if (!detail.chatOpen && detail.chat.length === 0) return '';
+  const asked = detail.chat.filter((t) => t.role === 'junior').length;
+  const left = MAX_QUESTIONS - asked;
+  const turns = detail.chat
+    .map((t) => {
+      if (t.role === 'junior') return `<div class="turn me">${esc(t.text)}</div>`;
+      const note = t.source === 'fallback' ? '<span class="src">The senior tech is busy, so this comes from the ticket notes.</span>' : '';
+      return `<div class="turn senior">${esc(t.source === 'fallback' ? t.text.replace(/^The senior tech is busy right now, but here's what the ticket notes say: /, '') : t.text)}${note}</div>`;
     })
     .join('');
-  const last = r.is_correct
-    ? ''
-    : `<div class="expl bad"><div class="expl-t">Second try: ${esc(chosen.text)}</div><div>${esc(chosen.why)}</div></div>`;
-  const yours = r.is_correct
-    ? `<div class="expl good"><div class="expl-t">${r.attempt === 1 ? 'Your choice' : 'Your fix'}: ${esc(chosen.text)}</div><div>${esc(chosen.why)}</div></div>`
-    : '';
-  const right = r.is_correct
-    ? ''
-    : `<div class="expl good"><div class="expl-t">Best answer: ${esc(correct.text)}</div><div>${esc(correct.why)}</div></div>`;
-  const tip = r.real_world_tip ? `<div class="tip"><b>From the field:</b> ${esc(r.real_world_tip)}</div>` : '';
-  return verdict + mistakes + last + yours + right + tip;
+  const thinking = detail.asking ? '<div class="turn senior muted">Typing<span class="dots"></span></div>' : '';
+  const form =
+    left > 0
+      ? `<form id="ask-form" autocomplete="off">
+           <input id="ask-input" maxlength="300" aria-label="Your question for the senior tech"
+             placeholder="${asked ? 'Ask a follow-up question' : 'For example: why is that the first thing to check?'}" ${detail.asking ? 'disabled' : ''}>
+           <button type="submit" class="btn" ${detail.asking ? 'disabled' : ''}>Send</button>
+         </form>
+         <div class="small">${left} question${left === 1 ? '' : 's'} left for this ticket. Press Esc to stop typing.</div>`
+      : '<div class="small">The senior tech has answered 3 questions on this ticket.</div>';
+  return `<section class="senior"><h3>Senior tech</h3>${turns}${thinking}${form}</section>`;
 }
 
 export function updateTicketTimer(ticket, closed = false) {
   const el = $('tp-timer');
   if (!el) return;
-  el.textContent = closed ? 'CLOSED' : ticket.secondsLeft <= 0 ? 'BREACHED' : formatTime(ticket.secondsLeft);
+  el.textContent = closed ? 'Closed' : ticket.secondsLeft <= 0 ? 'Overdue' : formatTime(ticket.secondsLeft);
   el.classList.toggle('late', !closed && ticket.secondsLeft <= 0);
 }
 
@@ -191,15 +229,16 @@ export function hideTicketPanel() {
   $('ticket').innerHTML = '';
 }
 
-// ---------- toasts and XP pop-ups ----------
+// ---------- messages and XP pop-ups ----------
 
 export function toast(html, kind = '') {
   const el = document.createElement('div');
   el.className = `toast ${kind}`;
   el.innerHTML = html;
   $('toasts').appendChild(el);
-  setTimeout(() => el.classList.add('out'), 3600);
-  setTimeout(() => el.remove(), 4200);
+  while ($('toasts').children.length > 3) $('toasts').firstElementChild.remove(); // keep the screen calm
+  setTimeout(() => el.classList.add('out'), 3800);
+  setTimeout(() => el.remove(), 4300);
 }
 
 export function xpPop(amount) {
@@ -209,5 +248,3 @@ export function xpPop(amount) {
   $('status').appendChild(el);
   setTimeout(() => el.remove(), 1400);
 }
-
-export { priorityBadge };

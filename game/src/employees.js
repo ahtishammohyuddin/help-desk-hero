@@ -42,7 +42,7 @@ export function createEmployees(scene, colliders, labelLayer) {
 
     const label = document.createElement('div');
     label.className = 'label';
-    label.innerHTML = `${data.name}<small>${data.department}</small>`;
+    label.innerHTML = `<div class="row">${data.name}</div>`;
     label.hidden = true;
     labelLayer.appendChild(label);
 

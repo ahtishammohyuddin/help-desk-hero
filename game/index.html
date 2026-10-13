@@ -4,6 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Help Desk Hero</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   <!-- Import map: lets our code write `import * as THREE from 'three'`
        and the browser fetches Three.js from a free CDN. No install or build step. -->
@@ -12,54 +15,69 @@
   </script>
 </head>
 <body>
-  <div id="hud">
-    <div class="title">Help Desk Hero</div>
-    <div class="controls">
-      <span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move</span>
-      <span><kbd>Shift</kbd> walk faster</span>
-      <span><kbd>Drag</kbd> rotate camera</span>
-      <span><kbd>Wheel</kbd> zoom</span>
-      <span><kbd>E</kbd> talk</span>
-      <span><kbd>M</kbd> sound</span>
-    </div>
+  <div id="brand">
+    <span class="brand-name">Help Desk Hero</span>
+    <button id="help-btn" class="icon-btn" aria-label="How to play" title="How to play">?</button>
+    <button id="sound-btn" class="icon-btn" aria-label="Sound on or off" title="Sound on or off (M)">♪</button>
   </div>
 
-  <div id="side">
+  <aside id="side">
     <div id="status" class="card"></div>
-    <div class="card">
-      <div class="card-title">Ticket queue</div>
+    <section class="card">
+      <h2 class="card-title">Who needs help</h2>
       <div id="queue"></div>
-    </div>
-  </div>
-  <div id="toasts"></div>
+    </section>
+  </aside>
 
+  <div id="toasts" aria-live="polite"></div>
   <div id="labels"></div>
   <div id="prompt" hidden></div>
 
-  <div id="panel" hidden role="dialog" aria-labelledby="panel-name">
-    <div class="panel-who">
-      <div id="panel-name"></div>
-      <div id="panel-dept"></div>
+  <div id="panel" class="sheet" hidden role="dialog" aria-labelledby="panel-name">
+    <div class="tp-head">
+      <span id="panel-avatar" class="avatar big" aria-hidden="true"></span>
+      <div class="tp-who"><div id="panel-name" class="tp-name"></div><div id="panel-dept" class="small"></div></div>
     </div>
-    <p id="panel-text"></p>
-    <div class="panel-foot"><kbd>E</kbd> or <kbd>Esc</kbd> to close</div>
+    <div id="panel-text" class="bubble"></div>
+    <footer class="tp-actions"><button class="btn ghost" data-action="bye">Say goodbye <kbd>E</kbd></button></footer>
   </div>
 
-  <div id="ticket" hidden role="dialog"></div>
+  <div id="ticket" class="sheet" hidden role="dialog" aria-label="Help desk ticket"></div>
 
-  <div id="boot">
+  <div id="help" class="overlay" hidden role="dialog" aria-labelledby="help-title">
+    <div class="help-card">
+      <h1 id="help-title">Your shift at the help desk</h1>
+      <p class="lead">You are the office IT technician. People will ask you for help. Fix their problems to earn XP and get promoted.</p>
+      <ol class="steps">
+        <li><b>Watch the list on the right.</b> When someone needs help, their name appears there and a <span class="mark">!</span> floats above them.</li>
+        <li><b>Walk over to them.</b> Use <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or the arrow keys. Hold <kbd>Shift</kbd> to walk faster.</li>
+        <li><b>Press <kbd>E</kbd> to help.</b> Read their problem and pick the fix a good technician would try first.</li>
+      </ol>
+      <div class="help-grid">
+        <div><b>Wrong answer?</b> You get a hint and one more try, worth half the XP.</div>
+        <div><b>Stuck?</b> Get a hint before answering. It costs 25% of the XP.</div>
+        <div><b>Be quick.</b> Each request has a timer. Urgent ones are worth double.</div>
+        <div><b>Camera:</b> drag with the mouse to turn, scroll to zoom.</div>
+      </div>
+      <button id="help-start" class="btn big">Start my shift</button>
+    </div>
+  </div>
+
+  <div id="boot" class="overlay">
     <div class="boot-box">
       <div class="boot-logo">Help Desk Hero</div>
-      <div id="boot-title">Waking up the office...</div>
+      <div id="boot-title">Opening the office...</div>
       <div id="boot-detail"></div>
-      <button id="boot-retry" hidden>Try again</button>
+      <button id="boot-retry" class="btn" hidden>Try again</button>
     </div>
   </div>
 
-  <div id="error" hidden>
-    Could not start the 3D view. Make sure you opened this page through
-    <code>python -m http.server</code> (not by double-clicking the file)
-    and that your browser supports WebGL.
+  <div id="error" class="overlay" hidden>
+    <div class="boot-box">
+      The 3D view could not start. Open this page through
+      <code>python -m http.server</code> (not by double-clicking the file),
+      and use a browser that supports WebGL, such as Chrome or Edge.
+    </div>
   </div>
 
   <script type="module" src="src/main.js"></script>

@@ -89,12 +89,15 @@ function start() {
   const queue = new TicketQueue();
   const details = new Map(); // ticket number -> what we fetched for it
   let backendReady = false;
+  let shiftStarted = false; // tickets only arrive after the player presses "Start my shift"
+  let helpOpen = false;
   let nearby = null;
   let talkingTo = null; // the employee in conversation
   let activeTicket = null; // the ticket shown in the ticket panel, if any
 
   ui.renderStatus(progress);
-  ui.renderQueue([]);
+  ui.renderQueue([], byName);
+  $('sound-btn').classList.toggle('off', sound.muted);
 
   // ---------- start-up: wait for the backend ----------
   async function boot() {
@@ -110,7 +113,14 @@ function start() {
         queue.setPool(problems);
         backendReady = true;
         ui.hideBoot();
-        ui.toast(`Shift started. ${problems.length} problem types loaded. Watch the queue for tickets.`);
+        let seenHelp = false;
+        try {
+          seenHelp = localStorage.getItem('hdh-seen-help') === '1';
+        } catch {
+          /* storage blocked: show the welcome card */
+        }
+        if (seenHelp) startShift();
+        else openHelp(true);
         return;
       } catch {
         const waited = Math.round((performance.now() - started) / 1000);
@@ -136,7 +146,7 @@ function start() {
     }
     if (ticket.priority === 'P1') sound.urgent();
     else sound.ticket();
-    ui.toast(`${ui.priorityBadge(ticket.priority)} New ticket from <b>${ui.esc(person.name)}</b> (${ui.esc(person.department)})`);
+    ui.toast(`<b>${ui.esc(person.name)}</b> needs help ${ui.priorityBadge(ticket.priority)}`);
     fetchTicket(ticket);
   }
 
@@ -148,6 +158,7 @@ function start() {
       attempt: 1, // which try is next (1 or 2)
       wrong: [], // wrong tries so far: { id, why }
       chat: [], // senior tech conversation: { role: 'junior' | 'senior', text, source }
+      chatOpen: false,
       asking: false,
     };
     details.set(ticket.number, detail);
@@ -218,7 +229,7 @@ function start() {
       queue.close(ticket.number);
       byName.get(ticket.employee).marker.visible = false;
       ui.renderStatus(progress);
-      ui.renderQueue(queue.open);
+      ui.renderQueue(queue.open, byName);
       if (result.is_correct) {
         sound.correct();
         if (xp > 0) ui.xpPop(xp);
@@ -226,14 +237,14 @@ function start() {
         sound.wrong();
       }
       if (firstTryWin && [3, 5, 10, 15, 20].includes(progress.streak)) {
-        ui.toast(`<b>${progress.streak} in a row!</b> First-try answers now earn ×${mult} XP.`, 'big');
+        ui.toast(`${progress.streak} right in a row! Bonus ×${mult} XP`, 'big');
       }
       const after = rankFor(progress.xp);
       if (after.index > before.index) {
         setTimeout(() => sound.rankUp(), 500);
         setTimeout(() => confetti(), 300);
         const unlocked = queue.pool.some((p) => p.level === maxLevelFor(progress.xp));
-        ui.toast(`Promoted to <b>${ui.esc(after.name)}</b>!${unlocked ? ' Harder tickets unlocked.' : ''}`, 'big');
+        ui.toast(`Promoted to ${ui.esc(after.name)}!${unlocked ? ' Harder tickets unlocked.' : ''}`, 'big');
       }
     } catch {
       detail.answerError = true;
@@ -277,7 +288,7 @@ function start() {
       detail.chat.push({ role: 'senior', text: reply.answer, source: reply.source });
     } catch {
       detail.chat.pop(); // not counted: the question never reached the senior tech
-      ui.toast('Could not reach the senior tech. Check the backend and try again.');
+      ui.toast('The senior tech could not be reached. Check the backend is running, then ask again.');
     } finally {
       detail.asking = false;
       refreshTicketPanel();
@@ -314,7 +325,9 @@ function start() {
     } else {
       $('panel-name').textContent = person.name;
       $('panel-dept').textContent = person.department;
-      $('panel-text').textContent = `"${person.line}"`;
+      $('panel-text').textContent = person.line;
+      $('panel-avatar').textContent = person.name[0];
+      $('panel-avatar').style.setProperty('--c', `#${person.shirt.toString(16).padStart(6, '0')}`);
       $('panel').hidden = false;
     }
   }
@@ -334,26 +347,69 @@ function start() {
     if (talkingTo) closeConversation();
     else if (nearby) openConversation(nearby);
   });
-  input.onPress('Escape', closeConversation);
+  input.onPress('Escape', () => (helpOpen ? closeHelp() : closeConversation()));
   input.onPress('KeyH', takeHint);
-  input.onPress('KeyQ', () => {
-    if (activeTicket && details.get(activeTicket.number)?.result) focusAskBox();
-  });
-  input.onPress('KeyR', () => {
+  input.onPress('KeyQ', openChat);
+  input.onPress('KeyR', retryTicket);
+  input.onPress('KeyM', toggleSound);
+
+  function openChat() {
+    const detail = activeTicket && details.get(activeTicket.number);
+    if (!detail?.result) return;
+    detail.chatOpen = true;
+    refreshTicketPanel();
+    focusAskBox();
+  }
+  function retryTicket() {
     const detail = activeTicket && details.get(activeTicket.number);
     if (detail?.state === 'error') {
       fetchTicket(activeTicket);
       refreshTicketPanel();
     }
+  }
+  function toggleSound() {
+    const muted = sound.toggle();
+    $('sound-btn').classList.toggle('off', muted);
+    ui.toast(muted ? 'Sound off' : 'Sound on');
+  }
+
+  // ---------- welcome card ----------
+  function openHelp(firstTime) {
+    helpOpen = true;
+    ui.showHelp(firstTime);
+  }
+  function closeHelp() {
+    helpOpen = false;
+    ui.hideHelp();
+    if (!shiftStarted) startShift();
+  }
+  function startShift() {
+    shiftStarted = true;
+    try {
+      localStorage.setItem('hdh-seen-help', '1');
+    } catch {
+      /* ignore */
+    }
+    ui.toast('Your shift has started. Requests will appear on the right.');
+  }
+  $('help-start').addEventListener('click', closeHelp);
+  $('help-btn').addEventListener('click', () => openHelp(false));
+  $('sound-btn').addEventListener('click', toggleSound);
+  $('panel').addEventListener('click', (e) => {
+    if (e.target.closest('[data-action="bye"]')) closeConversation();
   });
-  input.onPress('KeyM', () => ui.toast(sound.toggle() ? 'Sound off' : 'Sound on'));
   for (let i = 1; i <= 4; i++) {
     input.onPress(`Digit${i}`, () => chooseOption(i - 1));
     input.onPress(`Numpad${i}`, () => chooseOption(i - 1));
   }
   $('ticket').addEventListener('click', (e) => {
-    const button = e.target.closest('.opt');
-    if (button) chooseOption(Number(button.dataset.index));
+    const option = e.target.closest('.opt');
+    if (option) return chooseOption(Number(option.dataset.index));
+    const action = e.target.closest('[data-action]')?.dataset.action;
+    if (action === 'hint') takeHint();
+    else if (action === 'later' || action === 'close') closeConversation();
+    else if (action === 'ask') openChat();
+    else if (action === 'retry') retryTicket();
   });
 
   // ---------- resize ----------
@@ -372,11 +428,11 @@ function start() {
     const dt = Math.min(clock.getDelta(), 0.05); // cap so a slow frame can't teleport the player
     const time = clock.elapsedTime;
 
-    player.update(dt, input.state, followCam.yaw, colliders, talkingTo !== null);
+    player.update(dt, input.state, followCam.yaw, colliders, talkingTo !== null || helpOpen);
     followCam.focusTarget = activeTicket ? 1 : 0;
     followCam.update(dt, player.position);
 
-    if (backendReady) {
+    if (backendReady && shiftStarted && !helpOpen) {
       for (const ticket of queue.update(dt, employees, maxLevelFor(progress.xp))) onNewTicket(ticket);
     }
 
@@ -384,7 +440,7 @@ function start() {
     nearby = talkingTo ? null : nearestWithin(player.position, employees, TALK_RADIUS);
     if (nearby) {
       const hasTicket = queue.forEmployee(nearby.name);
-      $('prompt').innerHTML = `<kbd>E</kbd> ${hasTicket ? 'Help' : 'Talk to'} <b>${ui.esc(nearby.name)}</b>`;
+      $('prompt').innerHTML = `Press <kbd>E</kbd> to ${hasTicket ? 'help' : 'talk to'} <b>${ui.esc(nearby.name)}</b>`;
       $('prompt').hidden = false;
     } else {
       $('prompt').hidden = true;
@@ -409,7 +465,7 @@ function start() {
           const bar = ticket
             ? `<div class="lbar"><div style="width:${Math.max(0, (ticket.secondsLeft / ticket.sla) * 100)}%;background:${PRIORITIES[ticket.priority].color}"></div></div>`
             : '';
-          person.label.innerHTML = `${ui.esc(person.name)}${ticket ? ui.priorityBadge(ticket.priority) : `<small>${ui.esc(person.department)}</small>`}${bar}`;
+          person.label.innerHTML = `<div class="row">${ui.esc(person.name)}${ticket ? ui.priorityBadge(ticket.priority) : ''}</div>${bar}`;
         }
       }
       if (person.marker.visible) {
@@ -417,7 +473,7 @@ function start() {
         person.marker.rotation.y = time * 2;
       }
     }
-    if (refreshHud) ui.renderQueue(queue.open);
+    if (refreshHud) ui.renderQueue(queue.open, byName);
 
     for (const led of blinkers) {
       led.material.emissiveIntensity = Math.sin(time * led.speed + led.phase) > 0.2 ? 1.2 : 0.1;

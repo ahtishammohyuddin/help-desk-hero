@@ -12,6 +12,8 @@ export class FollowCamera {
     this.target = new THREE.Vector3();
     this.smoothTarget = new THREE.Vector3();
     this.snapped = false;
+    this.focus = 0; // 0 normal, 1 = conversation (shifts the view so people sit above the dialogue box)
+    this.focusTarget = 0;
 
     let dragging = false;
     let lastX = 0;
@@ -35,7 +37,14 @@ export class FollowCamera {
   }
 
   update(dt, playerPosition) {
-    this.target.set(playerPosition.x, 1.2, playerPosition.z);
+    // During a conversation, aim a little toward the camera so the people appear higher on screen.
+    this.focus += (this.focusTarget - this.focus) * (1 - Math.exp(-6 * dt));
+    const shift = this.focus * 2.6;
+    this.target.set(
+      playerPosition.x + Math.sin(this.yaw) * shift,
+      1.2 - this.focus * 0.6,
+      playerPosition.z + Math.cos(this.yaw) * shift,
+    );
     if (!this.snapped) {
       this.smoothTarget.copy(this.target);
       this.snapped = true;

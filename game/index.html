@@ -20,8 +20,18 @@
       <span><kbd>Drag</kbd> rotate camera</span>
       <span><kbd>Wheel</kbd> zoom</span>
       <span><kbd>E</kbd> talk</span>
+      <span><kbd>M</kbd> sound</span>
     </div>
   </div>
+
+  <div id="side">
+    <div id="status" class="card"></div>
+    <div class="card">
+      <div class="card-title">Ticket queue</div>
+      <div id="queue"></div>
+    </div>
+  </div>
+  <div id="toasts"></div>
 
   <div id="labels"></div>
   <div id="prompt" hidden></div>
@@ -33,6 +43,17 @@
     </div>
     <p id="panel-text"></p>
     <div class="panel-foot"><kbd>E</kbd> or <kbd>Esc</kbd> to close</div>
+  </div>
+
+  <div id="ticket" hidden role="dialog"></div>
+
+  <div id="boot">
+    <div class="boot-box">
+      <div class="boot-logo">Help Desk Hero</div>
+      <div id="boot-title">Waking up the office...</div>
+      <div id="boot-detail"></div>
+      <button id="boot-retry" hidden>Try again</button>
+    </div>
   </div>
 
   <div id="error" hidden>

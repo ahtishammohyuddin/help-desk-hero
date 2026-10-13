@@ -3,7 +3,7 @@
 A third-person 3D browser game that teaches IT technical support, from basic to advanced.
 Built with Three.js, a FastAPI backend and a reviewed, data-driven problem bank.
 
-> Status: Phase 3 (game basics). README will be expanded at release.
+> Status: Phase 4 (ticket loop). README will be expanded at release.
 
 ## Key idea
 Correct answers and explanations are fixed in reviewed JSON files. The AI only rephrases,
@@ -23,14 +23,19 @@ python -m tools.validate_problems
 ```
 
 ## Run the game
+The game needs the backend running (it serves the problems and checks answers). Use two terminals:
 ```
-python -m http.server 5173 --directory game
+uvicorn backend.main:app --reload                 # terminal 1 (inside the venv)
+python -m http.server 5173 --directory game       # terminal 2
 ```
-Open http://localhost:5173 . Move with WASD or the arrow keys, drag to rotate the camera,
-scroll to zoom, and press E near an employee to talk. (Opening `index.html` by double-clicking
-does not work: browsers only load JavaScript modules from a web server.)
+Open http://localhost:5173 . Tickets arrive in the queue with a priority (P1-P4) and an SLA timer.
+Walk to the employee with the "!" and press E. Answer with 1-4, H for a hint (costs XP).
+Move with WASD or the arrow keys, drag to rotate the camera, scroll to zoom, M toggles sound.
+(Opening `index.html` by double-clicking does not work: browsers only load JavaScript modules from a web server.)
 
-Game logic tests (optional, needs Node.js): `node --test game/tests/logic.test.mjs`
+To use a backend hosted elsewhere, add `?api=https://your-backend` to the game address.
+
+Game logic tests (optional, needs Node.js): `node --test game/tests/logic.test.mjs game/tests/tickets.test.mjs`
 
 ## Run the backend
 ```

@@ -1,0 +1,36 @@
+{
+  "id": "L1-SC-01",
+  "level": 1,
+  "category": "Security and phishing",
+  "title": "User offers to share their password",
+  "character": {
+    "name": "Salman",
+    "department": "Sales",
+    "personality": "trusting, helpful"
+  },
+  "symptom": "User tries to give their password to the technician",
+  "user_description": "My email isn't working. Here, let me write my password down so you can log in and sort it out for me.",
+  "options": [
+    {
+      "text": "Accept it but promise to forget it afterwards",
+      "correct": false,
+      "why": "Once you know the password the security promise is already broken. Passwords should only be known by their owner."
+    },
+    {
+      "text": "Ask him to email the password so you have it in writing",
+      "correct": false,
+      "why": "Makes it worse. Passwords in email can be read by others and stored forever."
+    },
+    {
+      "text": "Politely refuse, explain support never needs a password, and fix it with your own admin tools or a supervised remote session",
+      "correct": true,
+      "why": "Support has other ways to help without knowing a password. Refusing protects the user and teaches a safe habit."
+    }
+  ],
+  "hints": [
+    "Should anyone besides the user know the password?",
+    "How could you still help without it?"
+  ],
+  "real_world_tip": "Say it kindly: 'I never need your password, and it's safer if nobody but you knows it.' Most users appreciate it.",
+  "reviewed": true
+}

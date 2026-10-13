@@ -1,0 +1,42 @@
+{
+  "id": "L2-SC-04",
+  "level": 2,
+  "category": "Security and phishing",
+  "title": "Gift card request from the CEO",
+  "character": {
+    "name": "Warda",
+    "department": "Finance",
+    "personality": "eager to help, unsure"
+  },
+  "symptom": "An email appearing to come from the CEO asks for urgent gift card purchases",
+  "user_description": "I got an email from the CEO saying he's in a meeting and needs me to buy gift cards urgently and send him the codes. He says to keep it quiet.",
+  "options": [
+    {
+      "text": "Buy the cards because it is the CEO",
+      "correct": false,
+      "why": "Urgent, secret requests for gift cards are a classic scam. Authority is exactly what attackers imitate."
+    },
+    {
+      "text": "Reply asking him for more details",
+      "correct": false,
+      "why": "Replying tells the attacker the address is live and gives them a chance to convince her."
+    },
+    {
+      "text": "Buy the cards and ask for repayment afterwards",
+      "correct": false,
+      "why": "Loses money and still helps the attacker. The scam relies on speed."
+    },
+    {
+      "text": "Do not buy anything, check with the CEO through a different trusted channel such as a known phone number, and report the email to security",
+      "correct": true,
+      "why": "Verifying through a separate channel exposes the fake quickly. Reporting protects colleagues who may receive the same email."
+    }
+  ],
+  "hints": [
+    "What makes this request unusual?",
+    "How could you confirm it without using the email?",
+    "Who else might receive the same message?"
+  ],
+  "real_world_tip": "Look at the sender's real address, not just the name shown. Attackers often use a lookalike address.",
+  "reviewed": true
+}

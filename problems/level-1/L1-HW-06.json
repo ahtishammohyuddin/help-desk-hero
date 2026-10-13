@@ -1,0 +1,41 @@
+{
+  "id": "L1-HW-06",
+  "level": 1,
+  "category": "Hardware",
+  "title": "No sound from speakers",
+  "character": {
+    "name": "Hina",
+    "department": "Marketing",
+    "personality": "cheerful, chatty"
+  },
+  "symptom": "No audio from the PC speakers",
+  "user_description": "I can't hear anything from my computer. I'm supposed to join a video call in five minutes!",
+  "options": [
+    {
+      "text": "Replace the sound card",
+      "correct": false,
+      "why": "Far too drastic for a no-sound complaint. Check volume and settings first."
+    },
+    {
+      "text": "Buy new speakers",
+      "correct": false,
+      "why": "Wasteful before testing anything. The speakers may simply be off or unplugged."
+    },
+    {
+      "text": "Check the volume is not muted, the correct output device is selected, and the speakers are powered on and plugged in",
+      "correct": true,
+      "why": "Muted volume, the wrong output device and speakers that are off or unplugged cause most no-sound tickets. These checks take under a minute."
+    },
+    {
+      "text": "Reinstall Windows",
+      "correct": false,
+      "why": "Never the first step. It destroys time and settings for what is usually a simple setting."
+    }
+  ],
+  "hints": [
+    "Is the speaker volume, or the computer's volume, turned down?",
+    "Where does the PC send its sound: speakers, headset or monitor?"
+  ],
+  "real_world_tip": "Check the little speaker icon in the taskbar and the output device chosen in sound settings. Headsets and monitors can silently take over the audio.",
+  "reviewed": true
+}

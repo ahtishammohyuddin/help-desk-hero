@@ -1,0 +1,41 @@
+{
+  "id": "L1-EM-01",
+  "level": 1,
+  "category": "Email and Outlook / M365",
+  "title": "Outlook will not open",
+  "character": {
+    "name": "Faisal",
+    "department": "Legal",
+    "personality": "calm, precise"
+  },
+  "symptom": "Outlook does not start or closes immediately",
+  "user_description": "I click Outlook and it either does nothing or opens and disappears. I need to read an email from a client.",
+  "options": [
+    {
+      "text": "Delete and recreate his mailbox",
+      "correct": false,
+      "why": "Destroys his emails and is far too drastic. The mailbox is almost certainly fine."
+    },
+    {
+      "text": "Note the exact error, restart Outlook (and the PC if needed), and check whether the mailbox works in the web version",
+      "correct": true,
+      "why": "The exact error points to the cause, and a restart fixes many glitches. If the web version works, the mailbox is fine and the problem is only the desktop app."
+    },
+    {
+      "text": "Reinstall Windows",
+      "correct": false,
+      "why": "Never the first step. It is a huge, destructive fix for a problem that is usually small."
+    },
+    {
+      "text": "Tell him to wait until tomorrow",
+      "correct": false,
+      "why": "Leaves the user without email and avoids finding the cause."
+    }
+  ],
+  "hints": [
+    "Is the problem with the mailbox or the app on this PC?",
+    "How else could he read his email while you fix it?"
+  ],
+  "real_world_tip": "Offering the web version straight away lets the user keep working while you troubleshoot the desktop app.",
+  "reviewed": true
+}

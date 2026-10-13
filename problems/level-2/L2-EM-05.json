@@ -1,0 +1,42 @@
+{
+  "id": "L2-EM-05",
+  "level": 2,
+  "category": "Email and Outlook / M365",
+  "title": "Important email lands in spam",
+  "character": {
+    "name": "Hafsa",
+    "department": "Procurement",
+    "personality": "annoyed, almost missed a supplier quote"
+  },
+  "symptom": "A supplier's emails keep going to the Junk folder",
+  "user_description": "A supplier we use every week keeps ending up in my Junk folder. I nearly missed their quote today.",
+  "options": [
+    {
+      "text": "Turn off spam filtering for the whole company",
+      "correct": false,
+      "why": "Exposes everyone to phishing and spam to fix one sender. Far out of proportion."
+    },
+    {
+      "text": "Tell her to check Junk every day",
+      "correct": false,
+      "why": "A workaround that depends on her remembering. It does not fix why the mail is caught."
+    },
+    {
+      "text": "Mark it as Not Junk and add the sender to her safe senders, and if it keeps happening report it to the mail administrators so the cause can be checked",
+      "correct": true,
+      "why": "Marking and allowing the sender helps straight away. Reporting repeat cases lets administrators find the reason, such as a sender with weak email authentication."
+    },
+    {
+      "text": "Block the sender",
+      "correct": false,
+      "why": "Stops all mail from a supplier she needs. The opposite of the goal."
+    }
+  ],
+  "hints": [
+    "Who decides what goes into Junk, and how can you tell it what is wrong?",
+    "Is a quick fix enough, or should the cause be found too?",
+    "Who can see why mail from this sender is being caught?"
+  ],
+  "real_world_tip": "Ask for the sender's exact address. Allowing a whole domain is riskier than allowing one address.",
+  "reviewed": true
+}

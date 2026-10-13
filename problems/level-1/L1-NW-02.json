@@ -1,0 +1,36 @@
+{
+  "id": "L1-NW-02",
+  "level": 1,
+  "category": "Networking and Wi-Fi",
+  "title": "Wi-Fi password rejected",
+  "character": {
+    "name": "Rubina",
+    "department": "Accounts",
+    "personality": "polite, a bit embarrassed"
+  },
+  "symptom": "Laptop will not join the office Wi-Fi, password rejected",
+  "user_description": "I'm trying to connect my laptop to the office Wi-Fi but it keeps saying the password is wrong.",
+  "options": [
+    {
+      "text": "Change the Wi-Fi password for the whole office",
+      "correct": false,
+      "why": "Disconnects every device in the company to fix one person's typing. Wildly out of proportion."
+    },
+    {
+      "text": "Make sure she picked the correct network name and type the password slowly and carefully, remembering it is case sensitive",
+      "correct": true,
+      "why": "Choosing the wrong network (such as the guest one) or a mistyped, case-sensitive password are the most common causes. Check these simple things first."
+    },
+    {
+      "text": "Switch the office Wi-Fi to open with no password",
+      "correct": false,
+      "why": "Removes security for everyone. Never weaken security to make one device connect."
+    }
+  ],
+  "hints": [
+    "Is she connecting to the right network name?",
+    "Are Wi-Fi passwords case sensitive?"
+  ],
+  "real_world_tip": "Offices often have a staff network and a guest network. Users picking the wrong one is a surprisingly common cause.",
+  "reviewed": true
+}

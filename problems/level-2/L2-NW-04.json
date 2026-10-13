@@ -1,0 +1,42 @@
+{
+  "id": "L2-NW-04",
+  "level": 2,
+  "category": "Networking and Wi-Fi",
+  "title": "IP address conflict",
+  "character": {
+    "name": "Moiz",
+    "department": "Operations",
+    "personality": "puzzled, sees a pop-up"
+  },
+  "symptom": "Windows warns of an IP address conflict and the network is unreliable",
+  "user_description": "A message says there's an IP address conflict with another system on the network, and my connection keeps dropping.",
+  "options": [
+    {
+      "text": "Choose any static address you like and hope it is free",
+      "correct": false,
+      "why": "Guessing can create another conflict. Addresses must come from the DHCP range or a managed list."
+    },
+    {
+      "text": "Turn off every other device in the office",
+      "correct": false,
+      "why": "Hugely disruptive and finds nothing out. Look for the specific duplicate."
+    },
+    {
+      "text": "Renew the PC's address from DHCP, then find the other device and check whether either has a manually set address overlapping the DHCP range",
+      "correct": true,
+      "why": "Two devices with the same address cause drops. Renewing gives the PC a fresh address, and finding the other device shows the real cause, often a static address inside the DHCP range."
+    },
+    {
+      "text": "Reinstall Windows",
+      "correct": false,
+      "why": "Drastic and unrelated to a duplicate address."
+    }
+  ],
+  "hints": [
+    "What does it mean when two devices share one address?",
+    "How does a PC normally get an address?",
+    "What can cause two devices to end up with the same one?"
+  ],
+  "real_world_tip": "Keep a record of static addresses. Most conflicts happen because someone set a fixed address without checking.",
+  "reviewed": true
+}

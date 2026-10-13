@@ -1,0 +1,42 @@
+{
+  "id": "L2-NW-05",
+  "level": 2,
+  "category": "Networking and Wi-Fi",
+  "title": "VPN will not connect from home",
+  "character": {
+    "name": "Sidra",
+    "department": "Sales",
+    "personality": "worried, working from home"
+  },
+  "symptom": "VPN fails to connect from the user's home",
+  "user_description": "I'm working from home and the VPN just spins and then says it can't connect. I need my company files.",
+  "options": [
+    {
+      "text": "Give her a colleague's VPN login",
+      "correct": false,
+      "why": "Sharing logins destroys accountability and is a security risk."
+    },
+    {
+      "text": "Tell her to open every port on her home router",
+      "correct": false,
+      "why": "Weakens her home network and is almost never the fix. Test simple causes first."
+    },
+    {
+      "text": "Confirm her home internet works, check her credentials and multi-factor prompt, try another network such as a phone hotspot, and check whether the VPN works for other users",
+      "correct": true,
+      "why": "These steps separate her internet, her login, her home network and the VPN service itself. A hotspot test quickly shows whether her home network blocks the VPN."
+    },
+    {
+      "text": "Reinstall Windows",
+      "correct": false,
+      "why": "Drastic. VPN problems are almost always credentials, network or the service, not the operating system."
+    }
+  ],
+  "hints": [
+    "Does her home internet work at all?",
+    "Is it her login, her network, or the VPN service?",
+    "Is anyone else having the same problem?"
+  ],
+  "real_world_tip": "A phone hotspot test is very useful. If the VPN works there, the home router or provider is the cause.",
+  "reviewed": true
+}

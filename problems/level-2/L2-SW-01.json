@@ -1,0 +1,42 @@
+{
+  "id": "L2-SW-01",
+  "level": 2,
+  "category": "Software and installs",
+  "title": "Software licence expired",
+  "character": {
+    "name": "Naila",
+    "department": "Design",
+    "personality": "creative, worried about a deadline"
+  },
+  "symptom": "Design software says the licence has expired",
+  "user_description": "My design program says my licence has expired and it won't let me edit anything. I have a client deadline tomorrow!",
+  "options": [
+    {
+      "text": "Install a cracked version so she can keep working",
+      "correct": false,
+      "why": "Pirated software breaks the law and the licence terms, and cracked files often contain malware."
+    },
+    {
+      "text": "Put a colleague's licence key on her PC as well",
+      "correct": false,
+      "why": "Using one licence on two PCs usually breaks the licence terms and can get both accounts blocked."
+    },
+    {
+      "text": "Check the licence records to confirm the expiry, and request a renewal through the proper approval process, offering an approved alternative for urgent work",
+      "correct": true,
+      "why": "Confirming the expiry shows whether it is a real expiry or a lost assignment. Renewing through approval keeps the company legal, and an approved alternative helps with the deadline."
+    },
+    {
+      "text": "Tell her to ignore the warning and keep working",
+      "correct": false,
+      "why": "The software will not let her edit, so ignoring it does not solve anything."
+    }
+  ],
+  "hints": [
+    "Is the licence really expired, or just not assigned to her?",
+    "Who must approve spending on a renewal?",
+    "How could she still meet the deadline while you sort the licence?"
+  ],
+  "real_world_tip": "Keep a list of renewal dates. Most expired-licence tickets are avoidable with a reminder a month ahead.",
+  "reviewed": true
+}

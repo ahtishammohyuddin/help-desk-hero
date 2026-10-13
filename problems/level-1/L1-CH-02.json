@@ -1,0 +1,36 @@
+{
+  "id": "L1-CH-02",
+  "level": 1,
+  "category": "Customer handling",
+  "title": "User does not understand technical terms",
+  "character": {
+    "name": "Ayesha",
+    "department": "Reception",
+    "personality": "polite, anxious about computers"
+  },
+  "symptom": "User is confused by the technician's technical language",
+  "user_description": "You said I need to 'check the cache and restart the daemon'. I'm sorry, I don't understand any of that.",
+  "options": [
+    {
+      "text": "Use more technical terms so she takes you seriously",
+      "correct": false,
+      "why": "Confuses her more and makes her feel foolish. Clear communication matters more than sounding clever."
+    },
+    {
+      "text": "Use plain words and short steps, ask what she can see on screen, and check she is following",
+      "correct": true,
+      "why": "Plain language and one step at a time let her follow along. Asking what she sees confirms she is on the right track."
+    },
+    {
+      "text": "Tell her to search for the terms online",
+      "correct": false,
+      "why": "Passes the work to the user and shows poor service. Explaining is your job."
+    }
+  ],
+  "hints": [
+    "How would you explain this to a friend with no IT background?",
+    "How do you know the user has understood?"
+  ],
+  "real_world_tip": "Keep asking 'What do you see now?' It keeps the user involved and shows you where they got lost.",
+  "reviewed": true
+}

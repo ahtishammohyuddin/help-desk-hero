@@ -1,0 +1,36 @@
+{
+  "id": "L1-MB-02",
+  "level": 1,
+  "category": "Mobile and phones",
+  "title": "Phone cannot join the office Wi-Fi",
+  "character": {
+    "name": "Bushra",
+    "department": "Operations",
+    "personality": "patient, not very technical"
+  },
+  "symptom": "Phone cannot connect to office Wi-Fi",
+  "user_description": "My phone won't connect to the office Wi-Fi, but it works fine on my home network.",
+  "options": [
+    {
+      "text": "Factory reset the phone",
+      "correct": false,
+      "why": "Erases everything and is far too drastic. The phone works on other networks, so it is not broken."
+    },
+    {
+      "text": "Make sure Wi-Fi is on and airplane mode is off, select the right network, re-enter the password, or forget the network and join again",
+      "correct": true,
+      "why": "Because home Wi-Fi works, the phone is fine. A wrong network, wrong password or stale saved connection are the likely causes."
+    },
+    {
+      "text": "Change the office Wi-Fi password for everyone",
+      "correct": false,
+      "why": "Disconnects the whole office to fix one phone. Out of proportion."
+    }
+  ],
+  "hints": [
+    "What does it working at home tell you?",
+    "Could the saved network settings be stale or wrong?"
+  ],
+  "real_world_tip": "Forgetting the network and joining again clears bad saved settings and fixes many Wi-Fi tickets.",
+  "reviewed": true
+}

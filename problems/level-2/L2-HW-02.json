@@ -1,0 +1,42 @@
+{
+  "id": "L2-HW-02",
+  "level": 2,
+  "category": "Hardware",
+  "title": "Second monitor not detected",
+  "character": {
+    "name": "Nargis",
+    "department": "Finance",
+    "personality": "organised, a little impatient"
+  },
+  "symptom": "Second monitor shows nothing and Windows does not see it",
+  "user_description": "I plugged in the second monitor you gave me but it stays black. Windows doesn't seem to know it is there.",
+  "options": [
+    {
+      "text": "Reinstall Windows",
+      "correct": false,
+      "why": "Never a first step for a display problem. It wastes hours and erases settings."
+    },
+    {
+      "text": "Buy a new graphics card",
+      "correct": false,
+      "why": "Costly and premature. Nothing has been tested yet, so the card is unlikely to be the cause."
+    },
+    {
+      "text": "Check the cable and the monitor's input, try a different port or cable, then in Display settings use Detect or press Windows key + P and choose Extend",
+      "correct": true,
+      "why": "This works from simple to complex: physical connection first, then asking Windows to look for the screen, then choosing how to use it. Many 'not detected' cases are a loose cable or a wrong display mode."
+    },
+    {
+      "text": "Update the BIOS",
+      "correct": false,
+      "why": "Risky and rarely needed for a second screen. Try the simple checks before touching firmware."
+    }
+  ],
+  "hints": [
+    "Is the monitor powered on and set to the right input?",
+    "Can you tell Windows to look for the screen again?",
+    "How does Windows decide whether to copy, extend or show only one screen?"
+  ],
+  "real_world_tip": "Try the monitor on another port of the PC. If one port works and another does not, you know the port is the problem.",
+  "reviewed": true
+}

@@ -1,0 +1,42 @@
+{
+  "id": "L2-SW-02",
+  "level": 2,
+  "category": "Software and installs",
+  "title": "Installer asks for admin rights",
+  "character": {
+    "name": "Salar",
+    "department": "Finance",
+    "personality": "polite, impatient"
+  },
+  "symptom": "Installing approved software asks for an administrator password",
+  "user_description": "I need to install the new reporting tool the company approved, but it keeps asking for an admin password.",
+  "options": [
+    {
+      "text": "Give him permanent admin rights",
+      "correct": false,
+      "why": "Admin rights let a user install anything, including harmful software. The need is one install, not permanent power."
+    },
+    {
+      "text": "Share the admin password with him",
+      "correct": false,
+      "why": "Never share administrator credentials. Everything done with them would be untraceable."
+    },
+    {
+      "text": "Confirm the software is approved, then install it with your own admin account or through the company's software deployment tool",
+      "correct": true,
+      "why": "Approved software should be installed by IT or a managed tool. This keeps control without handing the user powers he does not need."
+    },
+    {
+      "text": "Tell him to turn off User Account Control",
+      "correct": false,
+      "why": "Turning off the prompt removes an important protection for the whole PC."
+    }
+  ],
+  "hints": [
+    "Is the software on the approved list?",
+    "Who should hold administrator rights?",
+    "Is there a way to install it without giving him admin power?"
+  ],
+  "real_world_tip": "A self-service software portal lets users install approved tools without admin rights. It is worth suggesting.",
+  "reviewed": true
+}

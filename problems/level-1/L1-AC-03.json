@@ -1,0 +1,36 @@
+{
+  "id": "L1-AC-03",
+  "level": 1,
+  "category": "Accounts and passwords",
+  "title": "New starter needs an account",
+  "character": {
+    "name": "Tahir",
+    "department": "Facilities",
+    "personality": "helpful, a bit vague"
+  },
+  "symptom": "A new employee starts Monday and needs an account",
+  "user_description": "We have a new colleague starting Monday. Can you set up everything they need? I'll let you know what later.",
+  "options": [
+    {
+      "text": "Give the new starter a colleague's login for now",
+      "correct": false,
+      "why": "Shared logins destroy accountability and are a security risk. Every person needs their own account."
+    },
+    {
+      "text": "Create the account with full admin rights so nothing blocks them",
+      "correct": false,
+      "why": "Violates least privilege. People should only get the access their job needs."
+    },
+    {
+      "text": "Check there is an approved request with the role and required access, then create the account with only that access",
+      "correct": true,
+      "why": "An approved request proves the account is genuine and shows exactly what to grant. Only giving the access the role needs limits risk if the account is ever misused."
+    }
+  ],
+  "hints": [
+    "Who has approved this request, and what does the person need to do their job?",
+    "How much access should a new person get on day one?"
+  ],
+  "real_world_tip": "Use a standard onboarding checklist or template per role. It saves time and avoids missing access.",
+  "reviewed": true
+}

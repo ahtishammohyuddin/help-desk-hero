@@ -1,0 +1,36 @@
+{
+  "id": "L1-PR-03",
+  "level": 1,
+  "category": "Printers and scanners",
+  "title": "Faint prints, toner low",
+  "character": {
+    "name": "Maryam",
+    "department": "Admissions",
+    "personality": "friendly, slightly impatient"
+  },
+  "symptom": "Printouts are faint or fading",
+  "user_description": "Everything I print is coming out very light and faded. Is the printer broken?",
+  "options": [
+    {
+      "text": "Reinstall the printer driver",
+      "correct": false,
+      "why": "A driver does not control how much toner is left. Faint prints are usually a supply problem."
+    },
+    {
+      "text": "Check the toner level and replace the toner cartridge if it is low",
+      "correct": true,
+      "why": "Faint or fading prints are a classic sign of low toner. Checking the level is quick and replacing the cartridge is the normal fix."
+    },
+    {
+      "text": "Change the printer's IP address",
+      "correct": false,
+      "why": "Network settings have nothing to do with print quality. The printer is clearly printing, so it is reaching the PC."
+    }
+  ],
+  "hints": [
+    "Is the printer working but printing weakly, or not working at all?",
+    "What runs out in a laser printer over time?"
+  ],
+  "real_world_tip": "Ask when the cartridge was last replaced. Keeping one spare cartridge in stock saves a lot of waiting.",
+  "reviewed": true
+}

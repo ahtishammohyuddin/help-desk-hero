@@ -1,0 +1,42 @@
+{
+  "id": "L2-CH-01",
+  "level": 2,
+  "category": "Customer handling",
+  "title": "User wants an instant fix, queue has priorities",
+  "character": {
+    "name": "Umair",
+    "department": "Sales",
+    "personality": "demanding, under pressure"
+  },
+  "symptom": "User demands his ticket is fixed before others",
+  "user_description": "I need my problem fixed right now! I've been waiting an hour and my ticket should be at the top.",
+  "options": [
+    {
+      "text": "Promise it will be done in ten minutes",
+      "correct": false,
+      "why": "A promise you cannot keep makes things worse when it is broken."
+    },
+    {
+      "text": "Tell him there is nothing you can do",
+      "correct": false,
+      "why": "Unhelpful. A good technician explains the process and offers a way forward."
+    },
+    {
+      "text": "Move the ticket to the top without asking anyone",
+      "correct": false,
+      "why": "Skips the priority process and is unfair to others who may have more serious problems."
+    },
+    {
+      "text": "Explain how tickets are prioritised, ask whether there is business impact that changes it, give an honest timeframe, and keep him updated",
+      "correct": true,
+      "why": "Explaining the process shows fairness. Asking about impact may reveal a reason to raise the priority, and honest updates keep trust."
+    }
+  ],
+  "hints": [
+    "How are tickets normally ranked?",
+    "Might something about his problem change its priority?",
+    "What does an honest answer sound like?"
+  ],
+  "real_world_tip": "Ask 'What is the impact if this isn't fixed in the next hour?' It turns frustration into facts.",
+  "reviewed": true
+}

@@ -1,0 +1,42 @@
+{
+  "id": "L2-SW-05",
+  "level": 2,
+  "category": "Software and installs",
+  "title": "Office app crashes opening one file",
+  "character": {
+    "name": "Eman",
+    "department": "Legal",
+    "personality": "careful, protective of the document"
+  },
+  "symptom": "Word crashes only when opening a particular document",
+  "user_description": "Word crashes every time I open one contract. All my other documents are fine. Please don't lose it!",
+  "options": [
+    {
+      "text": "Reinstall Office straight away",
+      "correct": false,
+      "why": "Other documents open fine, so Office is working. The fault is more likely in the one file."
+    },
+    {
+      "text": "Delete the file and ask her to start again",
+      "correct": false,
+      "why": "Destroys her work when options for repair and recovery exist."
+    },
+    {
+      "text": "Check that other files open fine, try Open and Repair or open it on another PC, and restore an earlier version if the file is damaged",
+      "correct": true,
+      "why": "Testing other files proves the program is fine. Open and Repair, another PC and earlier versions give the best chance of recovering the document."
+    },
+    {
+      "text": "Reinstall Windows",
+      "correct": false,
+      "why": "Drastic and does not help a single damaged file."
+    }
+  ],
+  "hints": [
+    "If other files open, what does that tell you about where the fault is?",
+    "Does Office have a built-in way to repair a damaged file?",
+    "Might an earlier version of the file exist?"
+  ],
+  "real_world_tip": "Copy the file somewhere safe before trying anything. A repair attempt should never risk the only copy.",
+  "reviewed": true
+}

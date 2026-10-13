@@ -1,0 +1,42 @@
+{
+  "id": "L2-HW-01",
+  "level": 2,
+  "category": "Hardware",
+  "title": "Laptop overheating and shutting down",
+  "character": {
+    "name": "Imtiaz",
+    "department": "Sales",
+    "personality": "easygoing, always travelling"
+  },
+  "symptom": "Laptop gets very hot, fan is loud, and it shuts itself off",
+  "user_description": "My laptop gets really hot and the fan sounds like a jet engine. Then it just switches itself off in the middle of work.",
+  "options": [
+    {
+      "text": "Disable the overheating shutdown so it keeps running",
+      "correct": false,
+      "why": "The shutdown exists to protect the hardware from heat damage. Removing it risks permanent damage and lost data."
+    },
+    {
+      "text": "Check the vents are clear of dust and blocked airflow, use it on a hard flat surface, and look in Task Manager for a program using the CPU constantly",
+      "correct": true,
+      "why": "Blocked vents and soft surfaces trap heat, and a program stuck at full CPU makes the laptop run hot. These are the most common and cheapest causes to check."
+    },
+    {
+      "text": "Reinstall Windows",
+      "correct": false,
+      "why": "Drastic and unlikely to fix a heat problem. It could only help if software is the cause, and nobody has checked that."
+    },
+    {
+      "text": "Run it with the bottom panel removed for extra cooling",
+      "correct": false,
+      "why": "Exposes internal parts to dust and damage, and it does not fix the real cause. Never run hardware with covers removed."
+    }
+  ],
+  "hints": [
+    "Is the laptop running hot because of what it is doing, or because it cannot get rid of heat?",
+    "Where does a laptop's hot air leave, and what could block it?",
+    "Which tool shows what is using the processor all the time?"
+  ],
+  "real_world_tip": "Ask where he uses it. Laptops on beds, sofas and car seats cover their air vents and overheat quickly.",
+  "reviewed": true
+}

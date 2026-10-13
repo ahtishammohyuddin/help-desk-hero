@@ -1,0 +1,42 @@
+{
+  "id": "L2-NW-02",
+  "level": 2,
+  "category": "Networking and Wi-Fi",
+  "title": "Cannot reach the shared drive",
+  "character": {
+    "name": "Shoaib",
+    "department": "Finance",
+    "personality": "calm, needs reports for a meeting"
+  },
+  "symptom": "Mapped shared drive shows a red cross and will not open",
+  "user_description": "My S: drive has a red cross on it and says the network path can't be found. Yesterday it was fine.",
+  "options": [
+    {
+      "text": "Copy the files to a USB drive for him and close the ticket",
+      "correct": false,
+      "why": "A workaround that leaves the drive broken and moves company files onto removable media."
+    },
+    {
+      "text": "Give him administrator rights on the server",
+      "correct": false,
+      "why": "Far too much access, and permissions are not the first suspect for a path that cannot be found."
+    },
+    {
+      "text": "Check he is on the office network or VPN, see whether the internet and other shares work, then test the path using the server name and re-map the drive",
+      "correct": true,
+      "why": "'Path not found' usually means he cannot reach the server. Checking his connection, testing other resources and the server name and re-mapping narrows the cause step by step."
+    },
+    {
+      "text": "Reinstall Windows",
+      "correct": false,
+      "why": "Never the first step. It is destructive and does not address a network path."
+    }
+  ],
+  "hints": [
+    "Can he reach anything else on the network?",
+    "What does 'path not found' tell you about where the problem is?",
+    "How could you check the server name is right?"
+  ],
+  "real_world_tip": "If other people can open the same drive, the fault is on his PC or connection, not on the server.",
+  "reviewed": true
+}

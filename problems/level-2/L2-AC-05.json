@@ -1,0 +1,42 @@
+{
+  "id": "L2-AC-05",
+  "level": 2,
+  "category": "Accounts and passwords",
+  "title": "Name change on an account",
+  "character": {
+    "name": "Anam",
+    "department": "HR",
+    "personality": "organised, a little hesitant"
+  },
+  "symptom": "An employee has changed her name and needs her accounts updated",
+  "user_description": "One of our staff has changed her surname. Can you update her email and login to the new name?",
+  "options": [
+    {
+      "text": "Create a new account and delete the old one",
+      "correct": false,
+      "why": "Loses her mailbox, files and history. Renaming keeps everything intact."
+    },
+    {
+      "text": "Change it on a phone call from someone who says they are from HR, without checking",
+      "correct": false,
+      "why": "Name changes alter someone's identity in every system, so the request must be confirmed through a trusted channel. A caller claiming to be HR proves nothing."
+    },
+    {
+      "text": "Follow the process with HR's confirmation, update the name and sign-in address, and keep the old address as an alias so mail still arrives",
+      "correct": true,
+      "why": "Updating the existing account keeps her data. Keeping the old address as an alias means people who still use it can reach her."
+    },
+    {
+      "text": "Change only the display name and leave the email address",
+      "correct": false,
+      "why": "Leaves her with a mismatched identity across systems, which causes confusion and sign-in problems later."
+    }
+  ],
+  "hints": [
+    "Who has the authority to ask for a name change?",
+    "What would you lose if you made a new account?",
+    "How will people who use the old address still reach her?"
+  ],
+  "real_world_tip": "Warn her she may need to sign in with the new name and re-enter it in some apps.",
+  "reviewed": true
+}

@@ -1,0 +1,42 @@
+{
+  "id": "L2-PR-01",
+  "level": 2,
+  "category": "Printers and scanners",
+  "title": "Wrong printer set as default",
+  "character": {
+    "name": "Asma",
+    "department": "Admin",
+    "personality": "patient, a little annoyed"
+  },
+  "symptom": "Documents keep going to a printer on another floor",
+  "user_description": "Every time I print, my document comes out on the printer on the third floor. I have to walk all the way up!",
+  "options": [
+    {
+      "text": "Delete every printer from the PC and start again",
+      "correct": false,
+      "why": "Heavy-handed. The right printer is probably already installed and only the default setting is wrong."
+    },
+    {
+      "text": "Open printer settings, set the nearest printer as default, and turn off the option that lets Windows manage the default printer if it keeps changing",
+      "correct": true,
+      "why": "Windows can change the default to the last printer used, which explains why it keeps returning to the wrong one. Setting the default and turning that option off stops the changes."
+    },
+    {
+      "text": "Reinstall Windows",
+      "correct": false,
+      "why": "Never the first step. It would erase everything for a simple setting."
+    },
+    {
+      "text": "Tell her to always pick the printer manually",
+      "correct": false,
+      "why": "Leaves the real problem unfixed and relies on her remembering every time."
+    }
+  ],
+  "hints": [
+    "Which setting decides where a document goes if you do not choose?",
+    "Why might that setting keep changing back?",
+    "Is it Windows or the user deciding which printer is the default?"
+  ],
+  "real_world_tip": "Windows 10 and 11 can set the default to the printer you used last. It is a very common reason the default keeps changing.",
+  "reviewed": true
+}

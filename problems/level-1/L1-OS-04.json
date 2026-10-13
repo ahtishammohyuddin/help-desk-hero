@@ -1,0 +1,41 @@
+{
+  "id": "L1-OS-04",
+  "level": 1,
+  "category": "Windows and OS",
+  "title": "Screen resolution looks wrong",
+  "character": {
+    "name": "Saima",
+    "department": "Reception",
+    "personality": "polite, not technical"
+  },
+  "symptom": "Everything on screen looks stretched, blurry or too big",
+  "user_description": "Since I plugged my laptop into the meeting room screen, everything looks huge and blurry. It's still like that at my desk.",
+  "options": [
+    {
+      "text": "Reinstall Windows",
+      "correct": false,
+      "why": "Far too drastic for a display setting. Never start with the most destructive fix."
+    },
+    {
+      "text": "Buy a new graphics card",
+      "correct": false,
+      "why": "Costly and unneeded. The screen worked before, so the hardware is not the problem."
+    },
+    {
+      "text": "Open Display settings and set the resolution to the one marked Recommended",
+      "correct": true,
+      "why": "Connecting a different screen often changes the resolution. The Recommended setting matches the screen and gives the sharpest picture."
+    },
+    {
+      "text": "Replace the monitor",
+      "correct": false,
+      "why": "Wasteful. The monitor worked perfectly until the setting changed."
+    }
+  ],
+  "hints": [
+    "What changed just before the problem started?",
+    "Where in Windows do you change how the picture is displayed?"
+  ],
+  "real_world_tip": "If the screen looks blurry after you set the resolution, check the scale setting too. It controls how large text and icons appear.",
+  "reviewed": true
+}

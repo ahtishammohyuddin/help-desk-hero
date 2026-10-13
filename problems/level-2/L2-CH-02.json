@@ -1,0 +1,42 @@
+{
+  "id": "L2-CH-02",
+  "level": 2,
+  "category": "Customer handling",
+  "title": "Ticket needs more information from the user",
+  "character": {
+    "name": "Maheen",
+    "department": "Accounts",
+    "personality": "brief, in a hurry"
+  },
+  "symptom": "A ticket just says 'it's broken' with no details",
+  "user_description": "Ticket says: 'My computer is broken. Fix it.' That is the whole ticket.",
+  "options": [
+    {
+      "text": "Close the ticket because it has too little detail",
+      "correct": false,
+      "why": "Leaves the user without help and looks unprofessional. Ask for what you need instead."
+    },
+    {
+      "text": "Make changes by guessing and see if it works",
+      "correct": false,
+      "why": "Guessing can make things worse and wastes time. Ask first."
+    },
+    {
+      "text": "Reply with 'please provide more information' and nothing else",
+      "correct": false,
+      "why": "Too vague. The user already gave a vague report, so a vague request produces another vague reply."
+    },
+    {
+      "text": "Ask a few specific, plain-language questions, such as what they were doing, the exact message, when it started and who else is affected, and ask for a screenshot",
+      "correct": true,
+      "why": "Specific, simple questions are easy to answer and give you what you need. A screenshot shows exactly what the user sees."
+    }
+  ],
+  "hints": [
+    "Why is a vague request likely to get a vague answer?",
+    "Which questions help the most?",
+    "How can you make them easy to answer?"
+  ],
+  "real_world_tip": "Limit yourself to three or four questions. Long lists put users off replying.",
+  "reviewed": true
+}

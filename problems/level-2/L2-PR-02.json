@@ -1,0 +1,42 @@
+{
+  "id": "L2-PR-02",
+  "level": 2,
+  "category": "Printers and scanners",
+  "title": "Cannot connect to shared network printer",
+  "character": {
+    "name": "Fahad",
+    "department": "Procurement",
+    "personality": "calm, short on time"
+  },
+  "symptom": "Windows cannot connect to a shared printer",
+  "user_description": "I tried to add the department printer and it says 'Windows cannot connect to the printer'. Other people can use it.",
+  "options": [
+    {
+      "text": "Share his own printer instead",
+      "correct": false,
+      "why": "Moves the problem and creates a second printer to look after. It does not fix why he cannot reach the shared one."
+    },
+    {
+      "text": "Turn off the firewall on his PC to see if it helps",
+      "correct": false,
+      "why": "Removes protection and is rarely the cause. Check the network and the printer path first."
+    },
+    {
+      "text": "Confirm he is on the office network, check the printer is reachable by its name or address, and remove and add the printer again from the print server",
+      "correct": true,
+      "why": "Other people can print, so the printer works. Checking his network connection and that he can reach the printer, then re-adding it correctly, finds most connection faults."
+    },
+    {
+      "text": "Reinstall Windows",
+      "correct": false,
+      "why": "Drastic and unnecessary. Never start with the most destructive fix."
+    }
+  ],
+  "hints": [
+    "Others can print, so where is the likely problem: the printer or this PC?",
+    "Can his PC reach the printer or print server at all?",
+    "What would you do if the saved printer connection is damaged?"
+  ],
+  "real_world_tip": "If you can open the printer's name in File Explorer or ping it, the network path is fine and the fault is in the printer connection on the PC.",
+  "reviewed": true
+}

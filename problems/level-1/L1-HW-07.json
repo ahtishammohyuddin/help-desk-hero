@@ -1,0 +1,41 @@
+{
+  "id": "L1-HW-07",
+  "level": 1,
+  "category": "Hardware",
+  "title": "Laptop not charging",
+  "character": {
+    "name": "Kamran",
+    "department": "Sales",
+    "personality": "easygoing, often travelling"
+  },
+  "symptom": "Laptop battery level is not going up while plugged in",
+  "user_description": "My laptop says plugged in but the battery percentage isn't going up. I'm leaving for a client meeting in an hour.",
+  "options": [
+    {
+      "text": "Order a new battery",
+      "correct": false,
+      "why": "Possible later, but premature. First check the charger and socket, which are far more common causes."
+    },
+    {
+      "text": "Reinstall Windows",
+      "correct": false,
+      "why": "Unrelated to charging in most cases and very destructive. Not a first step."
+    },
+    {
+      "text": "Check the charger is fully plugged into both the laptop and the wall, try another socket, and inspect the cable and charger light",
+      "correct": true,
+      "why": "Loose connections, a dead socket or a damaged cable are the most common causes. Always check the physical connections first."
+    },
+    {
+      "text": "Tell the user to leave it and hope it charges eventually",
+      "correct": false,
+      "why": "Does nothing to find the cause and may leave the user without a laptop for their meeting."
+    }
+  ],
+  "hints": [
+    "How does the laptop get power from the wall?",
+    "Could the socket itself be the problem?"
+  ],
+  "real_world_tip": "If you have a spare charger of the same model, swap it in. It quickly shows whether the charger or the laptop is at fault.",
+  "reviewed": true
+}

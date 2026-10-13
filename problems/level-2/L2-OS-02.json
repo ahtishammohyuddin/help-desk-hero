@@ -1,0 +1,42 @@
+{
+  "id": "L2-OS-02",
+  "level": 2,
+  "category": "Windows and OS",
+  "title": "Slow startup from too many startup apps",
+  "character": {
+    "name": "Rida",
+    "department": "Marketing",
+    "personality": "chatty, installs lots of tools"
+  },
+  "symptom": "PC takes several minutes to become usable after sign-in",
+  "user_description": "It takes forever to get going in the morning. I sign in and then wait five minutes before I can open anything.",
+  "options": [
+    {
+      "text": "Disable every startup item, including security software",
+      "correct": false,
+      "why": "Switching off security software leaves the PC unprotected. Only non-essential items should be disabled."
+    },
+    {
+      "text": "Reinstall Windows",
+      "correct": false,
+      "why": "Drastic and usually unnecessary. Startup programs are a far likelier cause than Windows itself."
+    },
+    {
+      "text": "Open the Startup tab in Task Manager, sort by impact, and disable non-essential programs after asking which ones she really needs",
+      "correct": true,
+      "why": "Many programs start automatically and compete for resources at sign-in. Task Manager shows which have the highest startup impact, and asking the user avoids disabling something she needs."
+    },
+    {
+      "text": "Delete the startup programs' folders from Program Files",
+      "correct": false,
+      "why": "Destructive. It breaks the programs instead of just stopping them from starting automatically."
+    }
+  ],
+  "hints": [
+    "What happens in the minutes after someone signs in?",
+    "Where in Windows can you see what starts automatically?",
+    "Which items should you never switch off?"
+  ],
+  "real_world_tip": "Look for chat apps, updaters and sync tools. They are the usual heavy startup items and are safe to start manually.",
+  "reviewed": true
+}

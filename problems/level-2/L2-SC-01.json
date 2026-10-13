@@ -1,0 +1,42 @@
+{
+  "id": "L2-SC-01",
+  "level": 2,
+  "category": "Security and phishing",
+  "title": "Unknown USB drive found in the car park",
+  "character": {
+    "name": "Uzair",
+    "department": "Facilities",
+    "personality": "curious, helpful"
+  },
+  "symptom": "An employee found a USB stick in the car park and wants to find its owner",
+  "user_description": "I found this USB stick in the car park. I'll plug it into my PC and see whose it is so I can give it back.",
+  "options": [
+    {
+      "text": "Plug it into a spare PC to find the owner",
+      "correct": false,
+      "why": "Even a spare PC can be infected and may be connected to the network. Unknown drives can run harmful software the moment they connect."
+    },
+    {
+      "text": "Open the files on your own personal laptop",
+      "correct": false,
+      "why": "Puts a personal device and its data at risk. Unknown drives are never safe to open."
+    },
+    {
+      "text": "Tell him not to plug it in, hand it to IT or security, and note where and when it was found",
+      "correct": true,
+      "why": "Attackers leave USB drives on purpose, hoping someone plugs them in. Handing it over lets security examine it safely."
+    },
+    {
+      "text": "Throw it in the bin",
+      "correct": false,
+      "why": "Removes the risk from him, but security loses the chance to learn whether the company is being targeted."
+    }
+  ],
+  "hints": [
+    "Why might someone leave a USB stick where staff will find it?",
+    "What can a USB drive do just by being plugged in?",
+    "Who should look at it?"
+  ],
+  "real_world_tip": "Thank the user for asking first. People who check before plugging in are exactly the habit you want to encourage.",
+  "reviewed": true
+}

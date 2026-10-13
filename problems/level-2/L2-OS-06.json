@@ -1,0 +1,42 @@
+{
+  "id": "L2-OS-06",
+  "level": 2,
+  "category": "Windows and OS",
+  "title": "PDF files open in the wrong app",
+  "character": {
+    "name": "Mariam",
+    "department": "Admin",
+    "personality": "polite, slightly frustrated"
+  },
+  "symptom": "PDF files open in an unwanted program",
+  "user_description": "Every PDF now opens in some strange program instead of the one I normally use. How do I put it back?",
+  "options": [
+    {
+      "text": "Rename all her PDF files to a different extension",
+      "correct": false,
+      "why": "Messy and breaks sharing. The problem is which program opens PDFs, not the files themselves."
+    },
+    {
+      "text": "Reinstall Windows",
+      "correct": false,
+      "why": "Never the first step. It is a huge fix for a small setting."
+    },
+    {
+      "text": "Right-click a PDF, choose Open with, select the right app and tick Always use this app, or set it in Default apps",
+      "correct": true,
+      "why": "File types are linked to a default program in Windows. Changing that link once fixes every PDF."
+    },
+    {
+      "text": "Uninstall the unwanted program",
+      "correct": false,
+      "why": "May break other things that need that program. Changing the default is simpler and safer."
+    }
+  ],
+  "hints": [
+    "What decides which program opens a particular type of file?",
+    "Where could you change that choice?",
+    "Is the file broken, or just the program it opens with?"
+  ],
+  "real_world_tip": "Walk her through it once and she can fix it herself next time, saving you a ticket.",
+  "reviewed": true
+}

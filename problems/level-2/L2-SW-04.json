@@ -1,0 +1,42 @@
+{
+  "id": "L2-SW-04",
+  "level": 2,
+  "category": "Software and installs",
+  "title": "Two versions of an app conflict",
+  "character": {
+    "name": "Kamil",
+    "department": "Procurement",
+    "personality": "calm, a little confused"
+  },
+  "symptom": "Two versions of the same PDF reader are installed and files open unpredictably",
+  "user_description": "I have two PDF programs that look nearly the same. Sometimes one opens, sometimes the other, and some features don't work.",
+  "options": [
+    {
+      "text": "Delete the program folders by hand",
+      "correct": false,
+      "why": "Leaves broken leftovers and may remove files other programs need. Always uninstall properly."
+    },
+    {
+      "text": "Install a third version to see which one works",
+      "correct": false,
+      "why": "Makes the conflict worse and adds more clutter."
+    },
+    {
+      "text": "Check installed apps, decide which version is approved and needed, uninstall the extra version properly, repair the remaining one and restart",
+      "correct": true,
+      "why": "Two versions compete to open the same files. Removing the unneeded one properly and repairing the other restores predictable behaviour."
+    },
+    {
+      "text": "Reinstall Windows",
+      "correct": false,
+      "why": "A huge fix for a simple duplicate program."
+    }
+  ],
+  "hints": [
+    "Which version should he really be using?",
+    "What is the proper way to remove a program?",
+    "What could you do to make sure the remaining one works?"
+  ],
+  "real_world_tip": "Check the version numbers. The newer one is not always the approved one, so compare against your approved list.",
+  "reviewed": true
+}

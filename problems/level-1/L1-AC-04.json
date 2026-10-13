@@ -1,0 +1,41 @@
+{
+  "id": "L1-AC-04",
+  "level": 1,
+  "category": "Accounts and passwords",
+  "title": "Password rejected, Caps Lock on",
+  "character": {
+    "name": "Lubna",
+    "department": "Marketing",
+    "personality": "polite, slightly flustered"
+  },
+  "symptom": "Login keeps failing with 'incorrect password'",
+  "user_description": "It keeps saying my password is incorrect, but it's the same one I always use. I've tried twice already.",
+  "options": [
+    {
+      "text": "Reset the password immediately without any checks",
+      "correct": false,
+      "why": "May be unnecessary and skips identity verification. Try the simplest explanations first."
+    },
+    {
+      "text": "Ask her to read the password out so you can try it",
+      "correct": false,
+      "why": "Never ask for or accept someone's password. Asking trains users to give passwords away, which is exactly what attackers do."
+    },
+    {
+      "text": "Ask her to check Caps Lock is off and to type the password slowly and carefully before changing anything",
+      "correct": true,
+      "why": "A switched-on Caps Lock key is a very common reason for rejected passwords. Checking it first costs nothing and may fix the problem without a reset."
+    },
+    {
+      "text": "Reinstall Windows",
+      "correct": false,
+      "why": "Never the first step. It would not fix a typing mistake and destroys the user's settings."
+    }
+  ],
+  "hints": [
+    "What is the simplest reason a correct password might be rejected?",
+    "Should support ever know a user's password?"
+  ],
+  "real_world_tip": "Tell users to use the eye icon to show what they typed. It catches most typing mistakes without anyone seeing the password.",
+  "reviewed": true
+}

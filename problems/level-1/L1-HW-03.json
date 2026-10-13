@@ -1,0 +1,36 @@
+{
+  "id": "L1-HW-03",
+  "level": 1,
+  "category": "Hardware",
+  "title": "Black screen, PC running",
+  "character": {
+    "name": "Ahmed",
+    "department": "Accounts",
+    "personality": "polite, rushed"
+  },
+  "symptom": "Screen is black but the computer fans are running",
+  "user_description": "My screen just went black but I can hear the computer is still on!",
+  "options": [
+    {
+      "text": "Check the monitor power and cable",
+      "correct": true,
+      "why": "Fans running means the PC is on. A black screen usually means the monitor is off or the cable is loose. Always check physical connections first."
+    },
+    {
+      "text": "Reinstall Windows",
+      "correct": false,
+      "why": "Far too drastic. Never start with the most destructive fix."
+    },
+    {
+      "text": "Restart the computer",
+      "correct": false,
+      "why": "Might work by luck, but skips the real cause and wastes the user's time."
+    }
+  ],
+  "hints": [
+    "Is the computer itself on?",
+    "What connects the PC to the screen?"
+  ],
+  "real_world_tip": "Check the monitor's own power light and button before touching the PC. It is the fastest check and often the whole fix.",
+  "reviewed": true
+}

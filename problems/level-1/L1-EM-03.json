@@ -1,0 +1,41 @@
+{
+  "id": "L1-EM-03",
+  "level": 1,
+  "category": "Email and Outlook / M365",
+  "title": "Attachment too large to send",
+  "character": {
+    "name": "Tariq",
+    "department": "Sales",
+    "personality": "busy, somewhat impatient"
+  },
+  "symptom": "Email will not send because the attachment is too large",
+  "user_description": "I'm trying to email a big presentation to a client and it keeps bouncing. How can I get it to them?",
+  "options": [
+    {
+      "text": "Send it from a personal email account instead",
+      "correct": false,
+      "why": "Moves company data outside approved systems and is a security and policy risk."
+    },
+    {
+      "text": "Raise the size limit for the whole company",
+      "correct": false,
+      "why": "A huge change that affects the whole system to solve one user's problem. Not a first step."
+    },
+    {
+      "text": "Share the file as a link using the company's approved cloud storage instead of attaching it",
+      "correct": true,
+      "why": "Links avoid mail size limits, and approved storage keeps company files secure and lets you control who can open them."
+    },
+    {
+      "text": "Split it into many small emails",
+      "correct": false,
+      "why": "Clumsy and unprofessional. The client gets many messages and may never put the file together."
+    }
+  ],
+  "hints": [
+    "Does the file have to travel inside the email itself?",
+    "Where does the company want files like this to be stored and shared?"
+  ],
+  "real_world_tip": "Check the link permissions. Set it to specific people or view-only so the file does not end up shared with everyone.",
+  "reviewed": true
+}

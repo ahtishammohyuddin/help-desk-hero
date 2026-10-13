@@ -1,0 +1,41 @@
+{
+  "id": "L1-HW-01",
+  "level": 1,
+  "category": "Hardware",
+  "title": "Keyboard not typing",
+  "character": {
+    "name": "Sana",
+    "department": "HR",
+    "personality": "friendly, in a hurry"
+  },
+  "symptom": "Keyboard types nothing, but the mouse still works",
+  "user_description": "Hi, my keyboard stopped working. I press keys and nothing appears, but my mouse is fine. I have to finish a letter!",
+  "options": [
+    {
+      "text": "Reinstall Windows",
+      "correct": false,
+      "why": "Far too drastic. The mouse works, so Windows is running fine. Never start with the most destructive fix."
+    },
+    {
+      "text": "Check the keyboard is plugged in firmly (or its batteries and receiver if wireless), then try another USB port",
+      "correct": true,
+      "why": "A working mouse shows the PC is fine, so the problem is almost always the keyboard connection, batteries or USB port. Check the simple physical things first."
+    },
+    {
+      "text": "Order a new keyboard straight away",
+      "correct": false,
+      "why": "Wastes money and time. A loose cable or flat batteries are far more likely than a dead keyboard."
+    },
+    {
+      "text": "Update the BIOS",
+      "correct": false,
+      "why": "Risky and unrelated. A BIOS update can cause serious problems and has nothing to do with one dead keyboard."
+    }
+  ],
+  "hints": [
+    "The mouse works, so is the whole PC the problem?",
+    "How does the keyboard connect to the PC?"
+  ],
+  "real_world_tip": "Swap in a spare keyboard from the cupboard. If it works, you know the old keyboard is the fault and the user can keep working while you sort it out.",
+  "reviewed": true
+}

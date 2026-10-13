@@ -1,0 +1,42 @@
+{
+  "id": "L2-SC-02",
+  "level": 2,
+  "category": "Security and phishing",
+  "title": "Pop-up claims a virus, call this number",
+  "character": {
+    "name": "Mahnoor",
+    "department": "Accounts",
+    "personality": "frightened, wants it fixed fast"
+  },
+  "symptom": "Browser shows a loud warning that the PC is infected and gives a phone number",
+  "user_description": "A big red screen says my computer has a virus and I must call a number immediately! It's making an alarm sound!",
+  "options": [
+    {
+      "text": "Call the number on the pop-up to check if it is real",
+      "correct": false,
+      "why": "The number belongs to the scammers. Calling starts the scam, where they pressure victims to give remote access or pay."
+    },
+    {
+      "text": "Click the button to download the recommended cleaner",
+      "correct": false,
+      "why": "The 'cleaner' is the real malware. Never follow instructions from a pop-up like this."
+    },
+    {
+      "text": "Tell her not to call or click anything, close the browser using Task Manager if needed, run a security scan and report it to the security team",
+      "correct": true,
+      "why": "Real security tools never ask you to phone a number. Closing the page, scanning and reporting protects her and the company."
+    },
+    {
+      "text": "Let the caller connect remotely to fix it",
+      "correct": false,
+      "why": "Giving remote access to scammers lets them steal data and install harmful software."
+    }
+  ],
+  "hints": [
+    "Would a real antivirus ever tell you to call a phone number?",
+    "How can you close the page safely?",
+    "Who else should know about it?"
+  ],
+  "real_world_tip": "Ask whether she has already called or let anyone connect. If so, treat it as an incident and escalate straight away.",
+  "reviewed": true
+}

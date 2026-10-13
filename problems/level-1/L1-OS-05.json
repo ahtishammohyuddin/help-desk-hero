@@ -1,0 +1,41 @@
+{
+  "id": "L1-OS-05",
+  "level": 1,
+  "category": "Windows and OS",
+  "title": "Cannot find a saved file",
+  "character": {
+    "name": "Noman",
+    "department": "Sales",
+    "personality": "hurried, a little embarrassed"
+  },
+  "symptom": "User cannot find a document they saved yesterday",
+  "user_description": "I saved a proposal yesterday and now I can't find it anywhere. I don't remember which folder I used.",
+  "options": [
+    {
+      "text": "Tell him the file is deleted and he must start again",
+      "correct": false,
+      "why": "Wrong and unhelpful. Nobody has searched yet, so there is no reason to think the file is gone."
+    },
+    {
+      "text": "Restore the entire PC from a backup",
+      "correct": false,
+      "why": "Heavy-handed and risky. It could overwrite other work to find one file."
+    },
+    {
+      "text": "Search for the file name or a word from it in File Explorer, and check Recent files, Downloads and the app's recent list",
+      "correct": true,
+      "why": "Files are usually saved somewhere unexpected, such as Downloads or the last-used folder. Searching and checking recent lists finds most 'lost' files quickly."
+    },
+    {
+      "text": "Reinstall Office",
+      "correct": false,
+      "why": "A missing file is not a sign that Office is broken. This would waste time."
+    }
+  ],
+  "hints": [
+    "What do you remember about the file, such as its name or when you saved it?",
+    "Where do programs often save files by default?"
+  ],
+  "real_world_tip": "Sort search results by date modified. Yesterday's file will be near the top.",
+  "reviewed": true
+}

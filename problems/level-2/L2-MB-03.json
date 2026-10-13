@@ -1,0 +1,42 @@
+{
+  "id": "L2-MB-03",
+  "level": 2,
+  "category": "Mobile and phones",
+  "title": "Phone storage full",
+  "character": {
+    "name": "Shaheer",
+    "department": "Operations",
+    "personality": "practical, takes lots of photos"
+  },
+  "symptom": "Phone says storage is full and apps stop working",
+  "user_description": "My phone says storage is full. I can't take photos or update apps, and the email app is acting strange.",
+  "options": [
+    {
+      "text": "Do a factory reset",
+      "correct": false,
+      "why": "Erases everything. Storage problems are fixed by freeing space, not by wiping the phone."
+    },
+    {
+      "text": "Delete the email app to free space",
+      "correct": false,
+      "why": "Removes his access to work mail and does not solve the real cause."
+    },
+    {
+      "text": "Check what uses the storage, clear unneeded apps, caches and large downloads, and back up photos to an approved cloud service before deleting them",
+      "correct": true,
+      "why": "Seeing what takes space shows the real cause. Backing up photos before deleting avoids losing anything he wants to keep."
+    },
+    {
+      "text": "Buy a bigger phone",
+      "correct": false,
+      "why": "Expensive and avoidable. Storage can almost always be freed up."
+    }
+  ],
+  "hints": [
+    "What takes up the most space on a phone?",
+    "What must you do before deleting photos?",
+    "Which apps must you not remove?"
+  ],
+  "real_world_tip": "Photos and videos are the usual cause. Show him how to see storage by category.",
+  "reviewed": true
+}

@@ -1,0 +1,41 @@
+{
+  "id": "L1-HW-05",
+  "level": 1,
+  "category": "Hardware",
+  "title": "Monitor says No Signal",
+  "character": {
+    "name": "Usman",
+    "department": "Operations",
+    "personality": "polite, a bit confused"
+  },
+  "symptom": "Monitor power light is on but shows No Signal",
+  "user_description": "Someone moved my desk this morning. Now my monitor says 'No Signal' but the monitor light is on and the PC seems to be running.",
+  "options": [
+    {
+      "text": "Replace the graphics card",
+      "correct": false,
+      "why": "Premature and costly. Nobody has yet checked the cable or the monitor input."
+    },
+    {
+      "text": "Reinstall the display driver",
+      "correct": false,
+      "why": "The driver cannot be the cause if the monitor is receiving no signal at all. Check the physical connection first."
+    },
+    {
+      "text": "Check the video cable is firmly connected at both ends and the monitor input source matches the cable (HDMI, DisplayPort or VGA)",
+      "correct": true,
+      "why": "A desk move often loosens cables. 'No Signal' also appears when the monitor is set to a different input than the one the cable uses."
+    },
+    {
+      "text": "Replace the monitor with a new one",
+      "correct": false,
+      "why": "Premature. A monitor that is on and says No Signal is working; it is just not receiving a picture. Check the cable and input first."
+    }
+  ],
+  "hints": [
+    "The monitor is on, so what is it not receiving?",
+    "Monitors often have several input ports. How does it know which one to show?"
+  ],
+  "real_world_tip": "Press the Input or Source button on the monitor and cycle through the options. This fixes a surprising number of No Signal tickets.",
+  "reviewed": true
+}

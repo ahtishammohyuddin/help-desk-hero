@@ -1,0 +1,36 @@
+{
+  "id": "L1-MB-01",
+  "level": 1,
+  "category": "Mobile and phones",
+  "title": "Phone will not charge",
+  "character": {
+    "name": "Junaid",
+    "department": "Field Sales",
+    "personality": "relaxed, always on the move"
+  },
+  "symptom": "Company phone does not charge when plugged in",
+  "user_description": "I plug my work phone in overnight and the battery is still flat in the morning.",
+  "options": [
+    {
+      "text": "Do a factory reset",
+      "correct": false,
+      "why": "Erases all data and is a drastic step for a charging fault. Never start with it."
+    },
+    {
+      "text": "Check the cable and adapter, try another cable and socket, and look for dirt in the charging port",
+      "correct": true,
+      "why": "Damaged cables, faulty adapters and lint in the port are the most common causes. Swapping parts one at a time finds which one it is."
+    },
+    {
+      "text": "Open the phone and replace the battery",
+      "correct": false,
+      "why": "Risky and not an L1 task. Never open a device before simple checks."
+    }
+  ],
+  "hints": [
+    "What carries power from the wall to the phone?",
+    "How can you test the cable, adapter and port one by one?"
+  ],
+  "real_world_tip": "A different cable and a different adapter is the quickest test. Mixed-up cables cause a lot of 'charging' tickets.",
+  "reviewed": true
+}

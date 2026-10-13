@@ -1,0 +1,42 @@
+{
+  "id": "L2-AC-06",
+  "level": 2,
+  "category": "Accounts and passwords",
+  "title": "Access request needs manager approval",
+  "character": {
+    "name": "Talha",
+    "department": "Operations",
+    "personality": "friendly, pushes gently"
+  },
+  "symptom": "User asks for access to a restricted finance folder",
+  "user_description": "I need access to the finance reports folder. My manager said it's fine. Can you just add me?",
+  "options": [
+    {
+      "text": "Add him because he says his manager agreed",
+      "correct": false,
+      "why": "A verbal claim is not proof. Anyone can say their manager agreed."
+    },
+    {
+      "text": "Add him now and ask for approval later",
+      "correct": false,
+      "why": "Access once given may be used straight away. Approval must come first."
+    },
+    {
+      "text": "Ask for a written approval from his manager and the data owner through the proper request, then grant only the access needed",
+      "correct": true,
+      "why": "Written approval creates a record and stops people granting themselves access. Granting only what is needed limits risk."
+    },
+    {
+      "text": "Copy a colleague's permissions to him",
+      "correct": false,
+      "why": "Copying can give him more access than he needs, including things he should never see."
+    }
+  ],
+  "hints": [
+    "Is 'my manager said so' enough?",
+    "Who decides who may see finance data?",
+    "How much access should you grant?"
+  ],
+  "real_world_tip": "Keep requests in the ticket. When someone later asks who approved the access, the record answers it.",
+  "reviewed": true
+}

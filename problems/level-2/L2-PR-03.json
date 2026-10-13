@@ -1,0 +1,42 @@
+{
+  "id": "L2-PR-03",
+  "level": 2,
+  "category": "Printers and scanners",
+  "title": "Streaky lines on printouts",
+  "character": {
+    "name": "Shazia",
+    "department": "Legal",
+    "personality": "careful, quality-conscious"
+  },
+  "symptom": "Printouts have dark lines or streaks running down the page",
+  "user_description": "Every page I print has ugly streaks running down it. It's a contract for a client, so I can't send this.",
+  "options": [
+    {
+      "text": "Reinstall the printer driver",
+      "correct": false,
+      "why": "A driver cannot make physical streaks. It should be ruled out only after checking whether the printer itself is at fault."
+    },
+    {
+      "text": "Print the printer's own test page. If the streaks appear there, run its cleaning routine and check the toner and drum as the manual advises",
+      "correct": true,
+      "why": "A test page printed by the printer itself separates a printer fault from a document or driver problem. Streaks on it point to dirty or worn parts such as toner or drum."
+    },
+    {
+      "text": "Change the paper size setting",
+      "correct": false,
+      "why": "Paper size does not cause streaks. This changes something unrelated to the fault."
+    },
+    {
+      "text": "Replace the user's PC",
+      "correct": false,
+      "why": "Pointless. The streaks appear on paper, so the PC is not the cause."
+    }
+  ],
+  "hints": [
+    "How can you tell whether the printer or the document is causing the streaks?",
+    "Which parts inside a laser printer touch the paper and can get dirty or worn?",
+    "Where would you find the correct cleaning steps?"
+  ],
+  "real_world_tip": "Check whether the streaks are in the same place on every page. A fixed streak usually points to a worn or dirty part.",
+  "reviewed": true
+}

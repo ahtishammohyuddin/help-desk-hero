@@ -1,0 +1,41 @@
+{
+  "id": "L1-OS-02",
+  "level": 1,
+  "category": "Windows and OS",
+  "title": "Application not responding, unsaved work",
+  "character": {
+    "name": "Rabia",
+    "department": "Operations",
+    "personality": "worried, close to panic"
+  },
+  "symptom": "Excel shows (Not Responding) with two hours of unsaved work",
+  "user_description": "Excel has frozen and the title says 'Not Responding'. I haven't saved for two hours. Please don't lose my work!",
+  "options": [
+    {
+      "text": "Hold the power button to switch the PC off straight away",
+      "correct": false,
+      "why": "A hard shutdown guarantees the unsaved work is lost and can corrupt files. It is the last resort, not the first."
+    },
+    {
+      "text": "Wait a minute or two to see if it recovers, and only if it stays frozen close it from Task Manager, then check the recovered files when Excel reopens",
+      "correct": true,
+      "why": "A program may only be busy, so give it time. If it stays frozen, closing it cleanly and checking Excel's recovery panel on reopening gives the best chance of getting the work back."
+    },
+    {
+      "text": "Close Excel immediately and restart the PC",
+      "correct": false,
+      "why": "Acting too fast can throw away work that the program was about to recover. Give it a short time first."
+    },
+    {
+      "text": "Reinstall Office",
+      "correct": false,
+      "why": "Unnecessary and destructive. One freeze does not mean Office is broken."
+    }
+  ],
+  "hints": [
+    "Is the program frozen, or just very busy?",
+    "What features does Office have to recover unsaved files?"
+  ],
+  "real_world_tip": "Teach users to press Ctrl+S often. It is the cheapest fix for every freeze that follows.",
+  "reviewed": true
+}

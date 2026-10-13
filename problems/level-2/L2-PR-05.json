@@ -1,0 +1,42 @@
+{
+  "id": "L2-PR-05",
+  "level": 2,
+  "category": "Printers and scanners",
+  "title": "Printer prints blank pages",
+  "character": {
+    "name": "Tahira",
+    "department": "HR",
+    "personality": "puzzled, a bit embarrassed"
+  },
+  "symptom": "Pages come out of the printer completely blank",
+  "user_description": "I printed a letter and a blank page came out. The printer sounded like it was working normally.",
+  "options": [
+    {
+      "text": "Keep sending the job until it prints",
+      "correct": false,
+      "why": "Wastes paper and toner. Repeating the same job rarely changes the result."
+    },
+    {
+      "text": "Replace the printer",
+      "correct": false,
+      "why": "Expensive and premature. Blank pages usually have simple causes."
+    },
+    {
+      "text": "Print the printer's own test page to separate a printer fault from a document or driver problem, and check the cartridge is installed correctly with no protective seal left on",
+      "correct": true,
+      "why": "If the test page is also blank, the printer or its supplies are at fault, such as a missing toner or a seal left on a new cartridge. If it prints, the document or driver is the cause."
+    },
+    {
+      "text": "Reinstall Windows",
+      "correct": false,
+      "why": "Never the first step. It is destructive and unlikely to be the cause."
+    }
+  ],
+  "hints": [
+    "How can you tell whether the problem is the document or the printer?",
+    "What could stop toner or ink reaching the paper?",
+    "Could something have been left on a new cartridge?"
+  ],
+  "real_world_tip": "Brand new cartridges often have a plastic seal or tape that must be removed. Forgetting it gives blank pages.",
+  "reviewed": true
+}

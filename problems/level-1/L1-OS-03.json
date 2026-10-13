@@ -1,0 +1,41 @@
+{
+  "id": "L1-OS-03",
+  "level": 1,
+  "category": "Windows and OS",
+  "title": "Low disk space warning",
+  "character": {
+    "name": "Haris",
+    "department": "Design",
+    "personality": "creative, disorganised"
+  },
+  "symptom": "Windows warns that the C: drive is almost full",
+  "user_description": "I keep getting a message that my disk is almost full and my computer is getting slow. I have a lot of project files.",
+  "options": [
+    {
+      "text": "Delete files from the Windows and System32 folders",
+      "correct": false,
+      "why": "Extremely dangerous. These folders hold files Windows needs to run, and deleting them can stop the PC from starting."
+    },
+    {
+      "text": "Delete the user's project files without asking",
+      "correct": false,
+      "why": "Never delete someone's work without their permission. It may be impossible to recover."
+    },
+    {
+      "text": "Check what is using the space in Storage settings, empty the Recycle Bin and clear temporary files, and ask before removing anything personal",
+      "correct": true,
+      "why": "Seeing what takes the space shows the real cause. Recycle Bin and temporary files are safe to clear, and personal files should only be moved or removed with the owner's agreement."
+    },
+    {
+      "text": "Reinstall Windows",
+      "correct": false,
+      "why": "Drastic and destroys settings and data. A full disk can almost always be fixed by cleaning up."
+    }
+  ],
+  "hints": [
+    "Can you see which folders or file types take up the most space?",
+    "What can safely be removed, and what needs the owner's permission?"
+  ],
+  "real_world_tip": "Large video, design and download files are the usual culprits. Offer to move them to network or cloud storage.",
+  "reviewed": true
+}

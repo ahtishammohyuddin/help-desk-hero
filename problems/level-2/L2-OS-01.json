@@ -1,0 +1,42 @@
+{
+  "id": "L2-OS-01",
+  "level": 2,
+  "category": "Windows and OS",
+  "title": "Windows Update stuck",
+  "character": {
+    "name": "Zubair",
+    "department": "Operations",
+    "personality": "patient, but running out of time"
+  },
+  "symptom": "PC has shown 'Working on updates' at the same percentage for hours",
+  "user_description": "My PC has said 'Working on updates, 30 percent' since this morning. It hasn't moved. Is it broken?",
+  "options": [
+    {
+      "text": "Hold the power button to switch it off after a few minutes",
+      "correct": false,
+      "why": "Cutting power in the middle of an update can corrupt Windows. Updates can take a long time, so waiting is the first step."
+    },
+    {
+      "text": "Turn off Windows Update permanently",
+      "correct": false,
+      "why": "Leaves the PC without security fixes. It treats a stuck update as a reason to stop patching altogether."
+    },
+    {
+      "text": "Allow plenty of time and watch for disk activity; if there is still no progress after a long wait, restart, run the Windows Update troubleshooter and check free disk space",
+      "correct": true,
+      "why": "Updates can look stuck while they are still working, so patience comes first. If nothing happens after a long wait, a restart, the built-in troubleshooter and enough free space fix most stuck updates."
+    },
+    {
+      "text": "Reinstall Windows",
+      "correct": false,
+      "why": "Far too drastic. Most stuck updates can be fixed without wiping the PC."
+    }
+  ],
+  "hints": [
+    "Can a long update look frozen even though it is still working?",
+    "How could you tell whether the PC is still doing something?",
+    "If it really is stuck, what built-in tool is designed to repair update problems?"
+  ],
+  "real_world_tip": "A flashing disk light or a spinning wheel means it is still working. Only act once you are sure it has stopped.",
+  "reviewed": true
+}

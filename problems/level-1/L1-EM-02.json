@@ -1,0 +1,41 @@
+{
+  "id": "L1-EM-02",
+  "level": 1,
+  "category": "Email and Outlook / M365",
+  "title": "Mailbox full",
+  "character": {
+    "name": "Sadia",
+    "department": "Accounts",
+    "personality": "organised, impatient"
+  },
+  "symptom": "Warning that the mailbox is full and email cannot be sent or received",
+  "user_description": "I've got a message saying my mailbox is full. I'm not getting new emails and I can't send any.",
+  "options": [
+    {
+      "text": "Delete all her emails without checking",
+      "correct": false,
+      "why": "Risky and may remove important records. Never delete a user's mail without their agreement."
+    },
+    {
+      "text": "Create a new email account for her",
+      "correct": false,
+      "why": "Splits her mail across two places and does not fix the cause. It creates more work later."
+    },
+    {
+      "text": "Help her clear space by archiving or deleting large and old emails and emptying Deleted Items, following company retention rules",
+      "correct": true,
+      "why": "Large attachments and old mail use the most space, and emptying Deleted Items frees more. Following retention rules makes sure nothing that must be kept is removed."
+    },
+    {
+      "text": "Tell her to ignore the warning",
+      "correct": false,
+      "why": "Ignoring it means she will stop receiving mail, which can cost business."
+    }
+  ],
+  "hints": [
+    "What takes up the most space in a mailbox?",
+    "Who decides which emails can be deleted?"
+  ],
+  "real_world_tip": "Sort by size in Outlook to find the big attachments first. A few large emails often free most of the space.",
+  "reviewed": true
+}

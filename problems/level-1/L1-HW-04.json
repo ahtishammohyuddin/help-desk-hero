@@ -1,0 +1,41 @@
+{
+  "id": "L1-HW-04",
+  "level": 1,
+  "category": "Hardware",
+  "title": "PC will not turn on",
+  "character": {
+    "name": "Farah",
+    "department": "Finance",
+    "personality": "anxious, deadline pressure"
+  },
+  "symptom": "No lights or fans when the power button is pressed",
+  "user_description": "My computer is completely dead. I press the power button and nothing happens at all, no lights, no sound.",
+  "options": [
+    {
+      "text": "Replace the motherboard",
+      "correct": false,
+      "why": "Far too expensive and premature. Nobody has yet checked whether the PC is receiving power."
+    },
+    {
+      "text": "Reinstall Windows",
+      "correct": false,
+      "why": "Impossible and pointless. A PC that is not powered on cannot be reinstalled, and Windows is not the cause."
+    },
+    {
+      "text": "Check the power cable, power strip switch and wall socket, and test the socket with another device",
+      "correct": true,
+      "why": "No lights at all usually means no power is reaching the PC. A loose cable, a switched-off power strip or a dead socket are the most common causes."
+    },
+    {
+      "text": "Replace the power supply unit immediately",
+      "correct": false,
+      "why": "A faulty power supply is possible, but it should only be suspected after the cable, strip and socket have been ruled out."
+    }
+  ],
+  "hints": [
+    "Are there any lights or fans at all?",
+    "What is the very first thing a PC needs before it can start?"
+  ],
+  "real_world_tip": "Always check the power strip first. Cleaners and desk moves often switch it off or knock plugs loose.",
+  "reviewed": true
+}

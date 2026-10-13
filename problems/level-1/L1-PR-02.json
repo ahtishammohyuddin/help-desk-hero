@@ -1,0 +1,41 @@
+{
+  "id": "L1-PR-02",
+  "level": 1,
+  "category": "Printers and scanners",
+  "title": "Paper jam",
+  "character": {
+    "name": "Asad",
+    "department": "Admin",
+    "personality": "patient, practical"
+  },
+  "symptom": "Printer stopped with a paper jam message",
+  "user_description": "The printer stopped halfway and says there's a paper jam. I can see some paper sticking out.",
+  "options": [
+    {
+      "text": "Pull the paper out as fast as possible in any direction",
+      "correct": false,
+      "why": "Pulling hard or against the paper path can tear the paper and leave scraps inside, or damage the rollers."
+    },
+    {
+      "text": "Keep pressing Print until it goes through",
+      "correct": false,
+      "why": "Adds more paper into a jammed printer and can make the jam much worse."
+    },
+    {
+      "text": "Follow the on-screen instructions, open the access panels and gently remove the paper along its path, checking no scraps remain",
+      "correct": true,
+      "why": "Removing paper gently in the direction it travels avoids tearing it. Leftover scraps cause repeat jams, so check carefully."
+    },
+    {
+      "text": "Reinstall the printer driver",
+      "correct": false,
+      "why": "A paper jam is a physical problem. A driver cannot fix paper stuck inside the printer."
+    }
+  ],
+  "hints": [
+    "Is a paper jam a software problem or a physical one?",
+    "In which direction does the paper normally travel?"
+  ],
+  "real_world_tip": "Look for small torn pieces. Most repeat jams come from a tiny scrap left behind.",
+  "reviewed": true
+}

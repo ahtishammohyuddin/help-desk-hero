@@ -1,0 +1,42 @@
+{
+  "id": "L2-NW-01",
+  "level": 2,
+  "category": "Networking and Wi-Fi",
+  "title": "Slow Wi-Fi in one corner of the office",
+  "character": {
+    "name": "Amna",
+    "department": "Accounts",
+    "personality": "patient, but fed up"
+  },
+  "symptom": "Wi-Fi is fine in most of the office but very slow in one corner",
+  "user_description": "The Wi-Fi is fine at the front of the office but in our corner it's painfully slow and keeps lagging.",
+  "options": [
+    {
+      "text": "Replace everyone's laptops",
+      "correct": false,
+      "why": "Hugely expensive and pointless. The fault is where the signal is weak, not in the laptops."
+    },
+    {
+      "text": "Change the Wi-Fi password for the whole office",
+      "correct": false,
+      "why": "A password change does not affect signal strength and would disconnect everyone."
+    },
+    {
+      "text": "Measure signal strength and speed in that corner against other areas, check for obstacles or interference, and report the weak coverage so an access point can be moved or added",
+      "correct": true,
+      "why": "Measuring proves it is a coverage problem. Walls, metal and other equipment weaken signal, and the fix is usually repositioning or adding an access point."
+    },
+    {
+      "text": "Tell staff to use their phone data instead",
+      "correct": false,
+      "why": "Moves business work onto personal data and leaves the cause unsolved."
+    }
+  ],
+  "hints": [
+    "Is the problem the whole network or only one place?",
+    "What can weaken a Wi-Fi signal between an access point and a corner?",
+    "Who can change where access points are placed?"
+  ],
+  "real_world_tip": "Walk the area with a laptop or phone and note the signal bars. A simple map of strong and weak spots makes the report convincing.",
+  "reviewed": true
+}

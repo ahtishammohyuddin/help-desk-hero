@@ -1,0 +1,42 @@
+{
+  "id": "L2-AC-02",
+  "level": 2,
+  "category": "Accounts and passwords",
+  "title": "Request access to a shared mailbox",
+  "character": {
+    "name": "Hammad",
+    "department": "Customer Service",
+    "personality": "helpful, a bit impatient"
+  },
+  "symptom": "User wants access to the department's shared mailbox",
+  "user_description": "I've joined the support team and need to see the shared support mailbox. Can you add me please?",
+  "options": [
+    {
+      "text": "Give him the mailbox owner's password",
+      "correct": false,
+      "why": "Passwords must never be shared. Access should be given to him directly with his own account."
+    },
+    {
+      "text": "Grant full access to the whole department",
+      "correct": false,
+      "why": "Gives more access than needed. Each person should only get what their job requires."
+    },
+    {
+      "text": "Confirm the mailbox owner or manager approves, then add the permission he needs, such as read, send as or send on behalf",
+      "correct": true,
+      "why": "Approval confirms the request is genuine, and adding permissions to his own account keeps a record of who did what. Choosing only the permission needed follows least privilege."
+    },
+    {
+      "text": "Forward the mailbox's messages to his personal email",
+      "correct": false,
+      "why": "Sends company information outside company systems, which is a security and privacy problem."
+    }
+  ],
+  "hints": [
+    "Who owns the decision about who may read this mailbox?",
+    "Should one person ever use another person's login?",
+    "How much access does he actually need?"
+  ],
+  "real_world_tip": "Tell the user the new permission may take a little while to appear in Outlook. It is a common follow-up call.",
+  "reviewed": true
+}

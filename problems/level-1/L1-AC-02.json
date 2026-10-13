@@ -1,0 +1,41 @@
+{
+  "id": "L1-AC-02",
+  "level": 1,
+  "category": "Accounts and passwords",
+  "title": "Account locked after wrong attempts",
+  "character": {
+    "name": "Mehwish",
+    "department": "Procurement",
+    "personality": "frustrated, apologetic"
+  },
+  "symptom": "Account locked after several wrong password attempts",
+  "user_description": "It says my account is locked after I typed my password wrong a few times. I'm sure I'm typing it right now!",
+  "options": [
+    {
+      "text": "Create a brand new account for her",
+      "correct": false,
+      "why": "Unnecessary and messy. It duplicates the user and loses her settings and access."
+    },
+    {
+      "text": "Verify her identity, unlock the account following the process, and ask if she changed her password recently",
+      "correct": true,
+      "why": "Lockouts protect accounts from guessing, so confirm identity before unlocking. Asking about a recent change often reveals why the old password keeps being tried."
+    },
+    {
+      "text": "Turn off the lockout rule for the whole company",
+      "correct": false,
+      "why": "Removes protection for everyone to fix one user. Never weaken security for convenience."
+    },
+    {
+      "text": "Tell her to keep trying until it unlocks",
+      "correct": false,
+      "why": "More attempts can extend the lockout and signal an attack to the security system."
+    }
+  ],
+  "hints": [
+    "Why does an account lock itself after several wrong attempts?",
+    "What do you need to confirm before you unlock it?"
+  ],
+  "real_world_tip": "Ask if the user has the password saved on a phone or another PC. Old saved passwords are a common cause of repeat lockouts.",
+  "reviewed": true
+}

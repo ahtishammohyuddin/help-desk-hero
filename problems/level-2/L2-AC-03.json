@@ -1,0 +1,42 @@
+{
+  "id": "L2-AC-03",
+  "level": 2,
+  "category": "Accounts and passwords",
+  "title": "Lost phone, MFA no longer works",
+  "character": {
+    "name": "Sobia",
+    "department": "Accounts",
+    "personality": "stressed, embarrassed"
+  },
+  "symptom": "User lost her phone and cannot approve sign-ins",
+  "user_description": "I lost my phone and I need it to sign in. I can't get into anything and I have deadlines today.",
+  "options": [
+    {
+      "text": "Turn off MFA on her account so she can sign in",
+      "correct": false,
+      "why": "Removes a key protection and could let an attacker in, especially since her phone is lost."
+    },
+    {
+      "text": "Reset MFA for anyone who asks over the phone",
+      "correct": false,
+      "why": "Anyone could pretend to be her. Identity must be checked first."
+    },
+    {
+      "text": "Verify her identity using the approved process, reset and re-register her MFA method, and report the lost phone to security if it could access work data",
+      "correct": true,
+      "why": "Strong identity checks stop attackers using a 'lost phone' story. A lost phone with work access should be reported so security can protect the account and data."
+    },
+    {
+      "text": "Tell her to wait until she finds the phone",
+      "correct": false,
+      "why": "Leaves her unable to work and does nothing about a possible security risk."
+    }
+  ],
+  "hints": [
+    "Why is a request to reset MFA a favourite trick for attackers?",
+    "How do you confirm it is really her?",
+    "Could the lost phone be a security risk?"
+  ],
+  "real_world_tip": "If the phone was lost, ask whether it had a lock screen. This tells security how worried to be.",
+  "reviewed": true
+}

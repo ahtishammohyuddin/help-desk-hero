@@ -1,0 +1,42 @@
+{
+  "id": "L2-SC-03",
+  "level": 2,
+  "category": "Security and phishing",
+  "title": "Unlocked PC left unattended",
+  "character": {
+    "name": "Ibrahim",
+    "department": "IT Support",
+    "personality": "observant, conscientious"
+  },
+  "symptom": "A technician finds an unlocked PC with an open email in an empty office",
+  "user_description": "I walked past an empty desk and the PC is unlocked with someone's email open on the screen. What should I do?",
+  "options": [
+    {
+      "text": "Leave it, it is not your PC",
+      "correct": false,
+      "why": "Anyone could read or send mail as that person. An unlocked PC is a security problem you can easily reduce."
+    },
+    {
+      "text": "Shut it down to teach the user a lesson",
+      "correct": false,
+      "why": "Unsaved work may be lost, and it is unkind. Locking the screen protects the data without causing damage."
+    },
+    {
+      "text": "Post a photo of it in the team chat as a joke",
+      "correct": false,
+      "why": "Spreads the exposed information and embarrasses the user instead of fixing the problem."
+    },
+    {
+      "text": "Lock the screen, tell the user or their manager, and remind them to lock when they leave",
+      "correct": true,
+      "why": "Locking the screen protects the data straight away and does no harm. Telling the user makes sure it does not keep happening."
+    }
+  ],
+  "hints": [
+    "What is the quickest way to protect the screen without losing anything?",
+    "What could someone do with an unlocked mailbox?",
+    "How will the user learn from this?"
+  ],
+  "real_world_tip": "The Windows key plus L locks a PC instantly. Teach users the shortcut.",
+  "reviewed": true
+}

@@ -1,0 +1,42 @@
+{
+  "id": "L2-HW-06",
+  "level": 2,
+  "category": "Hardware",
+  "title": "Beeping sound at startup",
+  "character": {
+    "name": "Kiran",
+    "department": "Accounts",
+    "personality": "worried, not technical"
+  },
+  "symptom": "PC beeps repeatedly at power on and does not start",
+  "user_description": "I turned on my computer and it beeped several times. Now the screen is just black and Windows doesn't start.",
+  "options": [
+    {
+      "text": "Ignore it, it will sort itself out",
+      "correct": false,
+      "why": "Beeps at startup are the PC reporting a fault. Ignoring them wastes time and may hide a failing part."
+    },
+    {
+      "text": "Count the pattern of beeps and look it up in the manufacturer's beep code guide for that exact model",
+      "correct": true,
+      "why": "Beep patterns are a built-in way for a PC to report hardware faults, but the meaning differs between manufacturers and models. The exact pattern plus the model gives the right answer."
+    },
+    {
+      "text": "Assume three beeps always means bad memory and replace the RAM",
+      "correct": false,
+      "why": "Beep codes are not the same on every computer, so guessing from one pattern can send you after the wrong part."
+    },
+    {
+      "text": "Replace the motherboard",
+      "correct": false,
+      "why": "Expensive and premature. Most beep faults are simpler, such as a loose memory module or card."
+    }
+  ],
+  "hints": [
+    "Is the PC trying to tell you something?",
+    "Do all computer makers use the same beep patterns?",
+    "Where would you find the meaning for this exact model?"
+  ],
+  "real_world_tip": "Newer PCs often use a coloured or flashing light code instead of beeps. Check the manual for the light pattern too.",
+  "reviewed": true
+}

@@ -1,0 +1,42 @@
+{
+  "id": "L2-OS-07",
+  "level": 2,
+  "category": "Windows and OS",
+  "title": "Not enough space to install updates",
+  "character": {
+    "name": "Yasir",
+    "department": "Warehouse",
+    "personality": "practical, not very technical"
+  },
+  "symptom": "Windows Update fails with a message about not enough disk space",
+  "user_description": "Windows keeps saying it can't install updates because there isn't enough space. What does that mean?",
+  "options": [
+    {
+      "text": "Delete user documents to make space",
+      "correct": false,
+      "why": "Never delete people's work to make room. Look for safe space first."
+    },
+    {
+      "text": "Turn off Windows Update so the error stops",
+      "correct": false,
+      "why": "Leaves the PC without security patches. It hides the symptom instead of solving it."
+    },
+    {
+      "text": "Free up space with Storage settings or Disk Cleanup, remove unused programs and temporary files, then retry the update",
+      "correct": true,
+      "why": "Updates need working space on the disk. Clearing temporary files and unused programs frees it safely without touching anyone's documents."
+    },
+    {
+      "text": "Delete files from the Windows folder",
+      "correct": false,
+      "why": "Dangerous. It can stop Windows from starting."
+    }
+  ],
+  "hints": [
+    "What does Windows need on the disk to download and install an update?",
+    "Which files are safe to remove?",
+    "Which files must you never touch?"
+  ],
+  "real_world_tip": "Check how much space is free before and after. Many updates need several gigabytes of free room.",
+  "reviewed": true
+}

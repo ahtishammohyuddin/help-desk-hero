@@ -1,0 +1,41 @@
+{
+  "id": "L1-SW-01",
+  "level": 1,
+  "category": "Software and installs",
+  "title": "Application will not open",
+  "character": {
+    "name": "Sumaira",
+    "department": "Finance",
+    "personality": "worried, stressed about a deadline"
+  },
+  "symptom": "A business application does not open",
+  "user_description": "I double-click the program and nothing happens. It worked fine yesterday and I need it for month-end.",
+  "options": [
+    {
+      "text": "Reinstall every program on her PC",
+      "correct": false,
+      "why": "Huge, slow and unnecessary. One program is failing, so look at that one."
+    },
+    {
+      "text": "Download a replacement from a random website",
+      "correct": false,
+      "why": "Unsafe. Unknown downloads can contain malware and break software licensing rules."
+    },
+    {
+      "text": "Note the exact error message, try closing and reopening the program, restart the PC, and check whether it fails for others too",
+      "correct": true,
+      "why": "The error message points to the cause. A restart clears many temporary faults, and checking others shows whether it is the PC or the application itself."
+    },
+    {
+      "text": "Reinstall Windows",
+      "correct": false,
+      "why": "Never start with the most destructive fix."
+    }
+  ],
+  "hints": [
+    "What exactly happens when she opens it? Is there an error message?",
+    "Did anything change since yesterday?"
+  ],
+  "real_world_tip": "Ask for a screenshot of any error message. It saves guessing and gives you something exact to search for.",
+  "reviewed": true
+}

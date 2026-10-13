@@ -1,0 +1,42 @@
+{
+  "id": "L2-HW-05",
+  "level": 2,
+  "category": "Hardware",
+  "title": "Headset microphone not picked up",
+  "character": {
+    "name": "Owais",
+    "department": "Support Centre",
+    "personality": "friendly, on calls all day"
+  },
+  "symptom": "Others cannot hear the user on calls, but he hears them",
+  "user_description": "I can hear everyone on the call but they say they can't hear me at all.",
+  "options": [
+    {
+      "text": "Turn the speaker volume up to maximum",
+      "correct": false,
+      "why": "Speaker volume has nothing to do with whether people can hear him. This changes the wrong thing."
+    },
+    {
+      "text": "Order a new headset",
+      "correct": false,
+      "why": "Premature. Many mic problems are settings or a mute switch, and nothing has been checked."
+    },
+    {
+      "text": "Check the headset is chosen as the input device in Windows and the call app, that the mic is not muted on the headset or in Windows, and that microphone access is allowed",
+      "correct": true,
+      "why": "Hearing others but not being heard points to the input side. The wrong input device, a mute switch or privacy permission are the usual causes, and each is quick to check."
+    },
+    {
+      "text": "Reinstall Windows",
+      "correct": false,
+      "why": "Never the first step. It would waste hours for what is usually a setting."
+    }
+  ],
+  "hints": [
+    "He can hear but is not heard. Is that a speaker problem or a microphone problem?",
+    "How does Windows know which microphone to use?",
+    "Does the headset have its own mute button or switch?"
+  ],
+  "real_world_tip": "Use the input level meter in Windows sound settings. Speak and watch it move to prove the mic is picking up sound.",
+  "reviewed": true
+}

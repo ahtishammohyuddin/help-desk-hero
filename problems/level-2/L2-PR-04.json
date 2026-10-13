@@ -1,0 +1,42 @@
+{
+  "id": "L2-PR-04",
+  "level": 2,
+  "category": "Printers and scanners",
+  "title": "Scan to email not working",
+  "character": {
+    "name": "Babar",
+    "department": "Finance",
+    "personality": "practical, frustrated"
+  },
+  "symptom": "Printer's scan to email function stopped working",
+  "user_description": "The scanner used to email my scans to me but since yesterday nothing arrives. The printer says it sent them.",
+  "options": [
+    {
+      "text": "Reinstall Windows on his PC",
+      "correct": false,
+      "why": "Scan to email is done by the printer, not his PC, so this would not help."
+    },
+    {
+      "text": "Replace the scanner",
+      "correct": false,
+      "why": "Expensive and unlikely. It worked yesterday, so something changed."
+    },
+    {
+      "text": "Ask what changed, then check the printer's email (SMTP) settings and the account it uses, for example an expired password, and send a test from the printer",
+      "correct": true,
+      "why": "Scan to email depends on the printer logging in to a mail service. It worked until yesterday, so a changed password, setting or server is the likeliest cause, and a test shows the exact error."
+    },
+    {
+      "text": "Tell everyone to scan to a USB stick from now on",
+      "correct": false,
+      "why": "A workaround that removes a feature for everyone and leaves the fault unsolved."
+    }
+  ],
+  "hints": [
+    "Who actually sends the email, the PC or the printer?",
+    "It worked before, so what might have changed since?",
+    "How can you test the sending without waiting for a user?"
+  ],
+  "real_world_tip": "If a service account or password is used by the printer, an expiring password is a classic reason scan to email suddenly stops.",
+  "reviewed": true
+}

@@ -1,0 +1,41 @@
+{
+  "id": "L1-HW-08",
+  "level": 1,
+  "category": "Hardware",
+  "title": "USB drive not recognised",
+  "character": {
+    "name": "Zainab",
+    "department": "Legal",
+    "personality": "careful, protective of her files"
+  },
+  "symptom": "USB drive does not appear when plugged in",
+  "user_description": "I plugged in my USB drive with my documents and nothing shows up. Please don't delete my files!",
+  "options": [
+    {
+      "text": "Format the drive straight away",
+      "correct": false,
+      "why": "Formatting erases everything on the drive. Never format a drive that holds someone's files as a first step."
+    },
+    {
+      "text": "Try a different USB port, and then another PC, to see whether the drive or the port is at fault",
+      "correct": true,
+      "why": "Testing another port and another computer quickly shows whether the problem is the port, the PC or the drive itself, without risking any data."
+    },
+    {
+      "text": "Reinstall Windows",
+      "correct": false,
+      "why": "Very destructive and almost never needed for a USB drive that does not show up."
+    },
+    {
+      "text": "Tell her the files are lost",
+      "correct": false,
+      "why": "Incorrect and unhelpful. Nobody has tested the drive yet, so there is no reason to assume the data is gone."
+    }
+  ],
+  "hints": [
+    "Is the problem the drive, the port or the PC? How could you find out?",
+    "What would be the worst thing to do to someone's data?"
+  ],
+  "real_world_tip": "Many companies limit which USB drives can be used. Check your company's policy before plugging in a drive you don't recognise.",
+  "reviewed": true
+}

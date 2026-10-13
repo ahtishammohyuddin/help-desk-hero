@@ -1,0 +1,42 @@
+{
+  "id": "L2-MB-01",
+  "level": 2,
+  "category": "Mobile and phones",
+  "title": "Work email not syncing on phone",
+  "character": {
+    "name": "Irfan",
+    "department": "Sales",
+    "personality": "busy, always on the road"
+  },
+  "symptom": "Work email on the phone has stopped updating",
+  "user_description": "My work email on my phone hasn't updated since yesterday. It works fine on my laptop.",
+  "options": [
+    {
+      "text": "Do a factory reset",
+      "correct": false,
+      "why": "Erases everything on the phone for a problem that is usually a sync setting or password."
+    },
+    {
+      "text": "Replace the phone",
+      "correct": false,
+      "why": "Expensive and unneeded. His laptop works, so the account is fine."
+    },
+    {
+      "text": "Check the phone has data or Wi-Fi, re-enter the password if it changed recently, check sync and battery saver settings, and remove and re-add the account if needed",
+      "correct": true,
+      "why": "Laptop mail works, so the account is fine. A lost connection, an old saved password or a battery saver setting are the usual reasons the phone stops syncing."
+    },
+    {
+      "text": "Tell him to use webmail forever",
+      "correct": false,
+      "why": "A workaround that leaves the phone problem unfixed."
+    }
+  ],
+  "hints": [
+    "The laptop works, so is the account the problem?",
+    "What might the phone have stopped doing?",
+    "Did his password change recently?"
+  ],
+  "real_world_tip": "Email lives on the server, so removing and re-adding the account does not delete his mail.",
+  "reviewed": true
+}

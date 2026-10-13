@@ -1,0 +1,42 @@
+{
+  "id": "L2-AC-04",
+  "level": 2,
+  "category": "Accounts and passwords",
+  "title": "Cannot sign in to one app only",
+  "character": {
+    "name": "Fawad",
+    "department": "Finance",
+    "personality": "calm, methodical"
+  },
+  "symptom": "User can sign in to everything except one business application",
+  "user_description": "Email, files, Teams, everything works. But the finance system keeps saying my login is wrong.",
+  "options": [
+    {
+      "text": "Reset his main password straight away",
+      "correct": false,
+      "why": "His main password clearly works elsewhere, so resetting it will not fix this and may cause more problems."
+    },
+    {
+      "text": "Give him admin rights in the app",
+      "correct": false,
+      "why": "Gives far more power than needed and does not address why he cannot sign in."
+    },
+    {
+      "text": "Confirm his main account works elsewhere, check he has access or a licence for that app, clear any saved login or try a private window, and check whether the app has an outage",
+      "correct": true,
+      "why": "Because everything else works, the fault is specific to the app. Checking access and licence, old saved logins and outages covers the usual causes."
+    },
+    {
+      "text": "Reinstall Windows",
+      "correct": false,
+      "why": "Never the first step. It would not fix an access issue with one application."
+    }
+  ],
+  "hints": [
+    "Everything else works, so where is the problem?",
+    "What does an app need in addition to a working login?",
+    "Could the app itself be having a problem?"
+  ],
+  "real_world_tip": "Ask if the problem is the same on another computer or browser. It quickly tells you whether it is the account or the device.",
+  "reviewed": true
+}

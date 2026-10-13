@@ -1,0 +1,42 @@
+{
+  "id": "L2-OS-04",
+  "level": 2,
+  "category": "Windows and OS",
+  "title": "High CPU from an unknown process",
+  "character": {
+    "name": "Sehrish",
+    "department": "Design",
+    "personality": "curious, a bit worried"
+  },
+  "symptom": "PC fans spin constantly and Task Manager shows an unfamiliar process using lots of CPU",
+  "user_description": "My computer is hot and noisy. Task Manager shows a process called something I don't recognise using nearly all the processor.",
+  "options": [
+    {
+      "text": "End every process that uses a lot of CPU, including system ones",
+      "correct": false,
+      "why": "Ending system processes can crash the PC or make it unstable. Never end things you do not understand."
+    },
+    {
+      "text": "Delete the program's file straight away",
+      "correct": false,
+      "why": "It may be a legitimate or system file, and deleting it destroys evidence if it is malicious. Identify it first."
+    },
+    {
+      "text": "Identify the process, check its publisher and file location, decide whether it is legitimate, and escalate to security if it looks suspicious",
+      "correct": true,
+      "why": "Not every unknown name is bad, so identify before acting. The file location and publisher help you tell a normal program from malware, and anything suspicious goes to the security team."
+    },
+    {
+      "text": "Ignore it, because it is probably normal",
+      "correct": false,
+      "why": "A process at constant full CPU is not normal. It could be a misbehaving program or malware, so it needs checking."
+    }
+  ],
+  "hints": [
+    "How can you find out what a process is before you decide what to do?",
+    "What does the file location of a process tell you?",
+    "When should someone other than you get involved?"
+  ],
+  "real_world_tip": "Right-click the process in Task Manager and use Open file location. A strange folder is a red flag.",
+  "reviewed": true
+}

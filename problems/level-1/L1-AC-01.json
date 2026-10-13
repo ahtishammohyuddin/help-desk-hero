@@ -1,0 +1,41 @@
+{
+  "id": "L1-AC-01",
+  "level": 1,
+  "category": "Accounts and passwords",
+  "title": "Forgot password",
+  "character": {
+    "name": "Adeel",
+    "department": "HR",
+    "personality": "friendly, in a rush"
+  },
+  "symptom": "User cannot remember their password",
+  "user_description": "Hi, I've forgotten my password and I can't log in. Can you just reset it for me? I'm in a hurry.",
+  "options": [
+    {
+      "text": "Reset it straight away because they sound friendly and in a hurry",
+      "correct": false,
+      "why": "Never reset a password without confirming who is asking. This is how accounts get taken over."
+    },
+    {
+      "text": "Tell them what their old password was",
+      "correct": false,
+      "why": "Support should never know or share passwords. Passwords are stored so that nobody, including IT, can read them."
+    },
+    {
+      "text": "Verify who they are using your company's process, then reset the password so they must choose a new one at next sign-in",
+      "correct": true,
+      "why": "Checking identity first stops attackers pretending to be staff. Forcing a new password at next sign-in means only the user knows it."
+    },
+    {
+      "text": "Tell them to keep guessing until it works",
+      "correct": false,
+      "why": "Repeated wrong guesses will lock the account and create a second problem."
+    }
+  ],
+  "hints": [
+    "Who is really asking, and how do you know?",
+    "Who should be the only person who knows the new password?"
+  ],
+  "real_world_tip": "Offer self-service password reset if your company has it. It is faster for the user and takes tickets off your queue.",
+  "reviewed": true
+}

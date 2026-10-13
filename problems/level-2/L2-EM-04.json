@@ -1,0 +1,42 @@
+{
+  "id": "L2-EM-04",
+  "level": 2,
+  "category": "Email and Outlook / M365",
+  "title": "Outlook keeps asking for the password",
+  "character": {
+    "name": "Furqan",
+    "department": "Finance",
+    "personality": "irritated, interrupted constantly"
+  },
+  "symptom": "Outlook repeatedly shows a password prompt",
+  "user_description": "Outlook keeps popping up asking for my password, every few minutes. I type it in and a bit later it asks again.",
+  "options": [
+    {
+      "text": "Turn off multi-factor authentication so it stops asking",
+      "correct": false,
+      "why": "Removes an important protection and does not address the cause."
+    },
+    {
+      "text": "Tell him to keep typing it in",
+      "correct": false,
+      "why": "Ignores the fault and wastes his time all day."
+    },
+    {
+      "text": "Check whether his password changed recently, clear the old saved Outlook entries in Credential Manager, and sign in again, completing any multi-factor prompt",
+      "correct": true,
+      "why": "A password prompt that returns often means an old saved password no longer matches. Clearing the old entries and signing in again replaces them with the right ones."
+    },
+    {
+      "text": "Reinstall Windows",
+      "correct": false,
+      "why": "Never the first step. It is a huge fix for something that is almost always a saved password."
+    }
+  ],
+  "hints": [
+    "Why would Outlook ask again after it accepted the password?",
+    "What might still hold his old password?",
+    "Did anything change on his account recently?"
+  ],
+  "real_world_tip": "A password change on another device is a frequent trigger. Ask 'Did you change your password recently?'",
+  "reviewed": true
+}

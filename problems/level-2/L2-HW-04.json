@@ -1,0 +1,42 @@
+{
+  "id": "L2-HW-04",
+  "level": 2,
+  "category": "Hardware",
+  "title": "Webcam not found in video calls",
+  "character": {
+    "name": "Samina",
+    "department": "Marketing",
+    "personality": "cheerful, a little rushed"
+  },
+  "symptom": "Video meeting app says no camera found",
+  "user_description": "Teams says it can't find my camera. I have a client call in ten minutes!",
+  "options": [
+    {
+      "text": "Replace the laptop",
+      "correct": false,
+      "why": "Far too drastic with no testing. Camera problems are usually simple settings."
+    },
+    {
+      "text": "Uninstall and reinstall the meeting app straight away",
+      "correct": false,
+      "why": "Slow and usually unnecessary. Check the camera and Windows settings before touching the app."
+    },
+    {
+      "text": "Check for a physical privacy shutter or switch, confirm camera access is allowed in Windows privacy settings, make sure no other app is using the camera, and check the right camera is selected in the app",
+      "correct": true,
+      "why": "A closed shutter, blocked privacy permission, another app holding the camera or the wrong camera selected account for most 'no camera' reports. They are quick to check."
+    },
+    {
+      "text": "Reinstall Windows",
+      "correct": false,
+      "why": "Destructive and rarely needed. Never start with the most destructive fix."
+    }
+  ],
+  "hints": [
+    "Is there anything physically covering the camera or a switch to turn it off?",
+    "Does Windows allow apps to use the camera?",
+    "Could two apps be fighting over the same camera?"
+  ],
+  "real_world_tip": "Open the Windows Camera app first. If it works there, the camera is fine and the problem is the meeting app's settings.",
+  "reviewed": true
+}

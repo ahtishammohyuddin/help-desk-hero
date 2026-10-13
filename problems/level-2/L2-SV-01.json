@@ -1,0 +1,42 @@
+{
+  "id": "L2-SV-01",
+  "level": 2,
+  "category": "Servers, backups, Active Directory",
+  "title": "File server share almost full",
+  "character": {
+    "name": "Naveed",
+    "department": "IT Operations",
+    "personality": "senior, busy, direct"
+  },
+  "symptom": "A shared drive on the file server is nearly out of space",
+  "user_description": "The finance share is at 97 percent. People are already getting save errors. Can you free some space quickly?",
+  "options": [
+    {
+      "text": "Delete the largest folders to free space quickly",
+      "correct": false,
+      "why": "Deleting without checking can destroy important records. Large folders are often large because they matter."
+    },
+    {
+      "text": "Delete everything older than a year",
+      "correct": false,
+      "why": "Age alone does not show that data is unneeded. Finance records may need to be kept for years by law or policy."
+    },
+    {
+      "text": "Find what is using the space, check with the data owners and retention policy before removing anything, archive or clean up with approval, and consider quotas",
+      "correct": true,
+      "why": "A safe fix finds the cause, gets permission, and prevents it happening again. Archiving or quotas solve the problem for good instead of just delaying it."
+    },
+    {
+      "text": "Move the extra files to a personal USB drive",
+      "correct": false,
+      "why": "Takes company data outside company control and creates a security and compliance risk."
+    }
+  ],
+  "hints": [
+    "Do you know what is using the space?",
+    "Who decides which files can be deleted?",
+    "How could you stop the share filling up again?"
+  ],
+  "real_world_tip": "Use the file server's storage reports or a disk usage tool to see which folders and file types are largest. Duplicates and old backups are common culprits.",
+  "reviewed": true
+}

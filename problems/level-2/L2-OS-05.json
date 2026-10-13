@@ -1,0 +1,42 @@
+{
+  "id": "L2-OS-05",
+  "level": 2,
+  "category": "Windows and OS",
+  "title": "Wrong date and time breaks websites",
+  "character": {
+    "name": "Adnan",
+    "department": "Sales",
+    "personality": "confused, in a hurry"
+  },
+  "symptom": "Websites show 'Your connection is not private' warnings",
+  "user_description": "Every website is showing a scary warning about my connection not being private. Even the ones I use every day.",
+  "options": [
+    {
+      "text": "Tell him to click 'proceed anyway' on every warning",
+      "correct": false,
+      "why": "Teaches users to ignore security warnings, which can lead to real attacks. Find the cause instead."
+    },
+    {
+      "text": "Turn off secure connections in the browser",
+      "correct": false,
+      "why": "Removes protection for every site. Never weaken security to hide a warning."
+    },
+    {
+      "text": "Check and correct the date, time and time zone, turn on automatic time sync, and if it keeps resetting suspect the small battery on the motherboard",
+      "correct": true,
+      "why": "Secure sites check certificates against the PC's clock, so a wrong date makes them look invalid. Fixing the time and syncing it solves it, and a repeatedly resetting clock points to a worn clock battery."
+    },
+    {
+      "text": "Replace the PC",
+      "correct": false,
+      "why": "Wasteful. A wrong clock is a simple setting to fix."
+    }
+  ],
+  "hints": [
+    "What would make every site look untrustworthy at the same time?",
+    "How does a secure site know whether its certificate is still valid?",
+    "What if the clock keeps losing the right time?"
+  ],
+  "real_world_tip": "Look at the date in the taskbar first. A date years in the past explains a lot of certificate warnings.",
+  "reviewed": true
+}

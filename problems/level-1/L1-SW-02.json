@@ -1,0 +1,41 @@
+{
+  "id": "L1-SW-02",
+  "level": 1,
+  "category": "Software and installs",
+  "title": "Request new software through the proper process",
+  "character": {
+    "name": "Danish",
+    "department": "Design",
+    "personality": "keen, a bit pushy"
+  },
+  "symptom": "A user wants a new program installed",
+  "user_description": "I found a great PDF editing tool online. Can you just install it on my laptop today? I don't have time to wait.",
+  "options": [
+    {
+      "text": "Install it from the website right now",
+      "correct": false,
+      "why": "Skips licensing and security checks. Unapproved software can carry malware or break licence terms."
+    },
+    {
+      "text": "Give him admin rights so he can install what he wants",
+      "correct": false,
+      "why": "Gives one person power to install anything on a company PC, which is a serious security risk."
+    },
+    {
+      "text": "Say no and close the ticket",
+      "correct": false,
+      "why": "Unhelpful. A good technician shows the user the proper way to get what they need."
+    },
+    {
+      "text": "Explain the software request process, such as manager approval and a licence and security check, and help him submit it",
+      "correct": true,
+      "why": "Software needs approval, a valid licence and a security check. Guiding the user through the process keeps the company safe and still gets them what they need."
+    }
+  ],
+  "hints": [
+    "Who decides which software the company uses?",
+    "What checks should happen before new software is installed?"
+  ],
+  "real_world_tip": "Ask what he needs the tool to do. The company may already have an approved tool that does the same job.",
+  "reviewed": true
+}

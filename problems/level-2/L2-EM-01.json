@@ -1,0 +1,42 @@
+{
+  "id": "L2-EM-01",
+  "level": 2,
+  "category": "Email and Outlook / M365",
+  "title": "Email stuck in the Outbox",
+  "character": {
+    "name": "Iqra",
+    "department": "Sales",
+    "personality": "anxious, waiting on a client reply"
+  },
+  "symptom": "An email sits in the Outbox and never sends",
+  "user_description": "I sent an important email to a client an hour ago and it's still sitting in my Outbox. It just won't go.",
+  "options": [
+    {
+      "text": "Resend it ten times to make sure it goes",
+      "correct": false,
+      "why": "Floods the Outbox and risks the client receiving many duplicates once it clears. It does nothing about the cause."
+    },
+    {
+      "text": "Delete her Outlook profile",
+      "correct": false,
+      "why": "Destructive and unnecessary. A single stuck message is rarely a profile problem."
+    },
+    {
+      "text": "Check Outlook is connected and not in Work Offline mode, look for an oversized attachment, then open the stuck message and resend it or move it to Drafts and send again",
+      "correct": true,
+      "why": "Offline mode, a very large attachment or a message left open for editing are the usual reasons mail sticks in the Outbox. These checks fix most cases without affecting anything else."
+    },
+    {
+      "text": "Tell the client to check their spam folder",
+      "correct": false,
+      "why": "The email has not even left her Outbox, so it cannot be in the client's spam."
+    }
+  ],
+  "hints": [
+    "Has the message left her computer yet?",
+    "What could make Outlook unable to send, such as a mode or a very large file?",
+    "How can you get a stuck message out of the way?"
+  ],
+  "real_world_tip": "Look at the bottom of the Outlook window. 'Working Offline' or 'Disconnected' explains a lot of stuck mail.",
+  "reviewed": true
+}

@@ -1,0 +1,42 @@
+{
+  "id": "L2-NW-03",
+  "level": 2,
+  "category": "Networking and Wi-Fi",
+  "title": "Websites not loading, DNS suspected",
+  "character": {
+    "name": "Laiba",
+    "department": "Marketing",
+    "personality": "curious, a little technical"
+  },
+  "symptom": "Websites will not open but Teams still works",
+  "user_description": "Websites say they can't be found, but Teams and my email still work. Is the whole internet down?",
+  "options": [
+    {
+      "text": "Replace the network cable",
+      "correct": false,
+      "why": "Teams and email work, so the cable is carrying data. Replacing it would not help."
+    },
+    {
+      "text": "Reinstall the browser",
+      "correct": false,
+      "why": "Unlikely to help if the problem affects names across the PC. Test the network first."
+    },
+    {
+      "text": "Restart the whole company's router",
+      "correct": false,
+      "why": "Disrupts everyone and is not justified by one PC's symptoms."
+    },
+    {
+      "text": "Ping a public IP address and then a website name; if the address works but the name fails, check the PC's DNS settings and flush the DNS cache",
+      "correct": true,
+      "why": "DNS turns names into addresses. If an address responds but a name does not, DNS is the problem, and checking the DNS settings and clearing the cache is the next step."
+    }
+  ],
+  "hints": [
+    "If some things work and websites do not, what part of the process might be broken?",
+    "How can you test with an address and with a name?",
+    "What turns a website name into an address?"
+  ],
+  "real_world_tip": "The command 'ipconfig /flushdns' clears the local DNS cache. It is a quick, safe step.",
+  "reviewed": true
+}

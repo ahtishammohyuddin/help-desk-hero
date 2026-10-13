@@ -1,0 +1,41 @@
+{
+  "id": "L1-OS-01",
+  "level": 1,
+  "category": "Windows and OS",
+  "title": "PC running slowly",
+  "character": {
+    "name": "Waleed",
+    "department": "Finance",
+    "personality": "tired, a little annoyed"
+  },
+  "symptom": "PC has become very slow over the last few days",
+  "user_description": "My computer is crawling today. Everything takes ages to open and I've got a report due. It was fine last week.",
+  "options": [
+    {
+      "text": "Reinstall Windows",
+      "correct": false,
+      "why": "Far too drastic for a slow PC. It wastes hours and erases settings when a simple cause is far more likely."
+    },
+    {
+      "text": "Ask when it started, check what is using the CPU and memory in Task Manager, and restart the PC if it has not been restarted for a long time",
+      "correct": true,
+      "why": "Slowness often comes from one busy program or a PC that has run for days without a restart. Finding out when it started and what is busy points to the real cause."
+    },
+    {
+      "text": "Buy more RAM straight away",
+      "correct": false,
+      "why": "Costly and premature. Nobody has yet checked whether memory is actually the problem."
+    },
+    {
+      "text": "Delete files from the Windows folder to free space",
+      "correct": false,
+      "why": "Dangerous. Deleting system files can stop Windows from starting. Never delete things you do not understand."
+    }
+  ],
+  "hints": [
+    "What questions would help you find out what changed?",
+    "Which built-in tool shows what is using the processor and memory?"
+  ],
+  "real_world_tip": "Ask 'When did you last restart?' A surprising number of slow PCs have not been restarted in weeks.",
+  "reviewed": true
+}

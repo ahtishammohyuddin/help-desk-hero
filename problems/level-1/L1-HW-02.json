@@ -1,0 +1,41 @@
+{
+  "id": "L1-HW-02",
+  "level": 1,
+  "category": "Hardware",
+  "title": "Mouse pointer frozen",
+  "character": {
+    "name": "Imran",
+    "department": "Sales",
+    "personality": "calm, not very technical"
+  },
+  "symptom": "Mouse pointer does not move, keyboard works",
+  "user_description": "My mouse pointer is stuck in the middle of the screen. I can type, but I can't click on anything.",
+  "options": [
+    {
+      "text": "Replace the whole PC",
+      "correct": false,
+      "why": "Completely out of proportion. The PC is clearly working because the keyboard responds."
+    },
+    {
+      "text": "Check the mouse cable or batteries, try another USB port, and test on a different surface",
+      "correct": true,
+      "why": "A frozen pointer with a working keyboard usually means a loose cable, flat batteries, a dirty sensor or a bad surface. These checks are quick and cost nothing."
+    },
+    {
+      "text": "Update the BIOS",
+      "correct": false,
+      "why": "Unrelated and risky. A BIOS update is never the first step for a mouse that will not move."
+    },
+    {
+      "text": "Tell the user to use only the keyboard from now on",
+      "correct": false,
+      "why": "This leaves the problem unfixed and slows the user down. Support exists to fix the cause."
+    }
+  ],
+  "hints": [
+    "Does the keyboard still work? What does that tell you about the PC?",
+    "What does the mouse need to work: a cable, a receiver or batteries?"
+  ],
+  "real_world_tip": "Press the mouse's small connect button or re-seat the wireless receiver. Many wireless mouse problems are just a lost connection.",
+  "reviewed": true
+}

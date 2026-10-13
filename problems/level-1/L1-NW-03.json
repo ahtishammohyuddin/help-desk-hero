@@ -1,0 +1,36 @@
+{
+  "id": "L1-NW-03",
+  "level": 1,
+  "category": "Networking and Wi-Fi",
+  "title": "Network cable unplugged message",
+  "character": {
+    "name": "Kashif",
+    "department": "Warehouse",
+    "personality": "practical, short on time"
+  },
+  "symptom": "PC shows a 'network cable unplugged' message",
+  "user_description": "My PC says 'network cable unplugged' and I've got no internet or shared drives.",
+  "options": [
+    {
+      "text": "Replace the network switch",
+      "correct": false,
+      "why": "Costly and far too early. One PC shows the message, so a single loose cable is much more likely."
+    },
+    {
+      "text": "Reinstall Windows",
+      "correct": false,
+      "why": "Never the first step. A cable message is a physical clue that points at the cable."
+    },
+    {
+      "text": "Check the network cable is firmly plugged into the PC and the wall port, and try another cable or port",
+      "correct": true,
+      "why": "The message literally says the cable is unplugged or not detected. A loose, damaged or wrong-port cable is the likeliest cause, so check connections and swap if needed."
+    }
+  ],
+  "hints": [
+    "What does the message tell you about where the problem is?",
+    "How can you test whether the cable or the port is at fault?"
+  ],
+  "real_world_tip": "Look at the small lights on the network port. If they are off, the link is not working at all.",
+  "reviewed": true
+}

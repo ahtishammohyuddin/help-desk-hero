@@ -1,0 +1,41 @@
+{
+  "id": "L1-NW-01",
+  "level": 1,
+  "category": "Networking and Wi-Fi",
+  "title": "No internet on one PC",
+  "character": {
+    "name": "Shahid",
+    "department": "Admin",
+    "personality": "calm, slightly puzzled"
+  },
+  "symptom": "One PC has no internet while colleagues are working fine",
+  "user_description": "I can't open any websites on my computer, but the person next to me is online with no problem.",
+  "options": [
+    {
+      "text": "Restart the main office router",
+      "correct": false,
+      "why": "Disrupts everyone in the office to fix one PC. Others are online, so the router is clearly working."
+    },
+    {
+      "text": "Reinstall Windows",
+      "correct": false,
+      "why": "Far too drastic. Never start with the most destructive fix."
+    },
+    {
+      "text": "Check this PC's network cable or Wi-Fi connection, and restart the network connection or the PC",
+      "correct": true,
+      "why": "Because colleagues are fine, the fault is almost certainly on this PC or its connection. Checking the cable or Wi-Fi and restarting are quick, safe first steps."
+    },
+    {
+      "text": "Call the internet provider",
+      "correct": false,
+      "why": "Pointless when other people have internet. The provider cannot fix a problem on one PC."
+    }
+  ],
+  "hints": [
+    "Is everyone affected, or only this PC?",
+    "How does this PC connect to the network?"
+  ],
+  "real_world_tip": "Asking 'Is anyone else affected?' is the fastest way to decide whether the problem is the PC or the network.",
+  "reviewed": true
+}

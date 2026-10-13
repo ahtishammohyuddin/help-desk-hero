@@ -1,0 +1,42 @@
+{
+  "id": "L2-EM-02",
+  "level": 2,
+  "category": "Email and Outlook / M365",
+  "title": "Missing meeting invites",
+  "character": {
+    "name": "Danial",
+    "department": "Project Office",
+    "personality": "calm, but missing meetings"
+  },
+  "symptom": "User never receives meeting invitations from a colleague",
+  "user_description": "My manager says she's sent me three meeting invites but I haven't received any. I'm missing meetings!",
+  "options": [
+    {
+      "text": "Create a new Outlook profile immediately",
+      "correct": false,
+      "why": "A big step before any checks. Other mail arrives normally, so the profile is not the likely cause."
+    },
+    {
+      "text": "Ask the organiser to phone everyone instead",
+      "correct": false,
+      "why": "Avoids the problem instead of fixing it, and the invites will keep going missing."
+    },
+    {
+      "text": "Check Junk Email and other folders and any inbox rules, confirm the organiser used the right address, and check the calendar's meeting request settings",
+      "correct": true,
+      "why": "Invites can be caught by the junk filter or a rule, or sent to a wrong or old address. Checking all three places finds most missing invites."
+    },
+    {
+      "text": "Reinstall Office",
+      "correct": false,
+      "why": "Drastic and unlikely. Other emails arrive, so the program is working."
+    }
+  ],
+  "hints": [
+    "Where could an invite end up other than the Inbox?",
+    "Could a rule be moving it somewhere?",
+    "Is the organiser sending to the right address?"
+  ],
+  "real_world_tip": "Ask the organiser for a sent copy of one invite. It shows the exact address it was sent to.",
+  "reviewed": true
+}

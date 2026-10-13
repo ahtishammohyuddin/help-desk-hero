@@ -1,0 +1,36 @@
+{
+  "id": "L1-SW-03",
+  "level": 1,
+  "category": "Software and installs",
+  "title": "Browser slow, clear cache and tabs",
+  "character": {
+    "name": "Aiman",
+    "department": "Marketing",
+    "personality": "chatty, keeps lots of tabs open"
+  },
+  "symptom": "Web browser has become very slow",
+  "user_description": "My browser is so slow, pages take forever to load. I always have loads of tabs open. Is the internet down?",
+  "options": [
+    {
+      "text": "Install a different browser from a random site",
+      "correct": false,
+      "why": "Unsafe and unapproved. Downloading from unknown sites risks malware."
+    },
+    {
+      "text": "Upgrade the company's internet plan",
+      "correct": false,
+      "why": "Expensive and unrelated. Other websites and devices are not mentioned as slow."
+    },
+    {
+      "text": "Close unneeded tabs, restart the browser, and clear the cache and cookies after warning her she will be signed out of sites",
+      "correct": true,
+      "why": "Many open tabs use a lot of memory, and an overloaded cache can slow a browser. Warning about sign-outs avoids surprises."
+    }
+  ],
+  "hints": [
+    "How many tabs does she have open, and what does each one use?",
+    "What would happen to saved logins if you cleared cookies?"
+  ],
+  "real_world_tip": "Check whether other devices on the same network are also slow. That tells you if it is the browser or the connection.",
+  "reviewed": true
+}

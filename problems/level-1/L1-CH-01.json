@@ -1,0 +1,36 @@
+{
+  "id": "L1-CH-01",
+  "level": 1,
+  "category": "Customer handling",
+  "title": "Angry user raising their voice",
+  "character": {
+    "name": "Rehan",
+    "department": "Operations",
+    "personality": "angry, stressed, under pressure"
+  },
+  "symptom": "User is shouting about a recurring problem",
+  "user_description": "This is the THIRD time this week! You people never fix anything! I've got a client waiting and nothing works!",
+  "options": [
+    {
+      "text": "Raise your voice to match so he takes you seriously",
+      "correct": false,
+      "why": "Escalates the situation and makes you look unprofessional."
+    },
+    {
+      "text": "Tell him to calm down and wait his turn",
+      "correct": false,
+      "why": "Dismissive. Telling an upset person to calm down usually makes them angrier."
+    },
+    {
+      "text": "Stay calm, listen, acknowledge his frustration, apologise for the inconvenience, and explain what you will do next and when",
+      "correct": true,
+      "why": "People calm down when they feel heard. A clear next step with a timeframe shows you are taking it seriously."
+    }
+  ],
+  "hints": [
+    "What does an angry person need first, solutions or being heard?",
+    "How should your voice and words sound?"
+  ],
+  "real_world_tip": "Don't take it personally. The anger is about the problem, not about you.",
+  "reviewed": true
+}

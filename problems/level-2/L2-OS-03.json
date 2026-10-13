@@ -1,0 +1,42 @@
+{
+  "id": "L2-OS-03",
+  "level": 2,
+  "category": "Windows and OS",
+  "title": "Signed in with a temporary profile",
+  "character": {
+    "name": "Hammad",
+    "department": "Finance",
+    "personality": "alarmed, thinks his files are gone"
+  },
+  "symptom": "Windows says the user has been signed in with a temporary profile and his desktop looks empty",
+  "user_description": "I logged in this morning and my desktop is empty and a message says I'm on a temporary profile. Where are all my files?",
+  "options": [
+    {
+      "text": "Tell him to carry on working in the temporary profile",
+      "correct": false,
+      "why": "Work saved in a temporary profile is usually lost when he signs out. He must not rely on it."
+    },
+    {
+      "text": "Delete his profile folder straight away",
+      "correct": false,
+      "why": "Dangerous. The profile still holds his real files, and deleting it could destroy them."
+    },
+    {
+      "text": "Tell him not to save important work, restart and sign in again, check free disk space, and if it persists repair or recreate the profile after backing up his files",
+      "correct": true,
+      "why": "The files are normally still in the original profile. A restart often fixes it, and a full disk is a common cause. If it persists, back up first so nothing is lost before repairing the profile."
+    },
+    {
+      "text": "Reinstall Windows",
+      "correct": false,
+      "why": "Wipes everything and is not needed. The data is almost certainly still on the disk."
+    }
+  ],
+  "hints": [
+    "What does 'temporary' tell you about work saved in this profile?",
+    "Are his real files gone, or just not loading?",
+    "What should you do before you change anything about a damaged profile?"
+  ],
+  "real_world_tip": "Reassure the user first. Their files are almost always still safe in the original profile folder.",
+  "reviewed": true
+}

@@ -1,0 +1,42 @@
+{
+  "id": "L2-HW-03",
+  "level": 2,
+  "category": "Hardware",
+  "title": "Docking station not working",
+  "character": {
+    "name": "Waqas",
+    "department": "Operations",
+    "personality": "calm, tidy about cables"
+  },
+  "symptom": "Nothing connected to the docking station works",
+  "user_description": "I put my laptop on the docking station like always, but the monitors, keyboard and mouse are all dead.",
+  "options": [
+    {
+      "text": "Replace the laptop",
+      "correct": false,
+      "why": "Wasteful. The laptop works on its own, and nothing points to it as the cause."
+    },
+    {
+      "text": "Tell him to plug everything directly into the laptop and close the ticket",
+      "correct": false,
+      "why": "A workaround, not a fix. The dock is a company asset that should be diagnosed, and the user loses the dock setup."
+    },
+    {
+      "text": "Check the dock's own power adapter and light, reseat the cable to the laptop, and test with another cable or port before suspecting drivers or firmware",
+      "correct": true,
+      "why": "A dock is a small hub that needs its own power and a good connection. Checking power, the cable and then software in order finds the cause with the least effort."
+    },
+    {
+      "text": "Reinstall Windows",
+      "correct": false,
+      "why": "Never the first step. It would not help if the dock has no power or a loose cable."
+    }
+  ],
+  "hints": [
+    "Does the dock have its own power, and is its light on?",
+    "What is the one cable that links everything on the dock to the laptop?",
+    "If hardware checks pass, what software might the dock depend on?"
+  ],
+  "real_world_tip": "If a spare dock is available, swapping it in is the fastest way to prove whether the dock or the laptop is at fault.",
+  "reviewed": true
+}

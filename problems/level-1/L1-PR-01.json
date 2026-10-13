@@ -1,0 +1,41 @@
+{
+  "id": "L1-PR-01",
+  "level": 1,
+  "category": "Printers and scanners",
+  "title": "Printer shows offline",
+  "character": {
+    "name": "Nida",
+    "department": "Accounts",
+    "personality": "polite, rushed"
+  },
+  "symptom": "Printer shows as Offline on the computer",
+  "user_description": "My computer says the printer is offline, but I can see it's switched on. I need to print an invoice now.",
+  "options": [
+    {
+      "text": "Check the printer is on and connected to the network, and that it is not set to 'Use Printer Offline'",
+      "correct": true,
+      "why": "An offline status usually means the PC cannot reach the printer or the printer is set to offline mode. Check power, connection and that setting first."
+    },
+    {
+      "text": "Reinstall Windows",
+      "correct": false,
+      "why": "Far too drastic. Never start with the most destructive fix."
+    },
+    {
+      "text": "Buy a new printer",
+      "correct": false,
+      "why": "Wasteful. The existing printer is on and probably fine, so check connection and settings first."
+    },
+    {
+      "text": "Delete the user's profile",
+      "correct": false,
+      "why": "Destructive and unrelated. It would lose the user's settings and files for a simple connection problem."
+    }
+  ],
+  "hints": [
+    "The printer is on, so what could stop the PC reaching it?",
+    "Does Windows have a setting that pretends a printer is offline?"
+  ],
+  "real_world_tip": "Look at the printer's own screen first. If it shows an error or has lost its network connection, the fault is on the printer side, not the PC.",
+  "reviewed": true
+}

@@ -1,0 +1,42 @@
+{
+  "id": "L2-MB-02",
+  "level": 2,
+  "category": "Mobile and phones",
+  "title": "Set up work email on a new phone",
+  "character": {
+    "name": "Zoya",
+    "department": "Marketing",
+    "personality": "excited about a new phone"
+  },
+  "symptom": "User has a new phone and wants her work email on it",
+  "user_description": "I got a new phone. How do I get my work email onto it?",
+  "options": [
+    {
+      "text": "Forward her work email to her personal account",
+      "correct": false,
+      "why": "Sends company mail outside company control, which is a security and policy problem."
+    },
+    {
+      "text": "Use a third-party app to copy settings from her old phone",
+      "correct": false,
+      "why": "May copy the wrong or insecure settings and bypass company controls."
+    },
+    {
+      "text": "Follow the company process: install the approved mail app, sign in with her own account, complete MFA and accept the required device security",
+      "correct": true,
+      "why": "Using the approved app and process keeps company data protected on the phone, for example by requiring a screen lock."
+    },
+    {
+      "text": "Give her a shared password to use on the new phone",
+      "correct": false,
+      "why": "Shared passwords destroy accountability. She should only use her own account."
+    }
+  ],
+  "hints": [
+    "Which app does the company approve for work mail?",
+    "Should the phone have any security requirements?",
+    "Whose account should be used?"
+  ],
+  "real_world_tip": "Ask whether the old phone has been wiped or handed in. Old company phones should not keep access.",
+  "reviewed": true
+}

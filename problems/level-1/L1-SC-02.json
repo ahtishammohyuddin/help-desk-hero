@@ -1,0 +1,41 @@
+{
+  "id": "L1-SC-02",
+  "level": 1,
+  "category": "Security and phishing",
+  "title": "Suspicious email asks to click a link",
+  "character": {
+    "name": "Hira",
+    "department": "HR",
+    "personality": "unsure, a little worried"
+  },
+  "symptom": "User received an urgent email asking her to verify her account via a link",
+  "user_description": "I got an email saying my mailbox will be deleted in 24 hours unless I click a link to verify. Should I do it?",
+  "options": [
+    {
+      "text": "Click the link to see if it is real",
+      "correct": false,
+      "why": "Clicking is exactly what the attacker wants. A link can install malware or steal credentials."
+    },
+    {
+      "text": "Reply to the sender asking if it is genuine",
+      "correct": false,
+      "why": "Confirms to the attacker that your address is active and gives them a chance to continue."
+    },
+    {
+      "text": "Forward it to all colleagues as a warning",
+      "correct": false,
+      "why": "Spreads the dangerous email to more people. Report it through the proper channel instead."
+    },
+    {
+      "text": "Tell her not to click, report it using the phishing report button or the security team, and then delete it",
+      "correct": true,
+      "why": "Urgent threats and requests to verify an account are classic phishing signs. Reporting lets security protect everyone and removing it stops anyone clicking it by accident."
+    }
+  ],
+  "hints": [
+    "What feels unusual about the message?",
+    "Who should be told so everyone is protected?"
+  ],
+  "real_world_tip": "Teach users the warning signs: urgency, threats, unexpected links and sender addresses that look slightly wrong.",
+  "reviewed": true
+}

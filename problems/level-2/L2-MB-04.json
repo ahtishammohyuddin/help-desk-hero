@@ -1,0 +1,42 @@
+{
+  "id": "L2-MB-04",
+  "level": 2,
+  "category": "Mobile and phones",
+  "title": "Move the MFA app to a new phone",
+  "character": {
+    "name": "Aleena",
+    "department": "HR",
+    "personality": "organised, upgrading her phone this weekend"
+  },
+  "symptom": "User is getting a new phone and wants to keep using her authenticator app",
+  "user_description": "I'm getting a new phone this weekend. How do I move my authenticator app so I don't get locked out?",
+  "options": [
+    {
+      "text": "Wipe the old phone first",
+      "correct": false,
+      "why": "Wiping first can lock her out because the app and its codes disappear with it."
+    },
+    {
+      "text": "Take a screenshot of the QR code and email it to herself",
+      "correct": false,
+      "why": "Anyone who can see the screenshot can generate her codes. It exposes the secret."
+    },
+    {
+      "text": "Add the new phone as a sign-in method while the old phone still works, or use the app's backup and transfer feature, before wiping the old phone",
+      "correct": true,
+      "why": "Doing it while the old phone still works means she is never locked out. Using the app's built-in features moves the secret safely."
+    },
+    {
+      "text": "Turn off MFA until she has settled in",
+      "correct": false,
+      "why": "Removes protection from her account during a vulnerable time."
+    }
+  ],
+  "hints": [
+    "What must still work while you move the app?",
+    "Why is a screenshot of a QR code dangerous?",
+    "In what order should she do things?"
+  ],
+  "real_world_tip": "Tell her not to wipe or trade in the old phone until she has proved the new one works.",
+  "reviewed": true
+}

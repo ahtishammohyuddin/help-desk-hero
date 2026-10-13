@@ -1,0 +1,42 @@
+{
+  "id": "L2-NW-06",
+  "level": 2,
+  "category": "Networking and Wi-Fi",
+  "title": "Wi-Fi keeps dropping",
+  "character": {
+    "name": "Arslan",
+    "department": "Design",
+    "personality": "easygoing, notices the pattern"
+  },
+  "symptom": "Laptop disconnects from Wi-Fi every few minutes",
+  "user_description": "My laptop keeps losing Wi-Fi every few minutes and then reconnects. My colleagues don't seem to have the problem.",
+  "options": [
+    {
+      "text": "Change the office Wi-Fi password",
+      "correct": false,
+      "why": "Disconnects everyone and does nothing for a fault on one laptop."
+    },
+    {
+      "text": "Replace every access point in the building",
+      "correct": false,
+      "why": "Wildly expensive, and colleagues are fine, so the access points are not the problem."
+    },
+    {
+      "text": "Find out whether others are affected, check signal strength where he sits, and check the Wi-Fi adapter's power saving setting and driver",
+      "correct": true,
+      "why": "Colleagues are fine, so look at his laptop and location. A weak signal, a power saving setting that turns the adapter off, or an outdated driver are the usual causes."
+    },
+    {
+      "text": "Tell him to use his phone hotspot instead",
+      "correct": false,
+      "why": "Moves business traffic onto personal data and ignores the fault."
+    }
+  ],
+  "hints": [
+    "Is it the network or one laptop?",
+    "What could make a laptop switch off its own Wi-Fi to save power?",
+    "Does the problem follow him to other places?"
+  ],
+  "real_world_tip": "Ask whether it happens in other rooms. If it only happens at one desk, it points to signal rather than the laptop.",
+  "reviewed": true
+}

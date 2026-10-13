@@ -1,0 +1,42 @@
+{
+  "id": "L2-EM-06",
+  "level": 2,
+  "category": "Email and Outlook / M365",
+  "title": "Add a shared mailbox to Outlook",
+  "character": {
+    "name": "Rafay",
+    "department": "Customer Service",
+    "personality": "keen, new to the team"
+  },
+  "symptom": "User cannot see the team's shared mailbox in Outlook",
+  "user_description": "I've been given access to the support mailbox, but I can't see it in Outlook. How do I get to it?",
+  "options": [
+    {
+      "text": "Add it as a separate email account using a shared password",
+      "correct": false,
+      "why": "Shared passwords destroy accountability and are a security risk. Shared mailboxes are opened with the user's own account."
+    },
+    {
+      "text": "Give him the previous owner's login",
+      "correct": false,
+      "why": "Never share a person's login. Access should be tied to his own account."
+    },
+    {
+      "text": "Confirm his permission has been granted, allow time for it to appear and restart Outlook, and if it does not appear add it from Account Settings or open it in Outlook on the web",
+      "correct": true,
+      "why": "New permissions can take a while to show, and a restart often brings the mailbox in automatically. If not, adding it manually or using the web version works."
+    },
+    {
+      "text": "Create a copy of the mailbox for him",
+      "correct": false,
+      "why": "Splits the team's mail across two places and causes duplicated and missed messages."
+    }
+  ],
+  "hints": [
+    "Has the permission definitely been given?",
+    "Why might a new mailbox take time to appear?",
+    "How else could he reach it while you fix Outlook?"
+  ],
+  "real_world_tip": "Outlook on the web is a quick way to prove the permission works before you troubleshoot the desktop app.",
+  "reviewed": true
+}

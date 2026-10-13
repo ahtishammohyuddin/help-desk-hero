@@ -1,0 +1,42 @@
+{
+  "id": "L2-SW-03",
+  "level": 2,
+  "category": "Software and installs",
+  "title": "Browser extension causing pop-ups",
+  "character": {
+    "name": "Hania",
+    "department": "Admissions",
+    "personality": "slightly worried, not technical"
+  },
+  "symptom": "Pop-ups and a changed homepage appear in the browser",
+  "user_description": "Ads keep popping up and my homepage has changed to something I've never seen. Did I get a virus?",
+  "options": [
+    {
+      "text": "Install the 'cleaner' that one of the pop-ups recommends",
+      "correct": false,
+      "why": "Fake cleaners in pop-ups are a common way to spread malware. Never follow instructions from the pop-up."
+    },
+    {
+      "text": "Tell her to keep clicking Allow on the pop-ups until they stop",
+      "correct": false,
+      "why": "Clicking Allow can grant more permissions to a harmful extension and make things worse."
+    },
+    {
+      "text": "Review the browser's extensions, remove any unknown or unapproved ones, reset the browser settings if needed, and run a security scan",
+      "correct": true,
+      "why": "Unwanted extensions are a common cause of pop-ups and changed settings. Removing them, resetting the browser and scanning checks for deeper problems."
+    },
+    {
+      "text": "Reinstall Windows",
+      "correct": false,
+      "why": "Drastic. Pop-ups from a browser are usually fixed by removing the extension."
+    }
+  ],
+  "hints": [
+    "What changed in the browser recently?",
+    "Where can you see everything added to the browser?",
+    "How can you check nothing deeper is wrong?"
+  ],
+  "real_world_tip": "Ask what she installed or clicked just before it started. It usually leads straight to the cause.",
+  "reviewed": true
+}

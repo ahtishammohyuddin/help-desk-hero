@@ -1,0 +1,42 @@
+{
+  "id": "L2-EM-03",
+  "level": 2,
+  "category": "Email and Outlook / M365",
+  "title": "Set up an out-of-office reply",
+  "character": {
+    "name": "Saba",
+    "department": "Admissions",
+    "personality": "organised, going on leave tomorrow"
+  },
+  "symptom": "User wants an automatic out-of-office reply",
+  "user_description": "I'm on leave from tomorrow for two weeks. How do I make Outlook tell people I'm away?",
+  "options": [
+    {
+      "text": "Set a rule to forward all her mail to a colleague without telling them",
+      "correct": false,
+      "why": "Sends private mail to someone without consent and is a privacy problem. It is not the same as an out-of-office reply."
+    },
+    {
+      "text": "Add 'I'm on leave' to her email signature",
+      "correct": false,
+      "why": "People would only see it after she replies, so it does not answer anyone who emails while she is away."
+    },
+    {
+      "text": "Show her how to turn on Automatic Replies, set the start and end dates, and write separate messages for people inside and outside the company",
+      "correct": true,
+      "why": "Automatic Replies answer people for her on set dates. Separate messages let you give colleagues more detail than outsiders."
+    },
+    {
+      "text": "Tell her to reply manually every day from home",
+      "correct": false,
+      "why": "Defeats the purpose of being on leave and is unreliable."
+    }
+  ],
+  "hints": [
+    "Which feature in Outlook replies for you automatically?",
+    "Why might you write different messages for colleagues and outsiders?",
+    "How do you make it stop by itself?"
+  ],
+  "real_world_tip": "Tell her to include who to contact for urgent matters. It saves a lot of follow-up emails.",
+  "reviewed": true
+}

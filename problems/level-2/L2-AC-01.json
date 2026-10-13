@@ -1,0 +1,42 @@
+{
+  "id": "L2-AC-01",
+  "level": 2,
+  "category": "Accounts and passwords",
+  "title": "Password expired while working remotely",
+  "character": {
+    "name": "Nimra",
+    "department": "Sales",
+    "personality": "polite, anxious to start work"
+  },
+  "symptom": "Remote user's password has expired and she cannot sign in",
+  "user_description": "I'm working from home and my password has expired. It won't let me sign in, and I can't come to the office.",
+  "options": [
+    {
+      "text": "Tell her to come into the office to change it",
+      "correct": false,
+      "why": "Unnecessary and wastes a working day. There are remote options."
+    },
+    {
+      "text": "Set a simple temporary password such as Password1 for her",
+      "correct": false,
+      "why": "Weak, guessable passwords are a security risk and may be reused."
+    },
+    {
+      "text": "Verify her identity, then help her change it through the approved remote method, such as connecting to the VPN and changing it, or a self-service reset",
+      "correct": true,
+      "why": "Verifying identity protects the account, and using the approved remote method updates the password properly so she can sign in on her laptop again."
+    },
+    {
+      "text": "Turn off password expiry for her account permanently",
+      "correct": false,
+      "why": "Weakens security for one user and breaks company policy."
+    }
+  ],
+  "hints": [
+    "Why can she not simply change it in the office?",
+    "Which approved methods let someone change a password from home?",
+    "What must you confirm before you help?"
+  ],
+  "real_world_tip": "Passwords changed away from the network may not update on the laptop until it reconnects. Explain this to the user.",
+  "reviewed": true
+}

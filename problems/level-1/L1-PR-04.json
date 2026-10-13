@@ -1,0 +1,41 @@
+{
+  "id": "L1-PR-04",
+  "level": 1,
+  "category": "Printers and scanners",
+  "title": "Document stuck in print queue",
+  "character": {
+    "name": "Rizwan",
+    "department": "Procurement",
+    "personality": "calm, a little impatient"
+  },
+  "symptom": "A document is stuck in the print queue and nothing else prints",
+  "user_description": "I sent a document to print an hour ago and it never came out. Now nothing else will print either.",
+  "options": [
+    {
+      "text": "Send the document again several times",
+      "correct": false,
+      "why": "Adds more jobs behind the stuck one and can cause many duplicate printouts when it clears."
+    },
+    {
+      "text": "Restart the whole server",
+      "correct": false,
+      "why": "Heavy-handed and disruptive for everyone. It is not a first step for one stuck job."
+    },
+    {
+      "text": "Open the print queue, cancel the stuck document, then try printing again",
+      "correct": true,
+      "why": "A single stuck job can block everything behind it. Cancelling it in the print queue clears the block."
+    },
+    {
+      "text": "Reinstall Windows",
+      "correct": false,
+      "why": "Extreme and unnecessary. Never start with the most destructive fix."
+    }
+  ],
+  "hints": [
+    "Where does Windows hold documents waiting to print?",
+    "If the first job in the line is stuck, what happens to the others?"
+  ],
+  "real_world_tip": "If the job will not cancel, that is a sign the print spooler needs attention. That is a more advanced fix we cover at a higher level.",
+  "reviewed": true
+}

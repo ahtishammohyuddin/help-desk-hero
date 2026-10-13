@@ -11,3 +11,8 @@ jobs:
       - run: pip install -r requirements-dev.txt
       - run: python -m pytest
       - run: python -m tools.validate_problems
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Game logic tests
+        run: node --test game/tests/logic.test.mjs

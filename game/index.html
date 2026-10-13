@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Help Desk Hero</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Import map: lets our code write `import * as THREE from 'three'`
+       and the browser fetches Three.js from a free CDN. No install or build step. -->
+  <script type="importmap">
+    { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js" } }
+  </script>
+</head>
+<body>
+  <div id="hud">
+    <div class="title">Help Desk Hero</div>
+    <div class="controls">
+      <span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move</span>
+      <span><kbd>Shift</kbd> walk faster</span>
+      <span><kbd>Drag</kbd> rotate camera</span>
+      <span><kbd>Wheel</kbd> zoom</span>
+      <span><kbd>E</kbd> talk</span>
+    </div>
+  </div>
+
+  <div id="labels"></div>
+  <div id="prompt" hidden></div>
+
+  <div id="panel" hidden role="dialog" aria-labelledby="panel-name">
+    <div class="panel-who">
+      <div id="panel-name"></div>
+      <div id="panel-dept"></div>
+    </div>
+    <p id="panel-text"></p>
+    <div class="panel-foot"><kbd>E</kbd> or <kbd>Esc</kbd> to close</div>
+  </div>
+
+  <div id="error" hidden>
+    Could not start the 3D view. Make sure you opened this page through
+    <code>python -m http.server</code> (not by double-clicking the file)
+    and that your browser supports WebGL.
+  </div>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>

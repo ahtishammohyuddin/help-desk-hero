@@ -15,4 +15,4 @@ jobs:
         with:
           node-version: "22"
       - name: Game logic tests
-        run: node --test game/tests/logic.test.mjs game/tests/tickets.test.mjs game/tests/shift.test.mjs
+        run: node --test game/tests/logic.test.mjs game/tests/tickets.test.mjs game/tests/shift.test.mjs game/tests/achievements.test.mjs game/tests/cards.test.mjs

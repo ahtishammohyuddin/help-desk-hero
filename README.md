@@ -39,9 +39,11 @@ If the game feels slow, click Graphics: Smooth (top left). Add `?fps=1` to the a
 
 To use a backend hosted elsewhere, add `?api=https://your-backend` to the game address.
 
-Each shift runs 9 AM to 5 PM in 8 real minutes and ends with a shift report. "My progress" shows your accuracy per topic.
+Each shift runs 9 AM to 5 PM in 8 real minutes and ends with a shift report. "My progress" shows your accuracy per topic and your badges.
 
-Game logic tests (optional, needs Node.js): `node --test game/tests/logic.test.mjs game/tests/tickets.test.mjs game/tests/shift.test.mjs`
+Badges are earned for things like a first fix, solving an urgent ticket in time, or a clean shift. After a shift, "Share my result" makes an image and suggested text for a LinkedIn post. Reaching the Sysadmin rank unlocks a downloadable completion certificate. It states: "Completion of a training game, not an accredited certification." Both images are drawn in the browser, so the name typed for the certificate never leaves the player's computer.
+
+Game logic tests (optional, needs Node.js): `node --test game/tests/logic.test.mjs game/tests/tickets.test.mjs game/tests/shift.test.mjs game/tests/achievements.test.mjs game/tests/cards.test.mjs`
 
 ## Run the backend
 ```

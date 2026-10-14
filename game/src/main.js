@@ -10,15 +10,18 @@ import { nearestWithin } from './logic.js';
 import { Minimap } from './minimap.js';
 import { BOUNDS, buildOffice, PLAYER_START } from './office.js';
 import { createPlayer } from './player.js';
+import { ACHIEVEMENTS, award, newlyEarned } from './achievements.js';
+import { cleanName, drawCertificate, drawResultCard, postText } from './cards.js';
 import { confetti } from './confetti.js';
 import { sound } from './sound.js';
-import { clockFor, recordTopic, SHIFT_SECONDS, summarizeShift } from './shift.js';
-import { maxLevelFor, PRIORITIES, rankFor, streakMultiplier, TicketQueue, xpFor } from './tickets.js';
+import { clockFor, recordTopic, SHIFT_SECONDS, summarizeShift, topicStatus } from './shift.js';
+import { maxLevelFor, PRIORITIES, RANKS, rankFor, streakMultiplier, TicketQueue, xpFor } from './tickets.js';
 import * as ui from './ui.js';
 
 const TALK_RADIUS = 1.8; // how close you must be to talk to someone
 const LABEL_RADIUS = 8; // name tags show within this distance (always shown for open tickets)
 const SAVE_KEY = 'hdh-progress';
+const CERT_NAME_KEY = 'hdh-cert-name'; // the name typed for the certificate (stays in this browser)
 
 const $ = (id) => document.getElementById(id);
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -31,13 +34,30 @@ function loadProgress() {
       return {
         xp: saved.xp, solved: saved.solved || 0, attempts: saved.attempts || 0, firstTry: saved.firstTry || 0,
         streak: saved.streak || 0, bestStreak: saved.bestStreak || 0,
-        topics: saved.topics || {}, shifts: saved.shifts || 0,
+        topics: saved.topics || {}, shifts: saved.shifts || 0, achievements: saved.achievements || {},
       };
     }
   } catch {
     /* no saved data or storage blocked */
   }
-  return { xp: 0, solved: 0, attempts: 0, firstTry: 0, streak: 0, bestStreak: 0, topics: {}, shifts: 0 };
+  return emptyProgress();
+}
+function emptyProgress() {
+  return { xp: 0, solved: 0, attempts: 0, firstTry: 0, streak: 0, bestStreak: 0, topics: {}, shifts: 0, achievements: {} };
+}
+function readSetting(key) {
+  try {
+    return localStorage.getItem(key) ?? '';
+  } catch {
+    return '';
+  }
+}
+function writeSetting(key, value) {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    /* storage blocked */
+  }
 }
 function saveProgress(progress) {
   try {
@@ -161,11 +181,20 @@ function start() {
   let helpOpen = false;
   let reportOpen = false;
   let progressOpen = false;
-  const overlayOpen = () => helpOpen || reportOpen || progressOpen; // pauses the shift and the player
+  let shareOpen = false;
+  let lastReport = null; // the most recent shift report, for the share card
+  const overlayOpen = () => helpOpen || reportOpen || progressOpen || shareOpen; // pauses the shift and the player
+
+  // Badges already earned before badges existed (or on another version) are given quietly.
+  const backfill = newlyEarned(progress, { type: 'load' });
+  if (backfill.length) {
+    progress.achievements = award(progress.achievements, backfill);
+    saveProgress(progress);
+  }
 
   // ---------- the shift: 9 AM to 5 PM in 8 real minutes ----------
   function newShift() {
-    return { number: progress.shifts + 1, elapsed: 0, records: [], rankBefore: rankFor(progress.xp), warned: false, ended: false };
+    return { number: progress.shifts + 1, elapsed: 0, records: [], badges: [], rankBefore: rankFor(progress.xp), warned: false, ended: false };
   }
   let shift = newShift();
   let nearby = null;
@@ -256,6 +285,25 @@ function start() {
     if (activeTicket && talkingTo) ui.renderTicketPanel(talkingTo, activeTicket, details.get(activeTicket.number));
   }
 
+  // ---------- badges ----------
+  // Checks the event, saves any new badges, and (unless quiet) announces them one by one.
+  function earnBadges(event, { quiet = false } = {}) {
+    const fresh = newlyEarned(progress, event);
+    if (!fresh.length) return [];
+    progress.achievements = award(progress.achievements, fresh);
+    shift.badges.push(...fresh);
+    saveProgress(progress);
+    if (!quiet) {
+      fresh.forEach((badge, i) => {
+        setTimeout(() => {
+          sound.badge();
+          ui.toast(`<span aria-hidden="true">${badge.icon}</span> Badge earned: <b>${ui.esc(badge.name)}</b>`, 'big');
+        }, 900 + i * 1400);
+      });
+    }
+    return fresh;
+  }
+
   async function chooseOption(index) {
     if (!activeTicket) return;
     const ticket = activeTicket;
@@ -311,6 +359,7 @@ function start() {
         xp,
       });
       saveProgress(progress);
+      earnBadges({ type: 'ticket', priority: ticket.priority, outcome, overdue: ticket.secondsLeft <= 0, secondsLeft: ticket.secondsLeft, sla: ticket.sla });
       detail.result = { ...result, xp, mult };
 
       queue.close(ticket.number);
@@ -443,13 +492,84 @@ function start() {
     ui.renderQueue(queue.open, byName);
     progress.shifts += 1;
     saveProgress(progress);
+    const summary = summarizeShift(shift.records, leftOpen);
+    earnBadges({ type: 'shift', summary }, { quiet: true }); // the report lists them
     reportOpen = true;
     sound.rankUp();
-    ui.showReport(summarizeShift(shift.records, leftOpen), {
+    lastReport = { summary, shiftNumber: shift.number, rankName: rankFor(progress.xp).name, badges: [...shift.badges] };
+    ui.showReport(summary, {
       shiftNumber: shift.number,
       rankBefore: shift.rankBefore,
       rankAfter: rankFor(progress.xp),
+      badges: shift.badges,
     });
+  }
+
+  // ---------- share card and certificate ----------
+  async function shareResult() {
+    if (!lastReport || lastReport.summary.handled === 0) return;
+    const { summary, shiftNumber, rankName, badges } = lastReport;
+    const imageUrl = await drawResultCard({
+      summary, shiftNumber, rankName,
+      badgeCount: Object.keys(progress.achievements).length,
+      badgeTotal: ACHIEVEMENTS.length,
+      xp: progress.xp,
+      nextRank: rankFor(progress.xp).next,
+    });
+    shareOpen = true;
+    ui.showShare({
+      title: `Your shift ${shiftNumber} result`,
+      lead: 'Download the image, then start a LinkedIn post, add the image and paste the text. Change the words so they sound like you.',
+      imageUrl,
+      fileName: `help-desk-hero-shift-${shiftNumber}.png`,
+      text: postText(summary, { shiftNumber, rankName, badgeNames: badges.map((b) => b.name) }),
+    });
+  }
+
+  async function createCertificate() {
+    const top = RANKS[RANKS.length - 1];
+    if (progress.xp < top.min) return;
+    const box = document.getElementById('cert-name');
+    const name = cleanName(box?.value);
+    document.getElementById('cert-error').hidden = Boolean(name);
+    if (!name) {
+      box?.focus();
+      return;
+    }
+    writeSetting(CERT_NAME_KEY, name);
+    const imageUrl = await drawCertificate({
+      name,
+      rankName: top.name,
+      solved: progress.solved,
+      firstTryRate: progress.attempts ? Math.round((progress.firstTry / progress.attempts) * 100) : 0,
+      shifts: progress.shifts,
+      mastered: Object.values(progress.topics).filter((t) => topicStatus(t) === 'mastered').length,
+      date: new Date(),
+    });
+    shareOpen = true;
+    ui.showShare({
+      title: 'Your completion certificate',
+      lead: 'Well done! Download it as an image. It shows that you finished the game, so describe it that way if you share it.',
+      imageUrl,
+      fileName: 'help-desk-hero-certificate.png',
+    });
+  }
+
+  function closeShare() {
+    shareOpen = false;
+    ui.hideShare();
+  }
+
+  async function copyShareText() {
+    const box = document.getElementById('share-text');
+    if (!box) return;
+    try {
+      await navigator.clipboard.writeText(box.value);
+    } catch {
+      box.select(); // clipboard blocked: select it so Ctrl+C works
+      document.execCommand?.('copy');
+    }
+    ui.toast('Post text copied');
   }
 
   function startNextShift() {
@@ -463,7 +583,7 @@ function start() {
   function openProgress() {
     progressOpen = true;
     const categories = [...new Set([...queue.pool.map((p) => p.category), ...Object.keys(progress.topics)])];
-    ui.showProgress(progress, categories);
+    ui.showProgress(progress, categories, { certName: readSetting(CERT_NAME_KEY) });
   }
   function closeProgress() {
     progressOpen = false;
@@ -475,12 +595,22 @@ function start() {
     const action = e.target.closest('[data-action]')?.dataset.action;
     if (action === 'next-shift') startNextShift();
     else if (action === 'open-progress') openProgress();
+    else if (action === 'share-result') shareResult();
+  });
+  $('share').addEventListener('click', (e) => {
+    const action = e.target.closest('[data-action]')?.dataset.action;
+    if (action === 'close-share' || e.target.id === 'share') closeShare();
+    else if (action === 'copy-text') copyShareText();
+  });
+  $('progress').addEventListener('submit', (e) => {
+    e.preventDefault();
+    if (e.target.id === 'cert-form') createCertificate();
   });
   $('progress').addEventListener('click', (e) => {
     const action = e.target.closest('[data-action]')?.dataset.action;
     if (action === 'close-progress') closeProgress();
     else if (action === 'reset-progress' && window.confirm('Reset all XP, ranks and topic stats on this computer?')) {
-      Object.assign(progress, { xp: 0, solved: 0, attempts: 0, firstTry: 0, streak: 0, bestStreak: 0, topics: {}, shifts: 0 });
+      Object.assign(progress, emptyProgress());
       saveProgress(progress);
       ui.renderStatus(progress);
       openProgress();
@@ -492,7 +622,8 @@ function start() {
     else if (nearby) openConversation(nearby);
   });
   input.onPress('Escape', () => {
-    if (progressOpen) closeProgress();
+    if (shareOpen) closeShare();
+    else if (progressOpen) closeProgress();
     else if (helpOpen) closeHelp();
     else if (!reportOpen) closeConversation();
   });
@@ -706,7 +837,7 @@ function start() {
 
   // Handy for debugging in the browser console: helpDeskHero.queue.open
   window.helpDeskHero = {
-    player, followCam, employees, scene, queue, details, progress, renderer, applyQuality, gpuName,
+    player, followCam, employees, scene, queue, details, progress, renderer, applyQuality, gpuName, endShift,
     get shift() { return shift; },
   };
 }

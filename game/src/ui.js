@@ -2,8 +2,10 @@
 // messages, the welcome card and the start-up screen.
 // Text from the server is always escaped before display.
 
+import { ACHIEVEMENTS } from './achievements.js';
+import { DISCLAIMER, NAME_MAX } from './cards.js';
 import { topicStatus } from './shift.js';
-import { PRIORITIES, rankFor, streakMultiplier } from './tickets.js';
+import { PRIORITIES, RANKS, rankFor, streakMultiplier } from './tickets.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -254,7 +256,11 @@ export function xpPop(amount) {
 
 const STATUS_WORDS = { mastered: 'Mastered', good: 'Good', practise: 'Practise this', learning: 'Learning', new: 'Not tried yet' };
 
-export function showReport(summary, { shiftNumber, rankBefore, rankAfter }) {
+function badgeChips(badges) {
+  return `<div class="badge-chips">${badges.map((b) => `<span class="badge-chip"><span aria-hidden="true">${b.icon}</span>${esc(b.name)}</span>`).join('')}</div>`;
+}
+
+export function showReport(summary, { shiftNumber, rankBefore, rankAfter, badges = [] }) {
   const s = summary;
   const time = s.avgSeconds === null ? '-' : formatTime(s.avgSeconds);
   const promoted = rankAfter.index > rankBefore.index
@@ -287,6 +293,7 @@ export function showReport(summary, { shiftNumber, rankBefore, rankAfter }) {
          <li>Still open at 5 PM <b>${s.leftOpen}</b></li>
        </ul>
        ${promoted}${advice}
+       ${badges.length ? `<h2 class="section-title">Badges earned this shift</h2>${badgeChips(badges)}` : ''}
        <h2 class="section-title">Topics this shift</h2>
        <div class="topics">${topics}</div>`;
 
@@ -296,6 +303,7 @@ export function showReport(summary, { shiftNumber, rankBefore, rankAfter }) {
     ${body}
     <div class="report-actions">
       <button class="btn ghost" data-action="open-progress">My progress</button>
+      ${s.handled > 0 ? '<button class="btn ghost" data-action="share-result">Share my result</button>' : ''}
       <button class="btn big" data-action="next-shift">Start shift ${shiftNumber + 1}</button>
     </div>`;
   $('report').hidden = false;
@@ -309,7 +317,41 @@ export function hideReport() {
 
 // ---------- my progress ----------
 
-export function showProgress(progress, categories) {
+function badgeGrid(achievements = {}) {
+  const earned = ACHIEVEMENTS.filter((a) => achievements[a.id]).length;
+  const cells = ACHIEVEMENTS.map((a) => {
+    const has = Boolean(achievements[a.id]);
+    return `<div class="badge ${has ? 'earned' : 'locked'}" title="${esc(a.description)}">
+        <span class="badge-icon" aria-hidden="true">${a.icon}</span>
+        <span class="badge-name">${esc(a.name)}</span>
+        <span class="badge-desc">${has ? 'Earned' : esc(a.description)}</span>
+      </div>`;
+  }).join('');
+  return `<h2 class="section-title">Badges <span class="small">${earned} of ${ACHIEVEMENTS.length}</span></h2><div class="badges">${cells}</div>`;
+}
+
+function certificateSection(progress, savedName) {
+  const top = RANKS[RANKS.length - 1];
+  if (progress.xp < top.min) {
+    return `<section class="cert locked">
+        <h2 class="section-title">Completion certificate</h2>
+        <p class="small">Reach the ${esc(top.name)} rank (${top.min} XP) to unlock a certificate you can download. You need ${top.min - progress.xp} more XP.</p>
+        <div class="bar"><div style="width:${(progress.xp / top.min) * 100}%"></div></div>
+      </section>`;
+  }
+  return `<section class="cert">
+      <h2 class="section-title">Completion certificate</h2>
+      <p class="small">You reached ${esc(top.name)}. Type your name as you want it on the certificate.</p>
+      <form id="cert-form" autocomplete="off">
+        <input id="cert-name" maxlength="${NAME_MAX}" aria-label="Your name for the certificate" placeholder="Your full name" value="${esc(savedName)}">
+        <button type="submit" class="btn">Create certificate</button>
+      </form>
+      <p id="cert-error" class="small bad-text" hidden>Please type a name with at least 2 letters.</p>
+      <p class="small">Your name stays on this computer. It is never sent anywhere. The certificate says: "${esc(DISCLAIMER)}"</p>
+    </section>`;
+}
+
+export function showProgress(progress, categories, { certName = '' } = {}) {
   const rank = rankFor(progress.xp);
   const rate = progress.attempts ? Math.round((progress.firstTry / progress.attempts) * 100) : null;
   const order = { practise: 0, learning: 1, good: 2, mastered: 3, new: 4 };
@@ -338,6 +380,8 @@ export function showProgress(progress, categories) {
     <h2 class="section-title">Topics</h2>
     ${rows ? `<div class="topics">${rows}</div>` : '<p class="small">Solve a few tickets and your topics will appear here.</p>'}
     ${untried.length ? `<p class="small">Not tried yet: ${untried.join(', ')}.</p>` : ''}
+    ${badgeGrid(progress.achievements)}
+    ${certificateSection(progress, certName)}
     <div class="report-actions">
       <button class="link-btn" data-action="reset-progress">Reset all progress</button>
       <button class="btn big" data-action="close-progress">Back to work</button>
@@ -349,6 +393,30 @@ export function showProgress(progress, categories) {
 
 export function hideProgress() {
   $('progress').hidden = true;
+}
+
+// ---------- share window: preview of a downloadable image ----------
+
+/** opts: { title, lead, imageUrl, fileName, text } (text is the suggested post, optional) */
+export function showShare({ title, lead, imageUrl, fileName, text = '' }) {
+  $('share-card').innerHTML = `
+    <h1 id="share-title">${esc(title)}</h1>
+    <p class="lead">${esc(lead)}</p>
+    <img class="share-img" src="${imageUrl}" alt="${esc(title)}">
+    ${text ? `<h2 class="section-title">Suggested post text</h2>
+      <textarea id="share-text" class="share-text" rows="9" readonly aria-label="Suggested post text">${esc(text)}</textarea>` : ''}
+    <div class="report-actions">
+      <button class="link-btn" data-action="close-share">Close</button>
+      ${text ? '<button class="btn ghost" data-action="copy-text">Copy text</button>' : ''}
+      <a class="btn big" href="${imageUrl}" download="${esc(fileName)}">Download image</a>
+    </div>`;
+  $('share').hidden = false;
+  $('share-card').scrollTop = 0;
+}
+
+export function hideShare() {
+  $('share').hidden = true;
+  $('share-card').innerHTML = '';
 }
 
 export function setClock(label, late) {

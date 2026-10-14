@@ -214,7 +214,7 @@ kbd {
 
 /* ---------- messages ---------- */
 #toasts {
-  position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
+  position: fixed; top: 16px; left: 50%; transform: translateX(-50%); z-index: 45; /* above full-screen cards */
   display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: none;
 }
 .toast {
@@ -338,3 +338,26 @@ kbd {
 .report-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; margin-top: 8px; }
 .link-btn { margin-right: auto; border: 0; background: none; color: var(--muted); font-size: 13px; text-decoration: underline; cursor: pointer; padding: 0; }
 @media (max-width: 760px) { .clock { display: none; } }
+
+/* ---------- badges, certificate and share window ---------- */
+.badge-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+.badge-chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 99px; background: var(--warn-soft); font-size: 14px; font-weight: 700; }
+.badges { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; margin-bottom: 18px; }
+.badge { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 0 10px; padding: 10px 12px; border-radius: 12px; background: var(--wash); }
+.badge-icon { grid-row: span 2; font-size: 26px; line-height: 1; }
+.badge-name { font-size: 14px; font-weight: 700; }
+.badge-desc { font-size: 12px; color: var(--muted); line-height: 1.35; }
+.badge.earned { background: var(--warn-soft); }
+.badge.earned .badge-desc { color: var(--warn); font-weight: 700; }
+.badge.locked .badge-icon { filter: grayscale(1); opacity: 0.45; }
+.cert { margin-bottom: 18px; padding: 14px 16px; border-radius: 12px; border: 2px solid var(--blue-soft); }
+.cert .section-title { margin-top: 0; }
+.cert.locked { border-color: var(--line); }
+#cert-form { display: flex; gap: 8px; margin: 10px 0 6px; }
+#cert-name { flex: 1; min-width: 0; padding: 11px 14px; border: 2px solid var(--line); border-radius: 10px; font: 16px var(--font); color: var(--ink); }
+#cert-name:focus { border-color: var(--blue); outline: none; }
+.bad-text { color: var(--bad); font-weight: 700; }
+.help-card.wide { width: min(760px, 100%); }
+.share-img { display: block; width: 100%; height: auto; border-radius: 12px; border: 1px solid var(--line); }
+.share-text { display: block; width: 100%; padding: 12px 14px; border: 2px solid var(--line); border-radius: 10px; font: 14px/1.5 var(--font); color: var(--ink); resize: vertical; }
+.report-actions a.btn { display: inline-flex; align-items: center; text-decoration: none; }

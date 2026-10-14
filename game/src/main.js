@@ -12,6 +12,7 @@ import { BOUNDS, buildOffice, PLAYER_START } from './office.js';
 import { createPlayer } from './player.js';
 import { confetti } from './confetti.js';
 import { sound } from './sound.js';
+import { clockFor, recordTopic, SHIFT_SECONDS, summarizeShift } from './shift.js';
 import { maxLevelFor, PRIORITIES, rankFor, streakMultiplier, TicketQueue, xpFor } from './tickets.js';
 import * as ui from './ui.js';
 
@@ -30,12 +31,13 @@ function loadProgress() {
       return {
         xp: saved.xp, solved: saved.solved || 0, attempts: saved.attempts || 0, firstTry: saved.firstTry || 0,
         streak: saved.streak || 0, bestStreak: saved.bestStreak || 0,
+        topics: saved.topics || {}, shifts: saved.shifts || 0,
       };
     }
   } catch {
     /* no saved data or storage blocked */
   }
-  return { xp: 0, solved: 0, attempts: 0, firstTry: 0, streak: 0, bestStreak: 0 };
+  return { xp: 0, solved: 0, attempts: 0, firstTry: 0, streak: 0, bestStreak: 0, topics: {}, shifts: 0 };
 }
 function saveProgress(progress) {
   try {
@@ -157,6 +159,15 @@ function start() {
   let backendReady = false;
   let shiftStarted = false; // tickets only arrive after the player presses "Start my shift"
   let helpOpen = false;
+  let reportOpen = false;
+  let progressOpen = false;
+  const overlayOpen = () => helpOpen || reportOpen || progressOpen; // pauses the shift and the player
+
+  // ---------- the shift: 9 AM to 5 PM in 8 real minutes ----------
+  function newShift() {
+    return { number: progress.shifts + 1, elapsed: 0, records: [], rankBefore: rankFor(progress.xp), warned: false, ended: false };
+  }
+  let shift = newShift();
   let nearby = null;
   let talkingTo = null; // the employee in conversation
   let activeTicket = null; // the ticket shown in the ticket panel, if any
@@ -204,6 +215,7 @@ function start() {
 
   // ---------- tickets ----------
   function onNewTicket(ticket) {
+    ticket.openedAt = shift.elapsed;
     const person = byName.get(ticket.employee);
     person.marker.visible = true;
     for (const part of person.marker.children) {
@@ -289,6 +301,15 @@ function start() {
       progress.attempts += 1;
       if (result.is_correct) progress.solved += 1;
       if (result.is_correct && result.attempt === 1) progress.firstTry += 1;
+      const outcome = !result.is_correct ? 'failed' : result.attempt === 1 ? 'first' : 'second';
+      progress.topics = recordTopic(progress.topics, ticket.category, outcome);
+      shift.records.push({
+        category: ticket.category,
+        outcome,
+        overdue: ticket.secondsLeft <= 0,
+        seconds: shift.elapsed - (ticket.openedAt ?? shift.elapsed),
+        xp,
+      });
       saveProgress(progress);
       detail.result = { ...result, xp, mult };
 
@@ -407,13 +428,74 @@ function start() {
     activeTicket = null;
     $('panel').hidden = true;
     ui.hideTicketPanel();
+    if (shift.ended && !reportOpen) endShift(); // 5 PM passed while talking: report now
   }
+
+  // ---------- end of shift ----------
+  function endShift() {
+    // Tickets still open at 5 PM are counted, then cleared for tomorrow.
+    const leftOpen = queue.open.length;
+    for (const t of queue.open) byName.get(t.employee).marker.visible = false;
+    for (const t of [...queue.open]) {
+      queue.close(t.number);
+      details.delete(t.number);
+    }
+    ui.renderQueue(queue.open, byName);
+    progress.shifts += 1;
+    saveProgress(progress);
+    reportOpen = true;
+    sound.rankUp();
+    ui.showReport(summarizeShift(shift.records, leftOpen), {
+      shiftNumber: shift.number,
+      rankBefore: shift.rankBefore,
+      rankAfter: rankFor(progress.xp),
+    });
+  }
+
+  function startNextShift() {
+    ui.hideReport();
+    reportOpen = false;
+    shift = newShift();
+    queue.timer = 4; // first ticket of the day arrives quickly
+    ui.toast(`Shift ${shift.number} has started. Good morning!`);
+  }
+
+  function openProgress() {
+    progressOpen = true;
+    const categories = [...new Set([...queue.pool.map((p) => p.category), ...Object.keys(progress.topics)])];
+    ui.showProgress(progress, categories);
+  }
+  function closeProgress() {
+    progressOpen = false;
+    ui.hideProgress();
+  }
+
+  $('progress-btn').addEventListener('click', () => (progressOpen ? closeProgress() : openProgress()));
+  $('report').addEventListener('click', (e) => {
+    const action = e.target.closest('[data-action]')?.dataset.action;
+    if (action === 'next-shift') startNextShift();
+    else if (action === 'open-progress') openProgress();
+  });
+  $('progress').addEventListener('click', (e) => {
+    const action = e.target.closest('[data-action]')?.dataset.action;
+    if (action === 'close-progress') closeProgress();
+    else if (action === 'reset-progress' && window.confirm('Reset all XP, ranks and topic stats on this computer?')) {
+      Object.assign(progress, { xp: 0, solved: 0, attempts: 0, firstTry: 0, streak: 0, bestStreak: 0, topics: {}, shifts: 0 });
+      saveProgress(progress);
+      ui.renderStatus(progress);
+      openProgress();
+    }
+  });
 
   input.onPress('KeyE', () => {
     if (talkingTo) closeConversation();
     else if (nearby) openConversation(nearby);
   });
-  input.onPress('Escape', () => (helpOpen ? closeHelp() : closeConversation()));
+  input.onPress('Escape', () => {
+    if (progressOpen) closeProgress();
+    else if (helpOpen) closeHelp();
+    else if (!reportOpen) closeConversation();
+  });
   input.onPress('KeyH', takeHint);
   input.onPress('KeyQ', openChat);
   input.onPress('KeyR', retryTicket);
@@ -485,6 +567,17 @@ function start() {
     renderer.setSize(window.innerWidth, window.innerHeight);
   });
 
+  // ---------- wall clock ----------
+  let lastClock = '';
+  function refreshClock(current) {
+    const { label } = clockFor(current.elapsed);
+    const text = `Shift ${current.number}, ${label}`;
+    if (text === lastClock) return false;
+    lastClock = text;
+    ui.setClock(text, current.elapsed >= SHIFT_SECONDS - 60);
+    return true;
+  }
+
   // ---------- game loop ----------
   const clock = new THREE.Clock();
   const tmp = new THREE.Vector3();
@@ -502,13 +595,31 @@ function start() {
     const dt = Math.min(rawDt, 0.05); // cap so a slow frame can't teleport the player
     const time = clock.elapsedTime;
 
-    player.update(dt, input.state, followCam.yaw, colliders, talkingTo !== null || helpOpen);
+    player.update(dt, input.state, followCam.yaw, colliders, talkingTo !== null || overlayOpen());
     followCam.focusTarget = activeTicket ? 1 : 0;
     followCam.update(dt, player.position);
 
-    if (backendReady && shiftStarted && !helpOpen) {
-      for (const ticket of queue.update(dt, employees, maxLevelFor(progress.xp))) onNewTicket(ticket);
+    const shiftRunning = backendReady && shiftStarted && !overlayOpen() && !shift.ended;
+    if (shiftRunning) {
+      shift.elapsed += dt;
+      // No new tickets in the last office half hour, so the day can wind down.
+      const nearEnd = shift.elapsed > SHIFT_SECONDS - 30;
+      const fresh = queue.update(dt, employees, maxLevelFor(progress.xp));
+      for (const ticket of fresh) {
+        if (nearEnd) queue.close(ticket.number);
+        else onNewTicket(ticket);
+      }
+      if (!shift.warned && shift.elapsed >= SHIFT_SECONDS - 60) {
+        shift.warned = true;
+        ui.toast('It is 4 PM. One hour left in your shift.');
+      }
+      if (shift.elapsed >= SHIFT_SECONDS) {
+        shift.ended = true;
+        if (!talkingTo) endShift();
+        else ui.toast('It is 5 PM. Finish this ticket to see your shift report.');
+      }
     }
+    refreshClock(shift);
 
     // Who is close enough to talk to?
     nearby = talkingTo ? null : nearestWithin(player.position, employees, TALK_RADIUS);
@@ -594,7 +705,10 @@ function start() {
   requestAnimationFrame(frame);
 
   // Handy for debugging in the browser console: helpDeskHero.queue.open
-  window.helpDeskHero = { player, followCam, employees, scene, queue, details, progress, renderer, applyQuality, gpuName };
+  window.helpDeskHero = {
+    player, followCam, employees, scene, queue, details, progress, renderer, applyQuality, gpuName,
+    get shift() { return shift; },
+  };
 }
 
 start();

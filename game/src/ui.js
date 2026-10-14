@@ -2,6 +2,7 @@
 // messages, the welcome card and the start-up screen.
 // Text from the server is always escaped before display.
 
+import { topicStatus } from './shift.js';
 import { PRIORITIES, rankFor, streakMultiplier } from './tickets.js';
 
 const $ = (id) => document.getElementById(id);
@@ -247,4 +248,110 @@ export function xpPop(amount) {
   el.textContent = `+${amount} XP`;
   $('status').appendChild(el);
   setTimeout(() => el.remove(), 1400);
+}
+
+// ---------- end-of-shift report ----------
+
+const STATUS_WORDS = { mastered: 'Mastered', good: 'Good', practise: 'Practise this', learning: 'Learning', new: 'Not tried yet' };
+
+export function showReport(summary, { shiftNumber, rankBefore, rankAfter }) {
+  const s = summary;
+  const time = s.avgSeconds === null ? '-' : formatTime(s.avgSeconds);
+  const promoted = rankAfter.index > rankBefore.index
+    ? `<p class="callout good"><b>You were promoted to ${esc(rankAfter.name)} during this shift.</b></p>`
+    : '';
+  const topics = Object.entries(s.byCategory)
+    .sort((a, b) => b[1].total - a[1].total)
+    .map(([name, c]) => `<div class="topic"><span class="name">${esc(name)}</span><span class="small">${c.firstTry} of ${c.total} right first time</span>
+       <div class="bar"><div style="width:${(c.firstTry / c.total) * 100}%"></div></div></div>`)
+    .join('');
+  const advice = [
+    s.strongest ? `<p class="callout good"><b>Strongest today:</b> ${esc(s.strongest)}.</p>` : '',
+    s.practise ? `<p class="callout warn"><b>Worth practising:</b> ${esc(s.practise)}. Ask the senior tech about these tickets next time.</p>` : '',
+    s.overdue > 0 ? `<p class="callout blue">${s.overdue} ticket${s.overdue === 1 ? ' was' : 's were'} answered after the deadline. Check the list on the right often and start with urgent requests.</p>` : '',
+  ].join('');
+
+  const body = s.handled === 0
+    ? `<p class="callout blue">You didn't close any tickets this shift. Walk to the people on the list and press E to help them.</p>`
+    : `<div class="stat-row">
+         <div class="stat"><b>${s.solved}</b><span>tickets solved</span></div>
+         <div class="stat"><b>${s.firstTryRate}%</b><span>right first time</span></div>
+         <div class="stat"><b>+${s.xp}</b><span>XP earned</span></div>
+         <div class="stat"><b>${time}</b><span>average time per ticket</span></div>
+       </div>
+       <ul class="facts">
+         <li>Right first time <b>${s.firstTry}</b></li>
+         <li>Fixed on second try <b>${s.secondTry}</b></li>
+         <li>Not solved <b>${s.failed}</b></li>
+         <li>Answered late <b>${s.overdue}</b></li>
+         <li>Still open at 5 PM <b>${s.leftOpen}</b></li>
+       </ul>
+       ${promoted}${advice}
+       <h2 class="section-title">Topics this shift</h2>
+       <div class="topics">${topics}</div>`;
+
+  $('report-card').innerHTML = `
+    <h1 id="report-title">Shift ${shiftNumber} is over</h1>
+    <p class="lead">It's 5 PM. Here is how your day at the help desk went.</p>
+    ${body}
+    <div class="report-actions">
+      <button class="btn ghost" data-action="open-progress">My progress</button>
+      <button class="btn big" data-action="next-shift">Start shift ${shiftNumber + 1}</button>
+    </div>`;
+  $('report').hidden = false;
+  $('report-card').scrollTop = 0;
+  setTimeout(() => $('report-card').querySelector('[data-action="next-shift"]')?.focus({ preventScroll: true }), 0);
+}
+
+export function hideReport() {
+  $('report').hidden = true;
+}
+
+// ---------- my progress ----------
+
+export function showProgress(progress, categories) {
+  const rank = rankFor(progress.xp);
+  const rate = progress.attempts ? Math.round((progress.firstTry / progress.attempts) * 100) : null;
+  const order = { practise: 0, learning: 1, good: 2, mastered: 3, new: 4 };
+  const all = categories
+    .map((name) => ({ name, t: progress.topics[name] ?? { attempts: 0, firstTry: 0 }, status: topicStatus(progress.topics[name]) }))
+    .sort((a, b) => order[a.status] - order[b.status] || a.name.localeCompare(b.name));
+  const untried = all.filter((r) => r.status === 'new').map((r) => esc(r.name));
+  const rows = all
+    .filter((r) => r.status !== 'new')
+    .map(({ name, t, status }) => `<div class="topic">
+        <span class="name">${esc(name)}</span><span class="status ${status}">${STATUS_WORDS[status]}</span>
+        <div class="bar"><div style="width:${t.attempts ? (t.firstTry / t.attempts) * 100 : 0}%"></div></div>
+        <span class="small">${t.attempts ? `${t.firstTry} of ${t.attempts} right first time` : 'No tickets on this topic yet'}</span>
+      </div>`)
+    .join('');
+  $('progress-card').innerHTML = `
+    <h1 id="progress-title">My progress</h1>
+    <p class="lead">Your record across all shifts on this computer.</p>
+    <div class="stat-row">
+      <div class="stat"><b>${esc(rank.name)}</b><span>${progress.xp} XP</span></div>
+      <div class="stat"><b>${progress.solved}</b><span>tickets solved</span></div>
+      <div class="stat"><b>${rate === null ? '-' : `${rate}%`}</b><span>right first time</span></div>
+      <div class="stat"><b>${progress.shifts}</b><span>shifts finished</span></div>
+    </div>
+    <p class="small">Best streak: ${progress.bestStreak} right in a row. Topics marked "Practise this" are the best place to improve.</p>
+    <h2 class="section-title">Topics</h2>
+    ${rows ? `<div class="topics">${rows}</div>` : '<p class="small">Solve a few tickets and your topics will appear here.</p>'}
+    ${untried.length ? `<p class="small">Not tried yet: ${untried.join(', ')}.</p>` : ''}
+    <div class="report-actions">
+      <button class="link-btn" data-action="reset-progress">Reset all progress</button>
+      <button class="btn big" data-action="close-progress">Back to work</button>
+    </div>`;
+  $('progress').hidden = false;
+  $('progress-card').scrollTop = 0;
+  setTimeout(() => $('progress-card').querySelector('[data-action="close-progress"]')?.focus({ preventScroll: true }), 0);
+}
+
+export function hideProgress() {
+  $('progress').hidden = true;
+}
+
+export function setClock(label, late) {
+  $('clock').textContent = label;
+  $('clock').classList.toggle('late', late);
 }

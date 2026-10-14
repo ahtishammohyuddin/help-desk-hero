@@ -39,7 +39,9 @@ If the game feels slow, click Graphics: Smooth (top left). Add `?fps=1` to the a
 
 To use a backend hosted elsewhere, add `?api=https://your-backend` to the game address.
 
-Game logic tests (optional, needs Node.js): `node --test game/tests/logic.test.mjs game/tests/tickets.test.mjs`
+Each shift runs 9 AM to 5 PM in 8 real minutes and ends with a shift report. "My progress" shows your accuracy per topic.
+
+Game logic tests (optional, needs Node.js): `node --test game/tests/logic.test.mjs game/tests/tickets.test.mjs game/tests/shift.test.mjs`
 
 ## Run the backend
 ```

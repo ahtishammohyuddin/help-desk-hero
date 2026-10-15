@@ -209,12 +209,12 @@ export function switchSvg(sim) {
 /** Plain-text list of what the lights say (for screen readers, and as a quick summary). */
 export function deskSummary(sim) {
   const r = readings(sim);
-  const screenWords = { picture: 'showing the desktop', 'no-signal': 'on, showing "No Signal"', off: 'dark, power light off' };
+  const screen = { picture: 'Desktop', 'no-signal': 'No Signal', off: 'Off' };
   return [
-    `Power strip: ${r.stripOn ? 'on' : 'off'}`,
-    `PC power light: ${r.pcOn ? 'on' : 'off'}`,
-    `Monitor: ${screenWords[r.screen]}`,
-    `Network light on the PC: ${r.link ? 'blinking' : 'off'}`,
+    { label: 'Power strip', value: r.stripOn ? 'On' : 'Off', ok: r.stripOn },
+    { label: 'PC', value: r.pcOn ? 'On' : 'Off', ok: r.pcOn },
+    { label: 'Monitor', value: screen[r.screen], ok: r.screen === 'picture' },
+    { label: 'Network light', value: r.link ? 'Blinking' : 'Off', ok: r.link },
   ];
 }
 
@@ -302,12 +302,12 @@ export function printerSvg(sim) {
 
 export function printerSummary(sim) {
   const r = printerReadings(sim);
-  const page = { good: 'clean', faint: 'very faint', streaks: 'streaky', blank: 'blank' };
+  const page = { good: 'Clean', faint: 'Faint', streaks: 'Streaky', blank: 'Blank' };
   return [
-    `Screen: ${r.powered ? r.screen : 'off'}`,
-    `Network light: ${r.online ? 'blinking' : 'off'}`,
-    `Front door: ${sim.printer.door}`,
-    `Last test page: ${sim.testPage ? page[sim.testPage] : 'none yet'}`,
+    { label: 'Screen', value: r.powered ? r.screen : 'Off', ok: r.screen === 'Ready' },
+    { label: 'Network light', value: r.online ? 'Blinking' : 'Off', ok: r.online },
+    { label: 'Front door', value: sim.printer.door === 'open' ? 'Open' : 'Closed', ok: sim.printer.door === 'closed' },
+    { label: 'Test page', value: sim.testPage ? page[sim.testPage] : 'Not printed', ok: sim.testPage ? sim.testPage === 'good' : null },
   ];
 }
 
@@ -451,9 +451,17 @@ export function displayModeHtml(sim) {
 export function laptopSummary(sim) {
   const r = laptopReadings(sim);
   return [
-    `Charger light: ${r.chargerLight ? 'on' : 'off'}, battery ${r.charging ? 'charging' : 'not charging'}`,
-    `Phone: ${r.phoneCharging ? 'charging' : 'not charging'}`,
-    `Dock light: ${r.dockLight ? 'on' : 'off'}`,
-    `Second monitor: ${r.monitor === 'desktop' ? 'showing the desktop' : r.monitor}`,
+    { label: 'Battery', value: r.charging ? 'Charging' : 'Not charging', ok: r.charging },
+    { label: 'Phone', value: r.phoneCharging ? 'Charging' : 'Not charging', ok: r.phoneCharging },
+    { label: 'Dock light', value: r.dockLight ? 'On' : 'Off', ok: r.dockLight },
+    { label: '2nd monitor', value: r.monitor === 'desktop' ? 'Desktop' : r.monitor, ok: r.monitor === 'desktop' },
+    { label: 'Laptop', value: r.hot ? 'Hot, fan loud' : 'Cool', ok: !r.hot },
   ];
+}
+
+/** Status chips: a coloured dot, a label and a value (ok: true green, false red, null grey). */
+export function chipsHtml(items) {
+  return `<div class="chips">${items
+    .map(({ label, value, ok }) => `<span class="schip ${ok === true ? 'ok' : ok === false ? 'bad' : ''}"><span class="dot"></span>${esc(label)}: <b>${esc(value)}</b></span>`)
+    .join('')}</div>`;
 }

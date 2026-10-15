@@ -103,6 +103,7 @@ export class TicketQueue {
     this.used = new Set();
     this.open = [];
     this.nextNumber = 1001;
+    this.paused = false; // a quiet spell: timers keep running, but no new tickets arrive
   }
 
   setPool(problems) {
@@ -113,6 +114,7 @@ export class TicketQueue {
   /** Advance time by dt seconds. Returns the list of newly created tickets (usually empty). */
   update(dt, employees, maxLevel) {
     for (const ticket of this.open) ticket.secondsLeft -= dt;
+    if (this.paused) return [];
 
     // Never leave the player idle for long: an empty queue brings the next ticket closer.
     if (this.open.length === 0 && this.timer > 8) this.timer = 8;
@@ -124,7 +126,22 @@ export class TicketQueue {
     return ticket ? [ticket] : [];
   }
 
-  #create(employees, maxLevel) {
+  /**
+   * Create a ticket now (used by events), if there is room.
+   * options: category (only problems in it), priority (forced), vip (double XP, shown in the list).
+   * Returns the ticket, or null if the queue is full or nothing fits.
+   */
+  spawn(employees, maxLevel, options = {}) {
+    if (this.open.length >= this.maxOpen) return null;
+    return this.#create(employees, maxLevel, options);
+  }
+
+  /** Does the pool have a problem in this category at or below this level? */
+  hasCategory(category, maxLevel) {
+    return this.pool.some((p) => p.category === category && p.level <= maxLevel);
+  }
+
+  #create(employees, maxLevel, { category = null, priority: forced = null, vip = false } = {}) {
     const busy = new Set(this.open.map((t) => t.employee));
     const free = employees.filter((e) => !busy.has(e.name));
     if (free.length === 0) return null;
@@ -132,7 +149,7 @@ export class TicketQueue {
     // Only pick problems that a free employee can "own": answer texts say he/she,
     // so a problem about a woman goes to a female employee and vice versa.
     const freeGenders = new Set(free.map((e) => e.gender));
-    const fits = (p) => !p.gender || freeGenders.has(p.gender);
+    const fits = (p) => (!p.gender || freeGenders.has(p.gender)) && (!category || p.category === category);
     const problem = this.#drawProblem(maxLevel, fits);
     if (!problem) return null;
 
@@ -142,7 +159,7 @@ export class TicketQueue {
       matching.find((e) => e.name === problem.character_name) ??
       matching[Math.floor(this.rng() * matching.length)];
 
-    const priority = choosePriority(problem.category, this.rng);
+    const priority = forced ?? choosePriority(problem.category, this.rng);
     const ticket = {
       number: this.nextNumber++,
       problemId: problem.id,
@@ -154,6 +171,7 @@ export class TicketQueue {
       employee: owner.name,
       hintsUsed: 0,
       handsOn: Boolean(problem.hands_on), // solved by investigating in the office
+      vip, // a VIP request: double XP
     };
     this.open.push(ticket);
     return ticket;

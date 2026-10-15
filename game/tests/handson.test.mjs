@@ -339,3 +339,28 @@ test('Wi-Fi survey: measure all three spots, then report', () => {
   assert.equal(tryIt(s, 'Amna').solved, true);
   assert.equal(reportCoverage(s).changed, false);
 });
+
+// ---------- mission progress ----------
+import { isFixed, missionStep } from '../src/handson.js';
+
+test('the mission card moves from find, to fix, to test', () => {
+  let s = createSim({ faults: ['video_cable_loose'], goal: 'display' }, 3);
+  assert.equal(missionStep(s), 1);
+  s = { ...s, visited: true };
+  assert.equal(missionStep(s), 2);
+  s = reseat(s, 'videoCable').sim;
+  assert.equal(isFixed(s), true);
+  assert.equal(missionStep(s), 3);
+  // the server-room scenario is only "fixed" once the port is reported too
+  let n = createSim({ faults: ['switch_port_dead'], goal: 'internet', required: ['report_port'] }, 4);
+  n = moveToSpare(n, 11).sim;
+  assert.equal(isFixed(n), false);
+  assert.equal(missionStep(n), 2);
+  assert.equal(missionStep(reportPort(n).sim), 3);
+  // printer, laptop and survey
+  assert.equal(isFixed(act(printer(['printer_network_loose']), 'net')), true);
+  assert.equal(isFixed(lact(laptop(['dock_power_unplugged'], 'dock'), 'dockPower')), true);
+  let w = createSim({ faults: ['wifi_weak_corner'], goal: 'wifi_report' }, 5);
+  for (const spot of ['wifi_front', 'wifi_middle', 'wifi_corner']) w = measure(w, spot).sim;
+  assert.equal(missionStep(w), 3);
+});

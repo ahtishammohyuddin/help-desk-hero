@@ -3,11 +3,12 @@
 // Text from the server is always escaped before display.
 
 import { ACHIEVEMENTS } from './achievements.js';
+import { countdown, EVENTS } from './events.js';
 import { DISCLAIMER, NAME_MAX } from './cards.js';
-import { needsServerRoom, placesNeeded, SURVEY_SPOTS, surveyDone } from './handson.js';
+import { missionStep, needsServerRoom, placesNeeded, SURVEY_SPOTS, surveyDone } from './handson.js';
 import { jobStage, PLACES } from './jobs.js';
 import {
-  cabinetSvg, deskSummary, deskSvg, displayModeHtml, laptopSummary, laptopSvg, printerSummary, printerSvg, switchSvg,
+  cabinetSvg, chipsHtml, deskSummary, deskSvg, displayModeHtml, laptopSummary, laptopSvg, printerSummary, printerSvg, switchSvg,
 } from './stations.js';
 import { ITEMS } from './handson.js';
 import { topicStatus } from './shift.js';
@@ -104,7 +105,7 @@ export function renderQueue(tickets, people, labelFor = () => '') {
       return `<div class="qitem${late ? ' late' : ''}">
         ${avatar(person)}
         <div class="qmain">
-          <div class="qtop"><b>${esc(t.employee)}</b>${priorityBadge(t.priority)}</div>
+          <div class="qtop"><b>${esc(t.employee)}</b>${t.vip ? '<span class="vip">VIP</span>' : ''}${priorityBadge(t.priority)}</div>
           ${label ? `<div class="small job-label">${esc(label)}</div>` : `<div class="small">${esc(t.category)}</div>`}
           <div class="bar thin"><div style="width:${pct}%;background:${PRIORITIES[t.priority].color}"></div></div>
           <div class="small ${late ? 'late-text' : ''}">${late ? 'Overdue: help them soon' : `${formatTime(t.secondsLeft)} left`}</div>
@@ -142,25 +143,30 @@ export function renderTicketPanel(person, ticket, detail) {
       <button class="btn" data-action="close">${pending ? 'On my way' : 'Close ticket'} ${key('E')}</button>`;
   } else if (detail.sim) {
     const hintsLeft = detail.problem.hint_count - detail.hints.length;
-    const hintBtn = hintsLeft > 0 ? `<button class="btn ghost" data-action="hint">Get a hint, costs 25% XP ${key('H')}</button>` : '';
+    const hintBtn = hintsLeft > 0 ? `<button class="btn ghost" data-action="hint">Hint (−25% XP) ${key('H')}</button>` : '';
+    const testBtn = (primary) => `<button class="btn${primary ? '' : ' ghost'}" data-action="test" ${detail.answering ? 'disabled' : ''}>Ask ${esc(person.name)} to test ${key('T')}</button>`;
+    const step = missionStep(detail.sim);
     if (detail.view === 'desk') {
       body = deskHtml(person, detail);
-      actions = `${hintBtn}<button class="btn ghost" data-action="talk-view">Back to ${esc(person.name)} ${key('B')}</button>
-        <button class="btn" data-action="test" ${detail.answering ? 'disabled' : ''}>Ask ${esc(person.name)} to test ${key('T')}</button>`;
-    } else if (detail.sim.station === 'survey') {
-      body = handsOnTalkHtml(person, detail);
-      actions = `${hintBtn}<button class="btn ghost" data-action="later">On my way ${key('E')}</button>
-        <button class="btn" data-action="report-wifi" ${surveyDone(detail.sim) && !detail.answering ? '' : 'disabled'}>Report the weak coverage</button>`;
-    } else if (detail.sim.station === 'printer') {
-      body = handsOnTalkHtml(person, detail);
-      actions = `${hintBtn}<button class="btn ghost" data-action="later">On my way ${key('E')}</button>
-        <button class="btn" data-action="test" ${detail.answering ? 'disabled' : ''}>Ask ${esc(person.name)} to print again ${key('T')}</button>`;
+      actions = `${hintBtn}<button class="btn ghost" data-action="talk-view">Back ${key('B')}</button>${testBtn(true)}`;
     } else {
       body = handsOnTalkHtml(person, detail);
-      actions = `${hintBtn}<button class="btn ghost" data-action="later">Come back later ${key('E')}</button>
-        <button class="btn" data-action="inspect">Inspect Desk ${person.desk} ${key('I')}</button>`;
+      const station = detail.sim.station;
+      let main;
+      if (station === 'survey') {
+        main = surveyDone(detail.sim)
+          ? `<button class="btn" data-action="report-wifi" ${detail.answering ? 'disabled' : ''}>Report the weak coverage</button>`
+          : `<button class="btn" data-action="later">Go and measure ${key('E')}</button>`;
+      } else if (step === 3) {
+        main = testBtn(true);
+      } else if (station === 'printer') {
+        main = `${testBtn(false)}<button class="btn" data-action="later">Go to the printer ${key('E')}</button>`;
+      } else {
+        main = `${testBtn(false)}<button class="btn" data-action="inspect">Inspect Desk ${person.desk} ${key('I')}</button>`;
+      }
+      actions = `${hintBtn}${main}`;
     }
-  } else {
+    } else {
     body = questionHtml(person, detail);
     const p = detail.problem;
     const hintsLeft = p.hint_count - detail.hints.length;
@@ -179,20 +185,47 @@ export function renderTicketPanel(person, ticket, detail) {
 
 // ---------- hands-on tickets ----------
 
-function logHtml(detail) {
-  if (!detail.log.length) return '';
-  return `<ul class="sim-log" aria-live="polite">${detail.log.slice(-3).map((m, i, a) => `<li class="${i === a.length - 1 ? 'new' : ''}">${esc(m)}</li>`).join('')}</ul>`;
+/** Only the newest thing the player found, in one highlighted line. */
+function latestHtml(detail) {
+  const last = detail.log[detail.log.length - 1];
+  return last ? `<div class="finding" aria-live="polite"><span aria-hidden="true">🔎</span> ${esc(last)}</div>` : '';
 }
 
 function hintsAndRetry(detail) {
   const lastWrong = detail.wrong[detail.wrong.length - 1];
   const retry = lastWrong
-    ? `<div class="notice warn"><b>That didn't fix it.</b> ${esc(lastWrong.why)}<br>One more wrong fix and the ticket fails. Look at the kit instead.</div>`
+    ? `<div class="notice warn"><b>That didn't fix it.</b> ${esc(lastWrong.why)} One more wrong idea and the ticket fails.</div>`
     : '';
   return retry + detail.hints.map((h) => `<div class="hint"><b>Hint:</b> ${esc(h)}</div>`).join('');
 }
 
-function handsOnTalkHtml(person, detail) {
+// The three steps of every hands-on ticket, with words for where the player has to go.
+function missionHtml(person, detail) {
+  const sim = detail.sim;
+  const step = missionStep(sim);
+  const where = sim.station === 'printer' ? 'Go to the printer'
+    : sim.station === 'survey' ? 'Measure Wi-Fi at 3 spots'
+      : `Inspect Desk ${person.desk}`;
+  const fix = sim.station === 'survey' ? 'Note the weak spot' : 'Fix what you find';
+  const test = sim.station === 'survey' ? 'Report it' : `Ask ${person.name} to test`;
+  const items = [['🔍', 'Find it', where], ['🔧', 'Fix it', fix], ['✅', 'Test it', test]];
+  return `<ol class="mission">${items
+    .map(([icon, title, sub], i) => {
+      const state = i + 1 < step ? 'done' : i + 1 === step ? 'now' : 'todo';
+      return `<li class="${state}"><span class="m-icon" aria-hidden="true">${state === 'done' ? '✓' : icon}</span><b>${title}</b><small>${esc(sub)}</small></li>`;
+    })
+    .join('')}</ol>`;
+}
+
+// Where to go next, when it is somewhere else in the office.
+function nextPlaceHtml(person, detail) {
+  const sim = detail.sim;
+  if (needsServerRoom(sim)) return `<div class="next-place"><span aria-hidden="true">📍</span> Next: the <b>server room</b>. Follow the blue marker.</div>`;
+  if (placesNeeded(sim).includes('parts_cabinet')) return `<div class="next-place"><span aria-hidden="true">📍</span> Next: the <b>parts cabinet</b>. Follow the blue marker.</div>`;
+  return '';
+}
+
+function otherIdeasHtml(detail) {
   const ruledOut = new Set(detail.wrong.map((w) => w.id));
   const decoys = detail.handsOn.decoys
     .map((o, i) => {
@@ -201,47 +234,42 @@ function handsOnTalkHtml(person, detail) {
         <span class="num">${i + 1}</span><span>${esc(o.text)}</span></button>`;
     })
     .join('');
+  return `<details class="other-ideas"${detail.wrong.length ? ' open' : ''}><summary>Other ideas (a wrong one costs XP)</summary><div class="opts">${decoys}</div></details>`;
+}
+
+function handsOnTalkHtml(person, detail) {
   return `
     <div class="bubble">${esc(detail.description)}</div>
+    ${missionHtml(person, detail)}
+    ${detail.sim.station === 'survey' ? surveyHtml(detail) : ''}
+    ${nextPlaceHtml(person, detail)}
+    ${latestHtml(detail)}
     ${hintsAndRetry(detail)}
-    ${logHtml(detail)}
-    ${detail.sim.station === 'survey' ? surveyHtml(person, detail) : detail.sim.station === 'printer'
-      ? `<div class="handson-intro"><b>This one is hands-on.</b> Go to the printer (follow the blue marker) and find what is wrong. Checking things and printing test pages is free. When it is fixed, come back and ask ${esc(person.name)} to print again.</div>`
-      : `<div class="handson-intro"><b>This one is hands-on.</b> Inspect ${esc(person.name)}'s desk and find what is wrong. Checking things is free.</div>`}
-    <h3 class="ask">Or try one of these instead</h3>
-    <div class="opts">${decoys}</div>
-    <p class="small">A wrong fix costs XP, like a wrong answer.</p>`;
+    ${otherIdeasHtml(detail)}`;
 }
 
-function surveyHtml(person, detail) {
+function surveyHtml(detail) {
   const readings = detail.sim.survey.readings;
-  const rows = Object.entries(SURVEY_SPOTS)
-    .map(([k, spot]) => `<li class="${k in readings ? 'done' : ''}"><b>${esc(spot.name)}:</b> ${k in readings ? `${readings[k]} of 4 bars` : 'not measured yet'}</li>`)
-    .join('');
-  return `<div class="handson-intro"><b>This one is hands-on.</b> Walk to the three blue markers and press ${key('E')} at each to measure the Wi-Fi signal. Then report what you found so the network team can fix the coverage.</div>
-    <ul class="survey">${rows}</ul>`;
+  return chipsHtml(Object.entries(SURVEY_SPOTS).map(([k, spot]) => ({
+    label: spot.name,
+    value: k in readings ? `${readings[k]} of 4 bars` : 'not measured',
+    ok: k in readings ? readings[k] >= 3 : null,
+  })));
 }
 
+const HOVER_HINT = 'Point at anything that glows, then click it.';
+
+/** The close-up at the person's desk (PC desk or laptop desk). */
 function deskHtml(person, detail) {
-  if (detail.sim.station === 'laptop') {
-    const cabinet = placesNeeded(detail.sim).includes('parts_cabinet')
-      ? '<div class="notice blue-note"><b>Next:</b> get a spare phone charging cable from the parts cabinet (blue marker).</div>'
-      : '';
-    return `
-      <p class="small">Click plugs and cables to check them, the monitor's input button to change input, the cushion and the vent. Then ask ${esc(person.name)} to test.</p>
-      ${laptopSvg(detail.sim)}
-      ${displayModeHtml(detail.sim)}
-      <ul class="readings">${laptopSummary(detail.sim).map((t) => `<li>${esc(t)}</li>`).join('')}</ul>
-      ${cabinet}${hintsAndRetry(detail)}${logHtml(detail)}`;
-  }
-  const server = needsServerRoom(detail.sim)
-    ? `<div class="notice blue-note"><b>Next:</b> go to the server room (follow the blue marker) and check Desk ${person.desk}'s port on the switch.</div>`
-    : '';
+  const laptop = detail.sim.station === 'laptop';
   return `
-    <p class="small">Click a cable to check it and push it in firmly. Click the power strip switch to flip it. Then ask ${esc(person.name)} to test.</p>
-    ${deskSvg(detail.sim)}
-    <ul class="readings">${deskSummary(detail.sim).map((t) => `<li>${esc(t)}</li>`).join('')}</ul>
-    ${server}${hintsAndRetry(detail)}${logHtml(detail)}`;
+    <div id="station-hint" class="station-hint">${HOVER_HINT}</div>
+    ${laptop ? laptopSvg(detail.sim) : deskSvg(detail.sim)}
+    ${laptop ? displayModeHtml(detail.sim) : ''}
+    ${chipsHtml(laptop ? laptopSummary(detail.sim) : deskSummary(detail.sim))}
+    ${nextPlaceHtml(person, detail)}
+    ${latestHtml(detail)}
+    ${hintsAndRetry(detail)}`;
 }
 
 /** The server room switch, opened by walking there and pressing E. */
@@ -257,14 +285,13 @@ export function renderSwitchPanel(person, ticket, detail) {
       <div class="tp-meta">${priorityBadge(ticket.priority)}<span id="tp-timer" class="timer"></span></div>
     </header>
     <div class="tp-body">
-      <p class="small">Each port has a light. A working connection blinks green. Desk ${person.desk} uses port ${sim.port.number}${sim.port.movedTo ? `, now moved to port ${sim.port.movedTo}` : ''}.
-        ${sim.port.movedTo === null ? 'Click a spare port to move its cable there.' : ''}</p>
+      <div id="station-hint" class="station-hint">Desk ${person.desk} is port ${sim.port.number}. ${sim.port.movedTo === null ? 'A dark light means no connection: click a spare port to move the cable.' : `Moved to port ${sim.port.movedTo}.`}</div>
       ${switchSvg(sim)}
-      ${logHtml(detail)}
-      ${sim.port.movedTo !== null && !canReport ? `<div class="notice blue-note">Now go back to ${esc(person.name)} and ask them to test.</div>` : ''}
+      ${latestHtml(detail)}
+      ${sim.port.movedTo !== null && !canReport ? `<div class="next-place"><span aria-hidden="true">📍</span> Done here. Go back to <b>${esc(person.name)}</b> and ask them to test.</div>` : ''}
     </div>
     <footer class="tp-actions">
-      ${canReport ? `<button class="btn" data-action="report">Log the faulty port for the network team ${key('L')}</button>` : ''}
+      ${canReport ? `<button class="btn" data-action="report">Log the faulty port ${key('L')}</button>` : ''}
       <button class="btn ghost" data-action="close-station">Close ${key('E')}</button>
     </footer>`;
   sheet.hidden = false;
@@ -276,11 +303,8 @@ export function renderPrinterPanel(person, ticket, detail) {
   const sim = detail.sim;
   const sheet = $('ticket');
   const wasOpen = !sheet.hidden;
-  const cabinet = placesNeeded(sim).includes('parts_cabinet')
-    ? '<div class="notice blue-note"><b>Next:</b> get a new toner cartridge from the parts cabinet (blue marker), then come back.</div>'
-    : '';
   const done = placesNeeded(sim).length === 0
-    ? `<div class="notice blue-note">The printer looks fixed. Go back to ${esc(person.name)} and ask them to print again.</div>`
+    ? `<div class="next-place"><span aria-hidden="true">📍</span> The printer looks fixed. Go back to <b>${esc(person.name)}</b> and ask them to print again.</div>`
     : '';
   sheet.innerHTML = `
     <header class="tp-head">
@@ -289,10 +313,10 @@ export function renderPrinterPanel(person, ticket, detail) {
       <div class="tp-meta">${priorityBadge(ticket.priority)}<span id="tp-timer" class="timer"></span></div>
     </header>
     <div class="tp-body">
-      <p class="small">Read the screen, print a test page, open the front door, and check the back of the printer. Click a part to use it.</p>
+      <div id="station-hint" class="station-hint">${HOVER_HINT} Start with the screen and a test page.</div>
       ${printerSvg(sim)}
-      <ul class="readings">${printerSummary(sim).map((t) => `<li>${esc(t)}</li>`).join('')}</ul>
-      ${cabinet}${done}${logHtml(detail)}
+      ${chipsHtml(printerSummary(sim))}
+      ${nextPlaceHtml(person, detail)}${done}${latestHtml(detail)}
     </div>
     <footer class="tp-actions"><button class="btn ghost" data-action="close-station">Close ${key('E')}</button></footer>`;
   sheet.hidden = false;
@@ -309,9 +333,9 @@ export function renderCabinetPanel(carrying, log) {
       <div class="tp-who"><div class="tp-name">Parts cabinet</div><div class="small">${carrying ? `You are carrying: ${esc(ITEMS[carrying])}` : 'Your hands are empty'}</div></div>
     </header>
     <div class="tp-body">
-      <p class="small">Click an item to take it. You can carry one thing at a time; taking another puts the first one back.</p>
+      <div id="station-hint" class="station-hint">Click the item you need. You carry one thing at a time.</div>
       ${cabinetSvg(carrying)}
-      ${log.length ? `<ul class="sim-log">${log.slice(-2).map((m, i, a) => `<li class="${i === a.length - 1 ? 'new' : ''}">${esc(m)}</li>`).join('')}</ul>` : ''}
+      ${log.length ? `<div class="finding"><span aria-hidden="true">📦</span> ${esc(log[log.length - 1])}</div>` : ''}
     </div>
     <footer class="tp-actions">
       ${carrying ? `<button class="btn ghost" data-action="put-back">Put it back</button>` : ''}
@@ -355,15 +379,16 @@ function resultHtml(detail) {
   const byId = (id) => r.explanations.find((e) => e.option_id === id);
   const chosen = byId(r.chosen_option_id);
   const correct = r.explanations.find((e) => e.correct);
-  const bonus = r.mult > 1 ? ` (streak bonus ×${r.mult})` : '';
+  const bonus = [r.mult > 1 ? `streak bonus ×${r.mult}` : '', r.extra || ''].filter(Boolean).join(', ');
+  const bonusText = bonus ? ` (${bonus})` : '';
 
   let banner;
   const pending = jobStage(detail.job) !== 'finished';
   if (pending) banner = `<div class="banner blue"><span class="icon">✓</span><div><b>Right fix!</b> Now do it in person to close the ticket. The timer is still running.</div></div>`;
-  else if (detail.job && r.attempt === 1) banner = `<div class="banner good"><span class="icon">✓</span><div><b>Fixed in person!</b> +${r.xp} XP${bonus}</div></div>`;
+  else if (detail.job && r.attempt === 1) banner = `<div class="banner good"><span class="icon">✓</span><div><b>Fixed in person!</b> +${r.xp} XP${bonusText}</div></div>`;
   else if (detail.job) banner = `<div class="banner good"><span class="icon">✓</span><div><b>Fixed in person on your second try.</b> +${r.xp} XP</div></div>`;
-  else if (r.is_correct && r.attempt === 1) banner = `<div class="banner good"><span class="icon">✓</span><div><b>Solved!</b> +${r.xp} XP${bonus}</div></div>`;
-  else if (r.is_correct) banner = `<div class="banner good"><span class="icon">✓</span><div><b>Solved on your second try.</b> +${r.xp} XP</div></div>`;
+  else if (r.is_correct && r.attempt === 1) banner = `<div class="banner good"><span class="icon">✓</span><div><b>Solved!</b> +${r.xp} XP${bonusText}</div></div>`;
+  else if (r.is_correct) banner = `<div class="banner good"><span class="icon">✓</span><div><b>Solved on your second try.</b> +${r.xp} XP${bonusText}</div></div>`;
   else banner = `<div class="banner bad"><span class="icon">✕</span><div><b>Not solved this time.</b> Here is what a senior tech would do.</div></div>`;
 
   const card = (cls, title, text) => `<div class="expl ${cls}"><div class="expl-t">${title}</div><p>${esc(text)}</p></div>`;
@@ -459,7 +484,7 @@ function badgeChips(badges) {
   return `<div class="badge-chips">${badges.map((b) => `<span class="badge-chip"><span aria-hidden="true">${b.icon}</span>${esc(b.name)}</span>`).join('')}</div>`;
 }
 
-export function showReport(summary, { shiftNumber, rankBefore, rankAfter, badges = [] }) {
+export function showReport(summary, { shiftNumber, rankBefore, rankAfter, badges = [], events = [] }) {
   const s = summary;
   const time = s.avgSeconds === null ? '-' : formatTime(s.avgSeconds);
   const promoted = rankAfter.index > rankBefore.index
@@ -496,10 +521,14 @@ export function showReport(summary, { shiftNumber, rankBefore, rankAfter, badges
        <h2 class="section-title">Topics this shift</h2>
        <div class="topics">${topics}</div>`;
 
+  const eventList = events.length
+    ? `<h2 class="section-title">Events this shift</h2><ul class="facts">${events.map((e) => `<li><span><span aria-hidden="true">${EVENTS[e.id].icon}</span> ${esc(EVENTS[e.id].name)}</span><b>${e.solved} solved</b></li>`).join('')}</ul>`
+    : '';
   $('report-card').innerHTML = `
     <h1 id="report-title">Shift ${shiftNumber} is over</h1>
     <p class="lead">It's 5 PM. Here is how your day at the help desk went.</p>
     ${body}
+    ${eventList}
     <div class="report-actions">
       <button class="btn ghost" data-action="open-progress">My progress</button>
       ${s.handled > 0 ? '<button class="btn ghost" data-action="share-result">Share my result</button>' : ''}
@@ -616,6 +645,16 @@ export function showShare({ title, lead, imageUrl, fileName, text = '' }) {
 export function hideShare() {
   $('share').hidden = true;
   $('share-card').innerHTML = '';
+}
+
+/** The banner for events that are running now: [{ id, left }]. */
+export function setEvents(running) {
+  const el = $('event-banner');
+  const html = running
+    .map(({ id, left }) => `<span class="ev"><span aria-hidden="true">${EVENTS[id].icon}</span> <b>${esc(EVENTS[id].name)}</b> ${countdown(left)}</span>`)
+    .join('');
+  if (el.innerHTML !== html) el.innerHTML = html;
+  el.hidden = running.length === 0;
 }
 
 export function setClock(label, late) {

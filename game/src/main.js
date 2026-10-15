@@ -19,6 +19,7 @@ import { createPlayer } from './player.js';
 import { ACHIEVEMENTS, award, newlyEarned } from './achievements.js';
 import { cleanName, drawCertificate, drawResultCard, postText } from './cards.js';
 import { confetti } from './confetti.js';
+import { effectsAt, EVENTS, eventsStarting, planEvents, runningEvents, VIP_XP } from './events.js';
 import { sound } from './sound.js';
 import { clockFor, recordTopic, SHIFT_SECONDS, summarizeShift, topicStatus } from './shift.js';
 import { maxLevelFor, PRIORITIES, RANKS, rankFor, streakMultiplier, TicketQueue, xpFor } from './tickets.js';
@@ -105,7 +106,8 @@ function start() {
   scene.fog = new THREE.Fog(0xdfe6ec, 35, 70);
   const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 200);
 
-  scene.add(new THREE.HemisphereLight(0xffffff, 0xb9b2a6, 1.4));
+  const hemi = new THREE.HemisphereLight(0xffffff, 0xb9b2a6, 1.4);
+  scene.add(hemi);
   const sun = new THREE.DirectionalLight(0xfff1dd, 2.2);
   sun.position.set(14, 24, 10);
   sun.castShadow = true;
@@ -267,7 +269,73 @@ function start() {
 
   // ---------- the shift: 9 AM to 5 PM in 8 real minutes ----------
   function newShift() {
-    return { number: progress.shifts + 1, elapsed: 0, records: [], badges: [], rankBefore: rankFor(progress.xp), warned: false, ended: false };
+    return {
+      number: progress.shifts + 1, elapsed: 0, records: [], badges: [], rankBefore: rankFor(progress.xp), warned: false, ended: false,
+      events: null, // planned when the shift starts running (the problem list must be loaded first)
+      eventLog: [], // events that happened: { id, solved }
+      waveTimer: 0, // seconds until the next extra ticket during a phishing wave or month-end
+      vipPending: false, // a VIP request is waiting for room in the queue
+    };
+  }
+
+  // ---------- random events ----------
+  const EVENTS_KEY = 'hdh-events';
+  let eventsOn = readSetting(EVENTS_KEY) !== 'off';
+  let flicker = 0; // seconds left of the power-flicker light dip
+
+  function planShiftEvents() {
+    if (!eventsOn) return [];
+    const level = maxLevelFor(progress.xp);
+    const available = (id) =>
+      id === 'phishing_wave' ? queue.hasCategory('Security and phishing', level)
+        : id === 'month_end' ? queue.hasCategory('Printers and scanners', level)
+          : true;
+    return planEvents(SHIFT_SECONDS, { available });
+  }
+
+  function spawnTicket(options, eventId) {
+    const ticket = queue.spawn(employees, maxLevelFor(progress.xp), options);
+    if (!ticket) return false;
+    ticket.event = eventId;
+    onNewTicket(ticket);
+    return true;
+  }
+
+  function startEvent(id) {
+    const e = EVENTS[id];
+    shift.eventLog.push({ id, solved: 0 });
+    sound.urgent();
+    ui.toast(`<span aria-hidden="true">${e.icon}</span> <b>${ui.esc(e.name)}:</b> ${ui.esc(e.banner)}`, 'big event');
+    if (e.burst) {
+      flicker = 0.6;
+      for (let i = 0; i < e.burst; i++) spawnTicket({}, id);
+    }
+    if (e.vip && !spawnTicket({ priority: 'P1', vip: true }, id)) shift.vipPending = true;
+    if (e.category) shift.waveTimer = 0; // the first extra ticket comes straight away
+  }
+
+  /** Called every frame while the shift runs. */
+  function updateEvents(prev, dt) {
+    if (shift.events === null) shift.events = planShiftEvents();
+    for (const e of eventsStarting(shift.events, prev, shift.elapsed)) startEvent(e.id);
+    const fx = effectsAt(shift.events, shift.elapsed);
+    queue.paused = fx.paused;
+    if (fx.category) {
+      shift.waveTimer -= dt;
+      if (shift.waveTimer <= 0) {
+        shift.waveTimer = fx.every;
+        const id = runningEvents(shift.events, shift.elapsed).find((r) => EVENTS[r.id].category)?.id;
+        spawnTicket({ category: fx.category }, id);
+      }
+    }
+    if (shift.vipPending && spawnTicket({ priority: 'P1', vip: true }, 'vip')) shift.vipPending = false;
+  }
+
+  /** Count a solved ticket for the event it belongs to (or that was running). */
+  function creditEvent(ticket) {
+    const ids = new Set(runningEvents(shift.events ?? [], shift.elapsed).map((r) => r.id));
+    if (ticket.event) ids.add(ticket.event);
+    for (const entry of shift.eventLog) if (ids.has(entry.id)) entry.solved += 1;
   }
   let shift = newShift();
   let nearby = null;
@@ -408,7 +476,11 @@ function start() {
     progress.streak = firstTryWin ? progress.streak + 1 : 0;
     progress.bestStreak = Math.max(progress.bestStreak, progress.streak);
     const mult = firstTryWin ? streakMultiplier(progress.streak) : 1;
-    const xp = Math.round(baseXp * mult);
+    // Event bonuses: the manager walk-round, and VIP requests.
+    const eventMult = effectsAt(shift.events ?? [], shift.elapsed).xpMult * (ticket.vip ? VIP_XP : 1);
+    const xp = Math.round(baseXp * mult * eventMult);
+    if (result.is_correct) creditEvent(ticket);
+    const extra = [ticket.vip ? 'VIP ×2' : '', eventMult / (ticket.vip ? VIP_XP : 1) > 1 ? 'manager bonus ×1.5' : ''].filter(Boolean).join(', ');
 
     const before = rankFor(progress.xp);
     progress.xp += xp;
@@ -426,7 +498,7 @@ function start() {
     });
     saveProgress(progress);
     earnBadges({ type: 'ticket', priority: ticket.priority, outcome, overdue: ticket.secondsLeft <= 0, secondsLeft: ticket.secondsLeft, sla: ticket.sla });
-    detail.result = { ...result, xp, mult };
+    detail.result = { ...result, xp, mult, extra };
 
     queue.close(ticket.number);
     byName.get(ticket.employee).marker.visible = false;
@@ -563,6 +635,8 @@ function start() {
   function openSwitch(ticket, kind = 'switch') {
     switchTicket = ticket;
     stationKind = kind;
+    const d = details.get(ticket.number);
+    if (d?.sim) d.sim = { ...d.sim, visited: true };
     renderSwitch();
   }
   // What the player is carrying from the parts cabinet (one item at a time).
@@ -672,6 +746,28 @@ function start() {
     const question = box?.value.trim() ?? '';
     if (question.length >= 2) askSenior(question);
   });
+  // Hovering a part in a close-up shows what it is, in the hint line above the drawing.
+  let hintDefault = '';
+  $('ticket').addEventListener('mouseover', (e) => {
+    const hint = document.getElementById('station-hint');
+    if (!hint) return;
+    const part = e.target.closest('.station .part');
+    if (!part) {
+      if (hintDefault) hint.textContent = hintDefault;
+      return;
+    }
+    if (!hint.classList.contains('pointing')) hintDefault = hint.textContent;
+    hint.textContent = `${part.getAttribute('aria-label')}?`;
+    hint.classList.add('pointing');
+  });
+  $('ticket').addEventListener('mouseout', (e) => {
+    const hint = document.getElementById('station-hint');
+    if (hint && e.target.closest('.station .part') && !e.relatedTarget?.closest?.('.station .part')) {
+      hint.textContent = hintDefault || hint.textContent;
+      hint.classList.remove('pointing');
+    }
+  });
+
   $('ticket').addEventListener('keydown', (e) => {
     if ((e.key === 'Enter' || e.key === ' ') && e.target.closest?.('.part')) {
       e.preventDefault();
@@ -734,11 +830,14 @@ function start() {
     reportOpen = true;
     sound.rankUp();
     lastReport = { summary, shiftNumber: shift.number, rankName: rankFor(progress.xp).name, badges: [...shift.badges] };
+    queue.paused = false;
+    ui.setEvents([]);
     ui.showReport(summary, {
       shiftNumber: shift.number,
       rankBefore: shift.rankBefore,
       rankAfter: rankFor(progress.xp),
       badges: shift.badges,
+      events: shift.eventLog,
     });
   }
 
@@ -910,6 +1009,7 @@ function start() {
     if (!detail?.sim || detail.result || detail.state !== 'ready') return;
     if (view === 'desk' && !['desk', 'laptop'].includes(detail.sim.station)) return; // printer and Wi-Fi work elsewhere
     detail.view = view;
+    if (view === 'desk') detail.sim = { ...detail.sim, visited: true }; // the mission card moves on to "Fix it"
     refreshTicketPanel();
   }
   input.onPress('KeyQ', openChat);
@@ -1040,7 +1140,9 @@ function start() {
 
     const shiftRunning = backendReady && shiftStarted && !overlayOpen() && !shift.ended;
     if (shiftRunning) {
+      const before = shift.elapsed;
       shift.elapsed += dt;
+      updateEvents(before, dt);
       // No new tickets in the last office half hour, so the day can wind down.
       const nearEnd = shift.elapsed > SHIFT_SECONDS - 30;
       const fresh = queue.update(dt, employees, maxLevelFor(progress.xp));
@@ -1137,7 +1239,16 @@ function start() {
         person.marker.rotation.y = time * 2;
       }
     }
-    if (refreshHud) ui.renderQueue(queue.open, byName, queueLabel);
+    if (refreshHud) {
+      ui.renderQueue(queue.open, byName, queueLabel);
+      ui.setEvents(shiftRunning ? runningEvents(shift.events ?? [], shift.elapsed) : []);
+    }
+    if (flicker > 0) {
+      flicker -= dt;
+      const dip = flicker > 0 && Math.floor(flicker * 20) % 2 === 0 ? 0.25 : 1;
+      hemi.intensity = 1.4 * dip;
+      sun.intensity = 2.2 * dip;
+    }
 
     for (const led of blinkers) {
       led.material.emissiveIntensity = Math.sin(time * led.speed + led.phase) > 0.2 ? 1.2 : 0.1;
@@ -1184,7 +1295,18 @@ function start() {
   requestAnimationFrame(frame);
 
   // Handy for debugging in the browser console: helpDeskHero.queue.open
+  // Events switch in the help card
+  $('events-toggle').checked = eventsOn;
+  $('events-toggle').addEventListener('change', (e) => {
+    eventsOn = e.target.checked;
+    writeSetting(EVENTS_KEY, eventsOn ? 'on' : 'off');
+    if (!eventsOn && shift.events) shift.events = shift.events.filter((ev) => ev.at <= shift.elapsed); // drop upcoming ones
+  });
+
   window.helpDeskHero = {
+    triggerEvent: (id) => {
+      shift.events = [...(shift.events ?? []), { id, at: shift.elapsed + 0.01 }];
+    },
     player, followCam, employees, scene, queue, details, progress, renderer, applyQuality, gpuName, endShift,
     get shift() { return shift; },
   };

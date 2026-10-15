@@ -530,3 +530,24 @@ export function needsServerRoom(sim) {
   if (!sim || !sim.serverClue) return false;
   return sim.port.movedTo === null || (sim.required.includes('report_port') && !sim.done.report_port);
 }
+
+// ---------- progress, for the mission card ----------
+
+/** Is the person's problem fixed (and every required action done)? The survey counts once measured. */
+export function isFixed(sim) {
+  if (sim.station === 'printer') return printerReadings(sim).works;
+  if (sim.station === 'laptop') return Boolean(laptopReadings(sim).works[sim.goal]);
+  if (sim.station === 'survey') return surveyDone(sim);
+  return readings(sim).works[sim.goal] && sim.required.every((a) => sim.done[a]);
+}
+
+/** Where the player is: 1 = find the problem, 2 = fix it, 3 = test it with the person. */
+export function missionStep(sim) {
+  if (isFixed(sim)) return 3;
+  const started =
+    sim.visited ||
+    Object.keys(sim.looked).length > 0 ||
+    (sim.survey && Object.keys(sim.survey.readings).length > 0) ||
+    sim.port.movedTo !== null;
+  return started ? 2 : 1;
+}

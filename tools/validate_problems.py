@@ -61,8 +61,21 @@ HANDS_ON_FAULTS: dict[str, str] = {
     "toner_low": "print",  # needs a new cartridge from the parts cabinet
     "toner_seal_left": "print",  # protective seal left in the toner cartridge
     "needs_cleaning": "print",  # streaks until the printer's cleaning routine is run
+    # laptop desk: laptop, charger, dock, second monitor and work phone
+    "laptop_charger_loose": "charging",  # charger plug loose in the wall socket
+    "phone_cable_damaged": "phone_charging",  # swap in a spare cable from the parts cabinet
+    "monitor_wrong_input": "second_screen",  # second monitor on the wrong input
+    "display_mode_pc_only": "second_screen",  # Windows key + P set to PC screen only
+    "dock_power_unplugged": "dock",  # the dock's own power adapter is unplugged
+    "laptop_on_cushion": "cooling",  # vents blocked by a soft surface
+    "laptop_vent_dusty": "cooling",  # dust in the vent
+    # Wi-Fi survey: measure three spots, then report the weak corner
+    "wifi_weak_corner": "wifi_report",
 }
-HANDS_ON_GOALS = ("internet", "display", "power", "keyboard", "mouse", "print")
+HANDS_ON_GOALS = (
+    "internet", "display", "power", "keyboard", "mouse", "print",
+    "charging", "phone_charging", "second_screen", "dock", "cooling", "wifi_report",
+)
 HANDS_ON_REQUIRED = {"report_port": "switch_port_dead"}  # required action -> fault it needs
 GENDERS = ("female", "male")
 MIN_OPTIONS = 3

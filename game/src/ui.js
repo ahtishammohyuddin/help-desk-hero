@@ -4,9 +4,11 @@
 
 import { ACHIEVEMENTS } from './achievements.js';
 import { DISCLAIMER, NAME_MAX } from './cards.js';
-import { needsServerRoom, placesNeeded } from './handson.js';
+import { needsServerRoom, placesNeeded, SURVEY_SPOTS, surveyDone } from './handson.js';
 import { jobStage, PLACES } from './jobs.js';
-import { cabinetSvg, deskSummary, deskSvg, printerSummary, printerSvg, switchSvg } from './stations.js';
+import {
+  cabinetSvg, deskSummary, deskSvg, displayModeHtml, laptopSummary, laptopSvg, printerSummary, printerSvg, switchSvg,
+} from './stations.js';
 import { ITEMS } from './handson.js';
 import { topicStatus } from './shift.js';
 import { PRIORITIES, RANKS, rankFor, streakMultiplier } from './tickets.js';
@@ -145,6 +147,10 @@ export function renderTicketPanel(person, ticket, detail) {
       body = deskHtml(person, detail);
       actions = `${hintBtn}<button class="btn ghost" data-action="talk-view">Back to ${esc(person.name)} ${key('B')}</button>
         <button class="btn" data-action="test" ${detail.answering ? 'disabled' : ''}>Ask ${esc(person.name)} to test ${key('T')}</button>`;
+    } else if (detail.sim.station === 'survey') {
+      body = handsOnTalkHtml(person, detail);
+      actions = `${hintBtn}<button class="btn ghost" data-action="later">On my way ${key('E')}</button>
+        <button class="btn" data-action="report-wifi" ${surveyDone(detail.sim) && !detail.answering ? '' : 'disabled'}>Report the weak coverage</button>`;
     } else if (detail.sim.station === 'printer') {
       body = handsOnTalkHtml(person, detail);
       actions = `${hintBtn}<button class="btn ghost" data-action="later">On my way ${key('E')}</button>
@@ -199,7 +205,7 @@ function handsOnTalkHtml(person, detail) {
     <div class="bubble">${esc(detail.description)}</div>
     ${hintsAndRetry(detail)}
     ${logHtml(detail)}
-    ${detail.sim.station === 'printer'
+    ${detail.sim.station === 'survey' ? surveyHtml(person, detail) : detail.sim.station === 'printer'
       ? `<div class="handson-intro"><b>This one is hands-on.</b> Go to the printer (follow the blue marker) and find what is wrong. Checking things and printing test pages is free. When it is fixed, come back and ask ${esc(person.name)} to print again.</div>`
       : `<div class="handson-intro"><b>This one is hands-on.</b> Inspect ${esc(person.name)}'s desk and find what is wrong. Checking things is free.</div>`}
     <h3 class="ask">Or try one of these instead</h3>
@@ -207,7 +213,27 @@ function handsOnTalkHtml(person, detail) {
     <p class="small">A wrong fix costs XP, like a wrong answer.</p>`;
 }
 
+function surveyHtml(person, detail) {
+  const readings = detail.sim.survey.readings;
+  const rows = Object.entries(SURVEY_SPOTS)
+    .map(([k, spot]) => `<li class="${k in readings ? 'done' : ''}"><b>${esc(spot.name)}:</b> ${k in readings ? `${readings[k]} of 4 bars` : 'not measured yet'}</li>`)
+    .join('');
+  return `<div class="handson-intro"><b>This one is hands-on.</b> Walk to the three blue markers and press ${key('E')} at each to measure the Wi-Fi signal. Then report what you found so the network team can fix the coverage.</div>
+    <ul class="survey">${rows}</ul>`;
+}
+
 function deskHtml(person, detail) {
+  if (detail.sim.station === 'laptop') {
+    const cabinet = placesNeeded(detail.sim).includes('parts_cabinet')
+      ? '<div class="notice blue-note"><b>Next:</b> get a spare phone charging cable from the parts cabinet (blue marker).</div>'
+      : '';
+    return `
+      <p class="small">Click plugs and cables to check them, the monitor's input button to change input, the cushion and the vent. Then ask ${esc(person.name)} to test.</p>
+      ${laptopSvg(detail.sim)}
+      ${displayModeHtml(detail.sim)}
+      <ul class="readings">${laptopSummary(detail.sim).map((t) => `<li>${esc(t)}</li>`).join('')}</ul>
+      ${cabinet}${hintsAndRetry(detail)}${logHtml(detail)}`;
+  }
   const server = needsServerRoom(detail.sim)
     ? `<div class="notice blue-note"><b>Next:</b> go to the server room (follow the blue marker) and check Desk ${person.desk}'s port on the switch.</div>`
     : '';

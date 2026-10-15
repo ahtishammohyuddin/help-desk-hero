@@ -2,7 +2,8 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
-  createSim, moveToSpare, needsServerRoom, placesNeeded, printerAction, printerReadings, readings, reportPort, reseat, takeToner,
+  createSim, laptopAction, laptopReadings, measure, moveToSpare, needsServerRoom, placesNeeded, printerAction, printerReadings, readings,
+  reportCoverage, reportPort, reseat, spotsLeft, stationFor, surveyDone, takeToner,
   test as tryIt,
 } from '../src/handson.js';
 
@@ -124,12 +125,18 @@ const VALIDATOR_FAULTS = {
   pc_power_loose: 'power', keyboard_unplugged: 'keyboard', mouse_unplugged: 'mouse',
   printer_off: 'print', printer_network_loose: 'print', paper_jam: 'print', toner_low: 'print',
   toner_seal_left: 'print', needs_cleaning: 'print',
+  laptop_charger_loose: 'charging', phone_cable_damaged: 'phone_charging', monitor_wrong_input: 'second_screen',
+  display_mode_pc_only: 'second_screen', dock_power_unplugged: 'dock', laptop_on_cushion: 'cooling',
+  laptop_vent_dusty: 'cooling', wifi_weak_corner: 'wifi_report',
 };
 
 test('every fault the validator allows really breaks its goal in the simulation', () => {
   for (const [fault, goal] of Object.entries(VALIDATOR_FAULTS)) {
     const s = createSim({ faults: [fault], goal }, 3);
-    const works = goal === 'print' ? printerReadings(s).works : readings(s).works[goal];
+    const works = s.station === 'printer' ? printerReadings(s).works
+      : s.station === 'laptop' ? laptopReadings(s).works[goal]
+        : s.station === 'survey' ? s.survey.reported
+          : readings(s).works[goal];
     assert.equal(works, false, fault);
   }
 });
@@ -244,4 +251,91 @@ test('bringing the wrong item to the printer does not fix low toner', () => {
   assert.match(back.message, /will not fit here/);
   assert.equal(back.sim.printer.tonerLow, true);
   assert.equal(back.sim.carrying, 'network_cable');
+});
+
+// ---------- laptop desk ----------
+
+const laptop = (faults, goal) => createSim({ faults, goal }, 2);
+const lact = (s, ...actions) => actions.reduce((cur, a) => (Array.isArray(a) ? laptopAction(cur, ...a) : laptopAction(cur, a)).sim, s);
+
+test('stations are chosen from the faults', () => {
+  assert.equal(stationFor({ faults: ['keyboard_unplugged'] }), 'desk');
+  assert.equal(stationFor({ faults: ['paper_jam'] }), 'printer');
+  assert.equal(stationFor({ faults: ['dock_power_unplugged'] }), 'laptop');
+  assert.equal(stationFor({ faults: ['wifi_weak_corner'] }), 'survey');
+});
+
+test('laptop charger loose at the wall: the charger light is the clue', () => {
+  let s = laptop(['laptop_charger_loose'], 'charging');
+  assert.equal(laptopReadings(s).chargerLight, false);
+  assert.equal(laptopAction(s, 'chargerLaptop').changed, false); // the laptop end is fine
+  const step = laptopAction(s, 'chargerWall');
+  assert.match(step.message, /light on the charger comes on/);
+  s = step.sim;
+  assert.equal(tryIt(s, 'Kamran').solved, true);
+});
+
+test('damaged phone cable: needs a spare cable from the parts cabinet', () => {
+  let s = laptop(['phone_cable_damaged'], 'phone_charging');
+  assert.match(laptopAction(s, 'phonePort').message, /clean/);
+  const look = laptopAction(s, 'phoneCable');
+  assert.match(look.message, /bent and frayed/);
+  assert.equal(look.changed, false);
+  s = { ...look.sim, carrying: 'phone_cable' };
+  s = lact(s, 'phoneCable');
+  assert.equal(s.carrying, null);
+  assert.equal(tryIt(s, 'Junaid').solved, true);
+});
+
+test('second monitor: right input, then Windows key + P and Extend', () => {
+  let s = laptop(['monitor_wrong_input', 'display_mode_pc_only'], 'second_screen');
+  assert.equal(laptopReadings(s).monitor, 'No signal on HDMI');
+  s = lact(s, 'input');
+  assert.equal(laptopReadings(s).monitor, 'No signal on DisplayPort'); // Windows still sends nothing
+  assert.match(tryIt(s, 'Nargis').message, /still shows no picture/);
+  s = lact(s, ['mode', 'duplicate']);
+  assert.match(tryIt(s, 'Nargis').message, /same thing/);
+  s = lact(s, ['mode', 'second_only']);
+  assert.match(tryIt(s, 'Nargis').message, /laptop screen is off/);
+  s = lact(s, ['mode', 'extend']);
+  assert.equal(tryIt(s, 'Nargis').solved, true);
+  assert.equal(laptopAction(s, 'mode', 'extend').changed, false);
+});
+
+test("dock: its own power adapter, with the dock light as the clue", () => {
+  let s = laptop(['dock_power_unplugged'], 'dock');
+  assert.equal(laptopReadings(s).dockLight, false);
+  s = lact(s, 'dockCable'); // already in, no change
+  assert.equal(tryIt(s, 'Waqas').ok, false);
+  s = lact(s, 'dockPower');
+  assert.equal(laptopReadings(s).dockWorks, true);
+  assert.equal(tryIt(s, 'Waqas').solved, true);
+});
+
+test('overheating: both the cushion and the dusty vent must be dealt with', () => {
+  let s = laptop(['laptop_on_cushion', 'laptop_vent_dusty'], 'cooling');
+  assert.equal(laptopReadings(s).hot, true);
+  s = lact(s, 'cushion');
+  assert.equal(tryIt(s, 'Imtiaz').ok, false);
+  s = lact(s, 'vent');
+  assert.equal(tryIt(s, 'Imtiaz').solved, true);
+});
+
+// ---------- Wi-Fi survey ----------
+
+test('Wi-Fi survey: measure all three spots, then report', () => {
+  let s = createSim({ faults: ['wifi_weak_corner'], goal: 'wifi_report' }, 5);
+  assert.deepEqual(spotsLeft(s), ['wifi_front', 'wifi_middle', 'wifi_corner']);
+  assert.equal(reportCoverage(s).changed, false);
+  s = measure(s, 'wifi_front').sim;
+  const corner = measure(s, 'wifi_corner');
+  assert.match(corner.message, /1 of 4 bars/);
+  s = corner.sim;
+  assert.equal(surveyDone(s), false);
+  s = measure(s, 'wifi_middle').sim;
+  assert.equal(surveyDone(s), true);
+  assert.equal(tryIt(s, 'Amna').solved, false);
+  s = reportCoverage(s).sim;
+  assert.equal(tryIt(s, 'Amna').solved, true);
+  assert.equal(reportCoverage(s).changed, false);
 });

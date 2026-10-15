@@ -39,11 +39,12 @@
     "How does Windows decide whether to copy, extend or show only one screen?"
   ],
   "real_world_tip": "Try the monitor on another port of the PC. If one port works and another does not, you know the port is the problem.",
-  "physical_steps": [
-    {
-      "place": "parts_cabinet",
-      "action": "Take a spare video cable to try"
-    }
-  ],
+  "hands_on": {
+    "faults": [
+      "monitor_wrong_input",
+      "display_mode_pc_only"
+    ],
+    "goal": "second_screen"
+  },
   "reviewed": true
 }

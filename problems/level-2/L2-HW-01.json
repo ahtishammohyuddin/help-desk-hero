@@ -39,5 +39,12 @@
     "Which tool shows what is using the processor all the time?"
   ],
   "real_world_tip": "Ask where he uses it. Laptops on beds, sofas and car seats cover their air vents and overheat quickly.",
+  "hands_on": {
+    "faults": [
+      "laptop_on_cushion",
+      "laptop_vent_dusty"
+    ],
+    "goal": "cooling"
+  },
   "reviewed": true
 }

@@ -420,3 +420,14 @@ kbd {
   .sheet { max-height: calc(100vh - 90px); }
   .sim-log li:not(:nth-last-child(-n+2)) { display: none; }
 }
+.winp { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 4px 0 10px; }
+.winp .mode { padding: 6px 10px; border: 2px solid var(--line); border-radius: 8px; background: var(--paper); font: 700 13px var(--font); color: var(--ink); cursor: pointer; }
+.winp .mode:hover { border-color: var(--blue); }
+.winp .mode.on { border-color: var(--blue); background: var(--blue-soft); }
+.survey { margin: 0 0 12px; padding: 0; list-style: none; }
+.survey li { padding: 8px 12px; margin-bottom: 6px; border-radius: 10px; background: var(--wash); font-size: 15px; }
+.survey li.done { background: var(--good-soft); }
+/* In close-up drawings only the clickable parts take clicks; labels and decorations never block them */
+.station * { pointer-events: none; }
+.station .part, .station .part * { pointer-events: auto; }
+.station .tiny.hot { fill: #d93b40; }

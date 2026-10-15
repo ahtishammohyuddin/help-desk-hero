@@ -56,6 +56,32 @@ const PRINTER_FAULTS = {
   needs_cleaning: 'the printer needs its cleaning routine',
 };
 
+// Laptop desk faults: a laptop with its charger, a dock, a second monitor and a work phone.
+const LAPTOP_FAULTS = {
+  laptop_charger_loose: 'the laptop charger plug is loose in the wall socket',
+  phone_cable_damaged: "the phone's charging cable is damaged",
+  monitor_wrong_input: 'the second monitor is set to the wrong input',
+  display_mode_pc_only: 'Windows is showing on the PC screen only',
+  dock_power_unplugged: "the dock's own power adapter is unplugged",
+  laptop_on_cushion: 'the laptop sits on a cushion that blocks its vents',
+  laptop_vent_dusty: 'dust is clogging the laptop vent',
+};
+// Wi-Fi survey: measure the signal at three spots, then report the weak corner.
+const SURVEY_FAULTS = { wifi_weak_corner: 'weak Wi-Fi coverage in one corner of the office' };
+export const SURVEY_SPOTS = {
+  wifi_front: { name: 'Front of office', bars: 4, speed: 'fast' },
+  wifi_middle: { name: 'Middle of office', bars: 3, speed: 'fine' },
+  wifi_corner: { name: 'The corner', bars: 1, speed: 'very slow, keeps dropping' },
+};
+
+/** Which close-up a scenario uses: 'desk', 'printer', 'laptop' or 'survey'. */
+export function stationFor(scenario) {
+  if (scenario.faults.some((f) => f in SURVEY_FAULTS)) return 'survey';
+  if (scenario.faults.some((f) => f in LAPTOP_FAULTS)) return 'laptop';
+  if (scenario.faults.some((f) => f in PRINTER_FAULTS)) return 'printer';
+  return 'desk';
+}
+
 /** Is this a printer scenario (station at the printer) rather than a desk one? */
 export const isPrinterScenario = (scenario) => scenario.faults.some((f) => f in PRINTER_FAULTS);
 
@@ -87,12 +113,29 @@ export function createSim(scenario, deskNumber) {
         dirty: has('needs_cleaning'),
       }
     : null;
+  const station = stationFor(scenario);
+  const laptop = station === 'laptop'
+    ? {
+        chargerWall: has('laptop_charger_loose') ? 'loose' : 'in',
+        chargerLaptop: 'in',
+        phoneCable: has('phone_cable_damaged') ? 'damaged' : 'ok',
+        monitorInput: has('monitor_wrong_input') ? 'HDMI' : 'DisplayPort', // the cable is DisplayPort
+        displayMode: has('display_mode_pc_only') ? 'pc_only' : 'extend',
+        dockPower: has('dock_power_unplugged') ? 'out' : 'in',
+        dockCable: 'in',
+        onCushion: has('laptop_on_cushion'),
+        dusty: has('laptop_vent_dusty'),
+      }
+    : null;
+  const survey = station === 'survey' ? { readings: {}, reported: false } : null;
   return {
     goal: scenario.goal,
     required: [...(scenario.required ?? [])],
     deskNumber,
-    station: printer ? 'printer' : 'desk',
+    station,
     printer,
+    laptop,
+    survey,
     carrying: null, // e.g. 'toner' after taking a cartridge from the parts cabinet
     testPage: null, // the last printer test page: 'good', 'faint', 'streaks', 'blank'
     desk,
@@ -292,6 +335,10 @@ export function takeToner(sim) {
 
 /** Places this ticket needs right now, for markers: 'printer', 'parts_cabinet'. */
 export function placesNeeded(sim) {
+  if (sim?.station === 'laptop') {
+    const l = sim.laptop;
+    return l.phoneCable === 'damaged' && sim.looked.phoneCable && sim.carrying !== 'phone_cable' ? ['parts_cabinet'] : [];
+  }
   if (!sim || sim.station !== 'printer') return [];
   if (printerReadings(sim).works) return [];
   const places = ['printer'];
@@ -312,6 +359,113 @@ function printFailure(sim) {
   return 'it still does not print';
 }
 
+// ---------- the laptop desk ----------
+
+export const LAPTOP_PARTS = {
+  chargerWall: 'charger plug at the wall socket',
+  chargerLaptop: 'charger plug at the laptop',
+  dockPower: "dock's power adapter",
+  dockCable: 'cable from the dock to the laptop',
+};
+export const DISPLAY_MODES = { pc_only: 'PC screen only', duplicate: 'Duplicate', extend: 'Extend', second_only: 'Second screen only' };
+
+/** Lights, screens and what works at the laptop desk. */
+export function laptopReadings(sim) {
+  const l = sim.laptop;
+  const chargerLight = l.chargerWall === 'in';
+  const charging = chargerLight && l.chargerLaptop === 'in';
+  const dockLight = l.dockPower === 'in';
+  const dockWorks = dockLight && l.dockCable === 'in';
+  const rightInput = l.monitorInput === 'DisplayPort';
+  // The second monitor gets a picture only on the right input, and only if Windows sends one.
+  const monitor = !rightInput ? `No signal on ${l.monitorInput}` : l.displayMode === 'pc_only' ? 'No signal on DisplayPort' : 'desktop';
+  const hot = l.onCushion || l.dusty;
+  return {
+    chargerLight,
+    charging,
+    phoneCharging: l.phoneCable === 'ok',
+    dockLight,
+    dockWorks,
+    monitor,
+    laptopScreenOn: l.displayMode !== 'second_only',
+    hot,
+    works: {
+      charging,
+      phone_charging: l.phoneCable === 'ok',
+      second_screen: monitor === 'desktop' && l.displayMode === 'extend',
+      dock: dockWorks,
+      cooling: !hot,
+    },
+  };
+}
+
+const changedLaptop = (sim, patch, message, extra = {}) => ({ sim: { ...sim, ...extra, laptop: { ...sim.laptop, ...patch } }, message, changed: true });
+
+/** Every laptop desk action, by name (arg for the display mode). Returns { sim, message, changed }. */
+export function laptopAction(sim, action, arg) {
+  const l = sim.laptop;
+  const looked = (k) => ({ looked: { ...sim.looked, [k]: true } });
+  if (action in LAPTOP_PARTS) {
+    if (l[action] === 'in') return same({ ...sim, ...looked(action) }, `You check the ${LAPTOP_PARTS[action]}. It is already firmly in.`);
+    const was = l[action] === 'out' ? 'unplugged' : 'loose';
+    const after = action === 'chargerWall' ? ' The light on the charger comes on.' : action === 'dockPower' ? " The dock's light comes on." : '';
+    return changedLaptop(sim, { [action]: 'in' }, `The ${LAPTOP_PARTS[action]} was ${was}. You push it in firmly.${after}`, looked(action));
+  }
+  switch (action) {
+    case 'input': {
+      const next = l.monitorInput === 'HDMI' ? 'DisplayPort' : 'HDMI';
+      return changedLaptop(sim, { monitorInput: next }, `You press the input button on the second monitor. It switches to ${next}. (Its cable is DisplayPort.)`);
+    }
+    case 'mode':
+      if (!(arg in DISPLAY_MODES) || l.displayMode === arg) return same(sim, '');
+      return changedLaptop(sim, { displayMode: arg }, `You press Windows key + P and choose "${DISPLAY_MODES[arg]}".`);
+    case 'phoneCable':
+      if (l.phoneCable === 'ok') return same({ ...sim, ...looked('phoneCable') }, 'You look along the phone cable. It looks fine.');
+      if (sim.carrying === 'phone_cable') {
+        return changedLaptop(sim, { phoneCable: 'ok' }, 'You swap in the spare phone charging cable. The phone shows the charging symbol.', { carrying: null, ...looked('phoneCable') });
+      }
+      return same({ ...sim, ...looked('phoneCable') }, 'You look along the phone cable. One section is bent and frayed. Try another cable: there are spares in the parts cabinet.');
+    case 'phonePort':
+      return same({ ...sim, ...looked('phonePort') }, 'You look into the phone\'s charging port with a light. It is clean, no dirt or fluff.');
+    case 'cushion':
+      if (!l.onCushion) return same(sim, 'The laptop is already on the hard, flat desk.');
+      return changedLaptop(sim, { onCushion: false }, 'You move the laptop off the cushion onto the hard, flat desk, so air can reach the vents underneath.');
+    case 'vent':
+      if (!l.dusty) return same({ ...sim, ...looked('vent') }, 'You check the vent. It is clear.');
+      return changedLaptop(sim, { dusty: false }, 'The vent is clogged with dust. You clear it carefully so air can flow out.', looked('vent'));
+    default:
+      return same(sim, '');
+  }
+}
+
+// ---------- the Wi-Fi survey ----------
+
+/** Measure the Wi-Fi signal at one spot. */
+export function measure(sim, spot) {
+  if (!sim.survey || !(spot in SURVEY_SPOTS)) return same(sim, '');
+  const s = SURVEY_SPOTS[spot];
+  return {
+    sim: { ...sim, survey: { ...sim.survey, readings: { ...sim.survey.readings, [spot]: s.bars } } },
+    message: `${s.name}: ${s.bars} of 4 bars, speed ${s.speed}.`,
+    changed: true,
+  };
+}
+
+export const surveyDone = (sim) => Boolean(sim?.survey) && Object.keys(SURVEY_SPOTS).every((k) => k in sim.survey.readings);
+
+/** Spots still to measure (for markers). */
+export const spotsLeft = (sim) => (sim?.survey ? Object.keys(SURVEY_SPOTS).filter((k) => !(k in sim.survey.readings)) : []);
+
+/** Report the weak coverage once all three spots are measured. */
+export function reportCoverage(sim) {
+  if (!surveyDone(sim) || sim.survey.reported) return same(sim, '');
+  return {
+    sim: { ...sim, survey: { ...sim.survey, reported: true } },
+    message: 'You report the weak coverage to the network team, with your readings: 4 bars at the front, 3 in the middle, 1 in the corner. They can move or add an access point.',
+    changed: true,
+  };
+}
+
 const GOAL_WORDS = {
   internet: ['the internet works again', 'there is still no internet'],
   display: ['the picture is back on the monitor', 'the monitor still shows no picture'],
@@ -319,6 +473,12 @@ const GOAL_WORDS = {
   keyboard: ['typing works again', 'the keyboard still does not type'],
   mouse: ['the mouse pointer moves again', 'the mouse pointer still does not move'],
   print: ['the document prints properly', null], // failures come from printFailure()
+  charging: ['the battery is charging again', 'the battery still is not charging'],
+  phone_charging: ['the phone shows it is charging', 'the phone still is not charging'],
+  second_screen: ['the second monitor shows the desktop as an extra screen', 'the second monitor still shows no picture'],
+  dock: ['the monitors, keyboard and mouse all work through the dock', 'the monitors, keyboard and mouse are still dead'],
+  cooling: ['the laptop stays cool and the fan is quiet', 'the laptop is still hot and the fan is loud'],
+  wifi_report: ['the weak corner has been reported to the network team', 'the weak corner has not been reported yet'],
 };
 
 /**
@@ -327,6 +487,21 @@ const GOAL_WORDS = {
  * A failed test can give a clue about where to look next.
  */
 export function test(sim, name) {
+  if (sim.station === 'laptop') {
+    const r = laptopReadings(sim);
+    const ok = r.works[sim.goal];
+    let why = GOAL_WORDS[sim.goal][1];
+    if (sim.goal === 'second_screen' && !ok && r.monitor === 'desktop') {
+      why = sim.laptop.displayMode === 'second_only'
+        ? 'the second monitor works, but now the laptop screen is off'
+        : 'both screens show the same thing, so it is not an extra screen';
+    }
+    return { sim, ok, solved: ok, message: `${name} tries again: ${ok ? GOAL_WORDS[sim.goal][0] : why}.` };
+  }
+  if (sim.station === 'survey') {
+    const ok = sim.survey.reported;
+    return { sim, ok, solved: ok, message: ok ? `${name} is told the network team will fix the coverage.` : `Measure the signal at all three spots, then report it.` };
+  }
   if (sim.station === 'printer') {
     const ok = printerReadings(sim).works;
     return { sim, ok, solved: ok, message: `${name} prints again: ${ok ? GOAL_WORDS.print[0] : printFailure(sim)}.` };

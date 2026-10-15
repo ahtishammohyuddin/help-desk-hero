@@ -38,5 +38,11 @@
     "Could the socket itself be the problem?"
   ],
   "real_world_tip": "If you have a spare charger of the same model, swap it in. It quickly shows whether the charger or the laptop is at fault.",
+  "hands_on": {
+    "faults": [
+      "laptop_charger_loose"
+    ],
+    "goal": "charging"
+  },
   "reviewed": true
 }

@@ -2,7 +2,9 @@
 // Everything you can click has data-part (desk) or data-spare (switch).
 // The look comes from readings(sim), so lights always match the kit.
 
-import { ITEM_NAMES, ITEMS, PARTS, printerReadings, readings, SPARE_PORTS, SWITCH_PORTS } from './handson.js';
+import {
+  DISPLAY_MODES, ITEM_NAMES, ITEMS, LAPTOP_PARTS, laptopReadings, PARTS, printerReadings, readings, SPARE_PORTS, SWITCH_PORTS,
+} from './handson.js';
 
 const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 
@@ -44,13 +46,14 @@ const DARK_LED = '#4a525c';
  * A plug at the end of a cable. When loose, it is drawn pulled away from the port
  * (dx, dy) with a gap, which is the clue the player looks for.
  */
-function plug(part, x, y, state, looked, { dx = 0, dy = 18, w = 16, h = 12, label, lx, ly, anchor = 'middle' } = {}) {
+function plug(part, x, y, state, looked, { dx = 0, dy = 18, w = 16, h = 12, label, lx, ly, anchor = 'middle', name } = {}) {
+  const partName = name ?? PARTS[part];
   const out = state === 'loose' || state === 'out';
   const px = out ? x + dx : x;
   const py = out ? y + dy : y;
   const tick = looked ? `<circle cx="${px + w / 2 + 6}" cy="${py - h / 2 - 4}" r="5" fill="#1f9d55"/><path d="M${px + w / 2 + 3.5} ${py - h / 2 - 4} l2 2 l3.5 -4" stroke="#fff" stroke-width="1.6" fill="none"/>` : '';
-  return `<g class="part" data-part="${part}" tabindex="0" role="button" aria-label="Check the ${esc(PARTS[part])}">
-      <title>Check the ${esc(PARTS[part])}</title>
+  return `<g class="part" data-part="${part}" tabindex="0" role="button" aria-label="Check the ${esc(partName)}">
+      <title>Check the ${esc(partName)}</title>
       <rect x="${px - w / 2 - 8}" y="${py - h / 2 - 8}" width="${w + 16}" height="${h + 16}" rx="6" class="hit"/>
       <rect x="${px - w / 2}" y="${py - h / 2}" width="${w}" height="${h}" rx="2" fill="#11161c" stroke="#8a97a5" stroke-width="1.2"/>
       ${tick}
@@ -354,4 +357,103 @@ export function cabinetSvg(carrying) {
     <rect x="${left - 70}" y="${h / 2 - 12}" width="6" height="24" rx="3" fill="#cfd6de"/><rect x="${left + cols * cellW + 64}" y="${h / 2 - 12}" width="6" height="24" rx="3" fill="#cfd6de"/>
     ${shelves}${cells.join('')}
   </svg>`;
+}
+
+// ---------- the laptop desk ----------
+
+/** A clickable laptop-desk part (not a plug). */
+function lPart(part, label, inner, hit) {
+  return `<g class="part" data-part="${part}" tabindex="0" role="button" aria-label="${esc(label)}"><title>${esc(label)}</title>
+    <rect x="${hit[0]}" y="${hit[1]}" width="${hit[2]}" height="${hit[3]}" rx="6" class="hit"/>${inner}</g>`;
+}
+
+/** Laptop with charger, dock, second monitor and work phone. */
+export function laptopSvg(sim) {
+  const l = sim.laptop;
+  const r = laptopReadings(sim);
+  const L = sim.looked;
+  const lift = l.onCushion ? -14 : 0; // the laptop sits higher on a cushion
+  const screenFill = r.laptopScreenOn ? '#7fb8f0' : '#05080b';
+  const monitorScreen = r.monitor === 'desktop'
+    ? '<rect x="382" y="44" width="168" height="98" fill="#7fb8f0"/><rect x="424" y="66" width="84" height="50" fill="#fff" opacity="0.9"/><rect x="424" y="66" width="84" height="8" fill="#2f6feb"/>'
+    : `<rect x="382" y="44" width="168" height="98" fill="#05080b"/><rect x="408" y="80" width="116" height="26" fill="#1b2430" stroke="#5b6b7c"/>${fitText(r.monitor, 466, 97, 108, { size: 11, cls: 'nosignal', weight: 700 })}`;
+  const battery = `<rect x="198" y="${100 + lift}" width="24" height="12" rx="2" fill="none" stroke="#1f2a37" stroke-width="1.5"/><rect x="200" y="${102 + lift}" width="8" height="8" fill="${r.charging ? '#1f9d55' : '#e5484d'}"/>
+    ${r.charging ? `<path d="M213 ${101 + lift} l-4 6 h4 l-3 5" stroke="#1f9d55" stroke-width="1.6" fill="none"/>` : ''}`;
+  const heat = r.hot
+    ? [0, 1, 2].map((i) => `<path d="M${110 + i * 40} ${80 + lift} q 6 -8 0 -16 q -6 -8 0 -16" stroke="#e5484d" stroke-width="2" fill="none" opacity="0.7"/>`).join('')
+    : '';
+  const dust = l.dusty
+    ? `<circle cx="186" cy="${236 + lift}" r="4" fill="#b0a596"/><circle cx="198" cy="${234 + lift}" r="4.5" fill="#b0a596"/><circle cx="210" cy="${237 + lift}" r="3.5" fill="#b0a596"/>`
+    : '';
+  return `<svg class="station" viewBox="0 0 600 330" role="img" aria-label="Laptop desk with charger, dock, second monitor and phone">
+    <rect x="0" y="0" width="600" height="330" rx="12" fill="#e9edf2"/>
+    <rect x="0" y="262" width="600" height="68" fill="#d8c6a6"/>
+
+    <!-- wall socket (laptop charger and phone adapter) -->
+    <rect x="8" y="120" width="44" height="86" rx="6" fill="#fafafa" stroke="#b7c2cd"/>
+    <circle cx="30" cy="144" r="8" fill="#e9edf2" stroke="#b7c2cd"/><circle cx="30" cy="182" r="8" fill="#e9edf2" stroke="#b7c2cd"/>
+    ${fitText('Wall socket', 30, 110, 60, { size: 10, cls: 'tiny' })}
+
+    <!-- cushion, laptop, vent -->
+    ${l.onCushion ? lPart('cushion', 'Move the laptop onto the hard desk', '<rect x="64" y="248" width="214" height="26" rx="13" fill="#d98fa0"/>', [60, 244, 222, 34]) : ''}
+    ${heat}
+    <rect x="86" y="${92 + lift}" width="150" height="128" rx="6" fill="#1f252d"/>
+    <rect x="94" y="${100 + lift}" width="134" height="110" fill="${screenFill}"/>
+    ${r.laptopScreenOn ? battery : ''}
+    <path d="M72 ${222 + lift} L250 ${222 + lift} L266 ${248 + lift} L56 ${248 + lift} Z" fill="#2b313a"/>
+    ${lPart('vent', 'Check the laptop vent', `<rect x="176" y="${230 + lift}" width="44" height="12" rx="2" fill="#11161c"/>${[0, 1, 2, 3, 4].map((i) => `<rect x="${180 + i * 8}" y="${232 + lift}" width="4" height="8" fill="#3b4552"/>`).join('')}${dust}`, [170, 224 + lift, 56, 24])}
+    ${fitText(r.hot ? 'Fan: loud, laptop hot' : 'Fan: quiet', 161, 40, 180, { size: 12, cls: `tiny ${r.hot ? 'hot' : 'ink'}`, weight: 700 })}
+
+    <!-- laptop charger brick and cables -->
+    <rect x="132" y="300" width="46" height="20" rx="4" fill="#1f252d"/>
+    ${led(170, 310, r.chargerLight)}
+    ${cable(30, 144, 132, 310, 'in', { bend: 60 })}
+    ${cable(150, 300, 64, 238 + lift, 'in', { bend: -30 })}
+    ${plug('chargerWall', 30, 144, l.chargerWall, L.chargerWall, { dx: 18, dy: 12, w: 16, h: 12, name: LAPTOP_PARTS.chargerWall })}
+    ${plug('chargerLaptop', 64, 238 + lift, l.chargerLaptop, L.chargerLaptop, { w: 12, h: 10, name: LAPTOP_PARTS.chargerLaptop })}
+
+    <!-- phone, charging from the power strip -->
+    <rect x="432" y="302" width="70" height="24" rx="5" fill="#2b313a"/>
+    <rect x="438" y="306" width="52" height="16" rx="2" fill="${r.phoneCharging ? '#1f9d55' : '#3b4552'}"/>
+    ${r.phoneCharging ? '<path d="M466 307 l-4 6 h4 l-3 6" stroke="#fff" stroke-width="1.6" fill="none"/>' : ''}
+    ${lPart('phonePort', "Look into the phone's charging port", '<rect x="500" y="310" width="8" height="8" rx="1" fill="#11161c"/>', [494, 302, 20, 24])}
+    ${lPart('phoneCable', 'Check the phone charging cable', `<path d="M578 304 C 578 330, 530 330, 508 314" stroke="#9aa4ae" stroke-width="6" fill="none"/><path d="M578 304 C 578 330, 530 330, 508 314" stroke="#ffffff" stroke-width="3" fill="none"/>${l.phoneCable === 'damaged' ? '<path d="M532 318 l5 -6 l4 8 l5 -6" stroke="#ff8a1f" stroke-width="3" fill="none"/>' : ''}`, [518, 306, 66, 24])}
+    ${fitText('Phone', 467, 296, 60, { size: 10, cls: 'tiny' })}
+
+    <!-- dock and its power adapter -->
+    <rect x="320" y="270" width="120" height="26" rx="5" fill="#3b4552"/>
+    ${led(428, 283, r.dockLight)}
+    ${fitText('Dock', 352, 287, 60, { size: 11, cls: 'tiny light', weight: 700 })}
+    <rect x="520" y="300" width="70" height="20" rx="5" fill="#f4f4f4" stroke="#b7c2cd"/>
+    ${cable(555, 300, 448, 283, 'in', { bend: -20 })}
+    ${plug('dockPower', 448, 283, l.dockPower, L.dockPower, { dx: 24, dy: 6, w: 14, h: 12, name: LAPTOP_PARTS.dockPower })}
+    ${fitText('Power strip', 555, 316, 64, { size: 10, cls: 'tiny' })}
+    ${cable(330, 283, 274, 236 + lift, 'in', { bend: 20 })}
+    ${plug('dockCable', 274, 236 + lift, l.dockCable, L.dockCable, { w: 12, h: 10, name: LAPTOP_PARTS.dockCable })}
+
+    <!-- second monitor, cabled to the dock with DisplayPort -->
+    <rect x="372" y="34" width="188" height="118" rx="8" fill="#1f252d"/>
+    ${monitorScreen}
+    <rect x="452" y="152" width="28" height="22" fill="#1f252d"/>
+    ${cable(380, 270, 466, 174, 'in', { bend: -40 })}
+    ${fitText('DisplayPort cable', 336, 210, 96, { size: 10, cls: 'tiny' })}
+    ${lPart('input', 'Press the monitor input button', `<rect x="528" y="140" width="24" height="9" rx="3" fill="#5b6b7c"/>`, [520, 134, 40, 20])}
+    ${fitText(`Input: ${l.monitorInput}`, 520, 190, 110, { size: 11, cls: 'tiny ink', weight: 700 })}
+  </svg>`;
+}
+
+/** The Windows key + P menu, as buttons under the drawing. */
+export function displayModeHtml(sim) {
+  return `<div class="winp"><span class="small"><b>Windows key + P</b> on the laptop:</span>
+    ${Object.entries(DISPLAY_MODES).map(([k, v]) => `<button class="mode${sim.laptop.displayMode === k ? ' on' : ''}" data-mode="${k}">${esc(v)}</button>`).join('')}</div>`;
+}
+
+export function laptopSummary(sim) {
+  const r = laptopReadings(sim);
+  return [
+    `Charger light: ${r.chargerLight ? 'on' : 'off'}, battery ${r.charging ? 'charging' : 'not charging'}`,
+    `Phone: ${r.phoneCharging ? 'charging' : 'not charging'}`,
+    `Dock light: ${r.dockLight ? 'on' : 'off'}`,
+    `Second monitor: ${r.monitor === 'desktop' ? 'showing the desktop' : r.monitor}`,
+  ];
 }

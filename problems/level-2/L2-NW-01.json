@@ -39,5 +39,11 @@
     "Who can change where access points are placed?"
   ],
   "real_world_tip": "Walk the area with a laptop or phone and note the signal bars. A simple map of strong and weak spots makes the report convincing.",
+  "hands_on": {
+    "faults": [
+      "wifi_weak_corner"
+    ],
+    "goal": "wifi_report"
+  },
   "reviewed": true
 }

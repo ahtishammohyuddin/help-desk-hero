@@ -5,7 +5,8 @@ import * as THREE from 'three';
 import { api, API_BASE } from './api.js';
 import { FollowCamera } from './camera.js';
 import {
-  createSim, moveToSpare, needsServerRoom, placesNeeded, printerAction, putBack, reportPort, reseat, takeItem, test as testFix,
+  createSim, laptopAction, measure, moveToSpare, needsServerRoom, placesNeeded, printerAction, putBack, reportCoverage, reportPort,
+  reseat, spotsLeft, takeItem, test as testFix,
 } from './handson.js';
 import { createEmployees } from './employees.js';
 import { Input } from './input.js';
@@ -208,6 +209,11 @@ function start() {
   const queueLabel = (t) => {
     const d = details.get(t.number);
     if (needsServerRoom(d?.sim)) return 'Next: Server room';
+    if (d?.sim?.station === 'survey' && !d.result) {
+      const left = spotsLeft(d.sim).length;
+      return left ? `Next: measure Wi-Fi (${3 - left} of 3 done)` : `Next: report to ${t.employee}`;
+    }
+    if (d?.sim?.station === 'laptop' && placesNeeded(d.sim).length && !d.result) return 'Next: Parts cabinet';
     if (d?.sim?.station === 'printer' && !d.result) {
       const need = placesNeeded(d.sim);
       return need.includes('parts_cabinet') ? 'Next: Parts cabinet' : need.length ? 'Next: Printer' : `Next: back to ${t.employee}`;
@@ -223,6 +229,12 @@ function start() {
       if (jobStage(d?.job) !== 'finished') return [{ ticket, job: d.job }];
       const visit = (kind, place, action) => ({ ticket, kind, job: { steps: [{ place, action }], index: 0, finished: false } });
       if (needsServerRoom(d?.sim)) return [visit('switch', 'server_room', `Check Desk ${byName.get(ticket.employee).desk}'s port on the switch`)];
+      if (d?.sim?.station === 'survey' && !d.result) {
+        return spotsLeft(d.sim).map((spot) => visit('survey', spot, `Measure the Wi-Fi signal here for ${ticket.employee}`));
+      }
+      if (d?.sim?.station === 'laptop' && !d.result) {
+        return placesNeeded(d.sim).map(() => visit('cabinet', 'parts_cabinet', 'Open the parts cabinet'));
+      }
       if (d?.sim?.station === 'printer' && !d.result) {
         // The cabinet itself is always open to use (below); here it only adds its marker.
         return placesNeeded(d.sim).map((place) =>
@@ -498,11 +510,24 @@ function start() {
     if (step.changed) sound.click();
   }
 
-  function onDeskPart(part) {
+  function onDeskPart(part, mode) {
     const detail = activeTicket && details.get(activeTicket.number);
     if (!detail?.sim || detail.result || detail.view !== 'desk') return;
-    simAction(detail, reseat(detail.sim, part));
+    if (detail.sim.station === 'laptop') {
+      const step = laptopAction({ ...detail.sim, carrying: carried }, part, mode);
+      simAction(detail, step);
+      if (step.message) setCarried(step.sim.carrying);
+    } else {
+      simAction(detail, reseat(detail.sim, part));
+    }
     refreshTicketPanel();
+  }
+
+  function reportWifi() {
+    const detail = activeTicket && details.get(activeTicket.number);
+    if (!detail?.sim?.survey || detail.result) return;
+    simAction(detail, reportCoverage(detail.sim));
+    runTest(); // reporting it is what closes this ticket
   }
 
   async function runTest() {
@@ -853,7 +878,13 @@ function start() {
     $('prompt').hidden = false;
     if (working.t < WORK_SECONDS) return;
     const detail = details.get(working.ticket.number);
-    if (detail?.job) {
+    if (working.kind === 'survey' && detail?.sim) {
+      const step = measure(detail.sim, working.step.place);
+      simAction(detail, step);
+      sound.correct();
+      ui.toast(`${ui.esc(step.message)}`);
+      ui.renderQueue(queue.open, byName, queueLabel);
+    } else if (detail?.job) {
       detail.job = advance(detail.job);
       sound.correct();
       const next = jobLabel(detail.job, working.ticket.employee).replace(/^Next: /, '');
@@ -877,6 +908,7 @@ function start() {
   function setDeskView(view) {
     const detail = activeTicket && talkingTo && details.get(activeTicket.number);
     if (!detail?.sim || detail.result || detail.state !== 'ready') return;
+    if (view === 'desk' && !['desk', 'laptop'].includes(detail.sim.station)) return; // printer and Wi-Fi work elsewhere
     detail.view = view;
     refreshTicketPanel();
   }
@@ -949,6 +981,9 @@ function start() {
     }
     const part = e.target.closest('[data-part]');
     if (part) return onDeskPart(part.dataset.part);
+    const mode = e.target.closest('[data-mode]');
+    if (mode) return onDeskPart('mode', mode.dataset.mode);
+    if (e.target.closest('[data-action="report-wifi"]')) return reportWifi();
     const decoy = e.target.closest('[data-decoy]');
     if (decoy) return chooseOptionById(Number(decoy.dataset.decoy));
     const option = e.target.closest('.opt');

@@ -1,0 +1,74 @@
+{
+  "id": "L3-NW-02",
+  "level": 3,
+  "category": "Networking and Wi-Fi",
+  "title": "New desk on the wrong VLAN",
+  "character": {
+    "name": "Usman",
+    "department": "Operations",
+    "personality": "practical, impatient",
+    "gender": "male"
+  },
+  "symptom": "A newly set-up desk gets an IP from a different network and cannot reach shared drives",
+  "user_description": "I moved to the new desk by the window. Internet sort of works but I can't open any shared drives or the printer. The PC next to me works fine.",
+  "options": [
+    {
+      "text": "Reinstall the network driver",
+      "correct": false,
+      "why": "The PC connects fine. It is simply on the wrong network for that port."
+    },
+    {
+      "text": "Swap his PC for another one",
+      "correct": false,
+      "why": "Any PC on that wall port would get the same wrong network."
+    },
+    {
+      "text": "Give the PC a static IP from the office range by hand",
+      "correct": false,
+      "why": "It would still be on the wrong VLAN, and a hand-set address can clash with others."
+    },
+    {
+      "text": "Compare its IP address with a neighbour's. A different range suggests the wall port is on the wrong VLAN, so escalate to the network team",
+      "correct": true,
+      "why": "Each VLAN hands out its own address range. A different range on one desk points to how that port is set on the switch."
+    }
+  ],
+  "hints": [
+    "What is different between his PC and the working one next to him?",
+    "What does a different IP range suggest?",
+    "Who can change how a switch port is set up?"
+  ],
+  "real_world_tip": "Run ipconfig on both PCs. Seeing a different range, like a guest or phone network, is the quickest clue.",
+  "escalation": {
+    "team": "network",
+    "team_why": "VLANs are set on the switch ports, which the network team manages.",
+    "details": [
+      {
+        "text": "The desk and wall port number",
+        "send": true,
+        "why": "Tells them which switch port to change."
+      },
+      {
+        "text": "The IP address it gets, and a neighbour's for comparison",
+        "send": true,
+        "why": "Shows clearly that it is on a different network."
+      },
+      {
+        "text": "What does not work (shared drives and printer)",
+        "send": true,
+        "why": "Confirms the effect of being on the wrong VLAN."
+      },
+      {
+        "text": "Set a static IP from the office range on the PC",
+        "send": false,
+        "why": "Hides the problem instead of fixing the port, and can cause address conflicts."
+      },
+      {
+        "text": "His favourite radio station",
+        "send": false,
+        "why": "Not related."
+      }
+    ]
+  },
+  "reviewed": true
+}

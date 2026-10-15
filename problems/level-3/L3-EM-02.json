@@ -1,0 +1,43 @@
+{
+  "id": "L3-EM-02",
+  "level": 3,
+  "category": "Email and Outlook / M365",
+  "title": "Delegate cannot send as manager",
+  "character": {
+    "name": "Saima",
+    "department": "Reception",
+    "personality": "helpful, eager",
+    "gender": "female"
+  },
+  "symptom": "An assistant needs to send emails from a manager's mailbox",
+  "user_description": "Mr Haroon asked me to send meeting replies from his email while he travels. When I put his address in the From box, Outlook says I don't have permission.",
+  "options": [
+    {
+      "text": "Give her the manager's password",
+      "correct": false,
+      "why": "Never share passwords. Delegated access is given with permissions, not by sharing accounts."
+    },
+    {
+      "text": "Forward all the manager's email to her",
+      "correct": false,
+      "why": "She still cannot send as him, and his private mail would go to her inbox."
+    },
+    {
+      "text": "Get the manager's approval, then an admin gives her Send As (or Send on Behalf) permission on his mailbox. It can take a little while to start working",
+      "correct": true,
+      "why": "These permissions let a delegate send from the manager's address safely, and they can be removed later."
+    },
+    {
+      "text": "Make her an admin so she can do it herself",
+      "correct": false,
+      "why": "Admin rights are far more than she needs and a security risk."
+    }
+  ],
+  "hints": [
+    "Who needs to agree before anyone sends as the manager?",
+    "Is there a permission made for this?",
+    "Why not just share his password?"
+  ],
+  "real_world_tip": "Send As makes the email look like it came from the manager. Send on Behalf shows 'Saima on behalf of Haroon'. Ask the manager which he prefers.",
+  "reviewed": true
+}

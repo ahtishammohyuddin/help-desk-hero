@@ -1,0 +1,43 @@
+{
+  "id": "L3-NW-04",
+  "level": 3,
+  "category": "Networking and Wi-Fi",
+  "title": "Website blocked by the firewall",
+  "character": {
+    "name": "Imran",
+    "department": "Sales",
+    "personality": "impatient, friendly",
+    "gender": "male"
+  },
+  "symptom": "A website needed for work is blocked by the company web filter",
+  "user_description": "I need a supplier's website for a quote and it shows a blocked page from our firewall. Can you just unblock it, or can I use my phone's hotspot?",
+  "options": [
+    {
+      "text": "Use a VPN or proxy to get around the block",
+      "correct": false,
+      "why": "Bypassing company security breaks policy and can let threats in."
+    },
+    {
+      "text": "Turn off the firewall on his PC",
+      "correct": false,
+      "why": "The block is on the company filter, and turning off his PC's firewall only adds risk."
+    },
+    {
+      "text": "Read the block page (it shows the category), confirm the business need, and send a request with manager approval to whoever manages the web filter",
+      "correct": true,
+      "why": "Sites are blocked for a reason, but mistakes happen. The proper request lets the right team check the site and allow it safely."
+    },
+    {
+      "text": "Let him connect the work PC to his personal hotspot",
+      "correct": false,
+      "why": "Takes the PC outside the company's protection."
+    }
+  ],
+  "hints": [
+    "What does the block page tell you?",
+    "Who decides which sites are allowed?",
+    "Why not just go around it?"
+  ],
+  "real_world_tip": "Sites are sometimes put in the wrong category. Include the full address and why it is needed, so the team can review it quickly.",
+  "reviewed": true
+}

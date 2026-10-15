@@ -1,0 +1,74 @@
+{
+  "id": "L3-SC-05",
+  "level": 3,
+  "category": "Security and phishing",
+  "title": "Suspicious sign-in alert",
+  "character": {
+    "name": "Sana",
+    "department": "HR",
+    "personality": "surprised, careful",
+    "gender": "female"
+  },
+  "symptom": "An alert shows a sign-in to a user's account from another country",
+  "user_description": "I got an email saying someone signed in to my account from another country last night. I was at home asleep. Is that real?",
+  "options": [
+    {
+      "text": "Ignore it because MFA is on",
+      "correct": false,
+      "why": "MFA can be tricked or bypassed. A strange sign-in still needs checking."
+    },
+    {
+      "text": "Email her a link to confirm her password",
+      "correct": false,
+      "why": "This looks exactly like phishing and teaches people to trust such links."
+    },
+    {
+      "text": "Wait and see if a second alert comes",
+      "correct": false,
+      "why": "An attacker could be reading mail or sending phishing right now."
+    },
+    {
+      "text": "Phone her on a number you already have and ask if it was her (travel, VPN?). If not: reset the password, revoke sessions, check MFA methods and mail rules, then escalate",
+      "correct": true,
+      "why": "Confirming through a trusted channel avoids being fooled. If it was not her, locking the attacker out quickly matters most."
+    }
+  ],
+  "hints": [
+    "How can you check the alert is real, safely?",
+    "Is there an innocent reason, like a VPN or travel?",
+    "What does an attacker often change after getting in?"
+  ],
+  "real_world_tip": "Tell her not to click links in the alert email itself. Check the sign-in in the admin portal directly.",
+  "escalation": {
+    "team": "security",
+    "team_why": "Unknown sign-ins are security incidents. The security team checks what the attacker did and whether other accounts were targeted.",
+    "details": [
+      {
+        "text": "The time and location from the alert",
+        "send": true,
+        "why": "Lets them find the sign-in in the logs."
+      },
+      {
+        "text": "Her confirmation that it was not her",
+        "send": true,
+        "why": "Turns a possible alert into a confirmed incident."
+      },
+      {
+        "text": "What you have already done (password reset, sessions revoked, MFA checked)",
+        "send": true,
+        "why": "Avoids repeated work and shows what is still to check."
+      },
+      {
+        "text": "Her password",
+        "send": false,
+        "why": "Never share passwords, and you have already reset it."
+      },
+      {
+        "text": "Her home address",
+        "send": false,
+        "why": "Not needed for the investigation."
+      }
+    ]
+  },
+  "reviewed": true
+}

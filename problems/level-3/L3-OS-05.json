@@ -1,0 +1,43 @@
+{
+  "id": "L3-OS-05",
+  "level": 3,
+  "category": "Windows and OS",
+  "title": "New driver causes crashes",
+  "character": {
+    "name": "Imran",
+    "department": "Sales",
+    "personality": "frustrated",
+    "gender": "male"
+  },
+  "symptom": "PC started crashing after a new graphics driver was installed",
+  "user_description": "I updated the graphics driver yesterday because a pop-up told me to. Since then the screen flickers and the PC crashes when I open my presentations.",
+  "options": [
+    {
+      "text": "Reinstall Windows",
+      "correct": false,
+      "why": "Far too drastic when one recent driver change is the likely cause."
+    },
+    {
+      "text": "Replace the graphics card",
+      "correct": false,
+      "why": "The card worked fine before the update, so the hardware is probably not the problem."
+    },
+    {
+      "text": "Disable the graphics device for good",
+      "correct": false,
+      "why": "Leaves the PC without proper graphics and does not fix anything."
+    },
+    {
+      "text": "Open Device Manager, choose the device and use Roll Back Driver (use Safe Mode if Windows will not stay up), then hold back that driver version until a fixed one is released",
+      "correct": true,
+      "why": "Rolling back returns to the driver that worked. Holding back the new version stops it reinstalling and crashing again."
+    }
+  ],
+  "hints": [
+    "What changed just before the crashes started?",
+    "Can Windows go back to the previous driver?",
+    "How can you stop the same driver coming back?"
+  ],
+  "real_world_tip": "If Roll Back Driver is greyed out, there is no previous version saved. Install the last known good driver from the manufacturer instead.",
+  "reviewed": true
+}

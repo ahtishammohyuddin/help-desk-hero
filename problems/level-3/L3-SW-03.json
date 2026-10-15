@@ -1,0 +1,43 @@
+{
+  "id": "L3-SW-03",
+  "level": 3,
+  "category": "Software and installs",
+  "title": "Legacy app needs compatibility mode",
+  "character": {
+    "name": "Farah",
+    "department": "Finance",
+    "personality": "practical",
+    "gender": "female"
+  },
+  "symptom": "An old business program will not run on Windows 11",
+  "user_description": "Our old budgeting tool won't open on my new laptop. It worked on my old PC with Windows 7. Finance still needs it for old records.",
+  "options": [
+    {
+      "text": "Turn off the antivirus",
+      "correct": false,
+      "why": "The antivirus is not the cause, and turning it off leaves the laptop unprotected."
+    },
+    {
+      "text": "Put the laptop back on an old version of Windows",
+      "correct": false,
+      "why": "Old, unsupported Windows has no security fixes. Never downgrade for one app."
+    },
+    {
+      "text": "Give everyone admin rights so it can run",
+      "correct": false,
+      "why": "Huge security risk, and it often does not help old apps anyway."
+    },
+    {
+      "text": "Right-click the program, open Properties, and on the Compatibility tab run it as an older Windows version, then test. If it still fails, ask the vendor for a supported version",
+      "correct": true,
+      "why": "Compatibility mode lets many older programs run safely. If it does not work, the vendor is the right next step."
+    }
+  ],
+  "hints": [
+    "Does Windows have a setting for older programs?",
+    "What are the risks of an old operating system?",
+    "Who can provide a version that supports Windows 11?"
+  ],
+  "real_world_tip": "Try the Program Compatibility Troubleshooter too. If nothing works, a separate controlled machine for the old app may be an option, but that is a decision for the IT team.",
+  "reviewed": true
+}

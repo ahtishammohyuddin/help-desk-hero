@@ -1,0 +1,43 @@
+{
+  "id": "L3-SW-01",
+  "level": 3,
+  "category": "Software and installs",
+  "title": "Remote software deployment fails",
+  "character": {
+    "name": "Naveed",
+    "department": "IT Operations",
+    "personality": "senior, busy, direct",
+    "gender": "male"
+  },
+  "symptom": "A software update pushed by the deployment tool failed on some PCs",
+  "user_description": "The new PDF reader rolled out to 80 PCs last night, but the console shows 12 failed. Can you find out why and get them done?",
+  "options": [
+    {
+      "text": "Share the admin password so users can install it themselves",
+      "correct": false,
+      "why": "Admin passwords must never be shared with users."
+    },
+    {
+      "text": "Give the users admin rights for a day",
+      "correct": false,
+      "why": "A big security risk to solve a deployment problem."
+    },
+    {
+      "text": "Mark them as done anyway",
+      "correct": false,
+      "why": "Leaves 12 PCs without the update and hides the problem."
+    },
+    {
+      "text": "Read the deployment log for those PCs, check they are online, have disk space, meet the requirements and are in the right target group, then retry",
+      "correct": true,
+      "why": "The log shows why each one failed. Offline PCs, full disks, missing requirements or the wrong group are the usual reasons."
+    }
+  ],
+  "hints": [
+    "What does the deployment tool record about each failure?",
+    "Were those PCs even switched on?",
+    "Do they meet what the software needs?"
+  ],
+  "real_world_tip": "Group the failures by error code. Often most of them share one simple cause, like being offline overnight.",
+  "reviewed": true
+}

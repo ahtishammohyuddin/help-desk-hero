@@ -1,0 +1,43 @@
+{
+  "id": "L3-PR-02",
+  "level": 3,
+  "category": "Printers and scanners",
+  "title": "Printer driver conflict after Windows update",
+  "character": {
+    "name": "Ahmed",
+    "department": "Accounts",
+    "personality": "confused, polite",
+    "gender": "male"
+  },
+  "symptom": "After a Windows update, one PC prints garbled pages or errors on the shared printer",
+  "user_description": "Since the update yesterday my printouts come out with strange symbols, or I get an error. Others in Accounts print fine. What happened?",
+  "options": [
+    {
+      "text": "Roll back every update on every PC in the office",
+      "correct": false,
+      "why": "Far too broad, and it removes security fixes from machines that work fine."
+    },
+    {
+      "text": "Install any printer driver that looks close",
+      "correct": false,
+      "why": "The wrong driver is a common cause of garbled printing in the first place."
+    },
+    {
+      "text": "Remove the printer and its old driver (Print Server Properties, Drivers tab), then install the latest driver from the manufacturer for this Windows version, and report the update if many PCs are hit",
+      "correct": true,
+      "why": "An old or damaged driver can clash after an update. Removing it fully and installing the right current one usually fixes it."
+    },
+    {
+      "text": "Switch off Windows Update on his PC",
+      "correct": false,
+      "why": "Leaves the PC without security fixes and does not repair the driver."
+    }
+  ],
+  "hints": [
+    "What changed just before the problem started?",
+    "Why might only his PC be affected?",
+    "Where do the right drivers come from?"
+  ],
+  "real_world_tip": "Removing the printer alone often leaves the old driver behind. Delete the driver too, or Windows may reuse it.",
+  "reviewed": true
+}

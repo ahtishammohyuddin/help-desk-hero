@@ -1,0 +1,43 @@
+{
+  "id": "L3-EM-05",
+  "level": 3,
+  "category": "Email and Outlook / M365",
+  "title": "Distribution list not delivering",
+  "character": {
+    "name": "Saima",
+    "department": "Reception",
+    "personality": "puzzled, friendly",
+    "gender": "female"
+  },
+  "symptom": "Emails sent to a team distribution list are not reaching its members",
+  "user_description": "A customer says they emailed sales@ our company and it bounced. When I send to it from inside it works. What's wrong?",
+  "options": [
+    {
+      "text": "Delete the list and create it again",
+      "correct": false,
+      "why": "You would lose its settings and members without finding the cause."
+    },
+    {
+      "text": "Ask the customer to email each salesperson one by one",
+      "correct": false,
+      "why": "Avoids the problem and makes life harder for customers."
+    },
+    {
+      "text": "Check the members, whether outside senders are allowed (many lists only accept mail from inside the company), any moderation settings, and run a message trace",
+      "correct": true,
+      "why": "It works internally but bounces from outside, which points to the list only accepting internal senders. The trace confirms what happened."
+    },
+    {
+      "text": "Turn off spam filtering",
+      "correct": false,
+      "why": "Weakens protection for everyone and is not the cause here."
+    }
+  ],
+  "hints": [
+    "What is different between internal and external senders?",
+    "Can a list be set to accept mail only from inside?",
+    "What does the bounce message say?"
+  ],
+  "real_world_tip": "Allowing outside senders on a list can bring in spam, so check with the list owner before changing it.",
+  "reviewed": true
+}

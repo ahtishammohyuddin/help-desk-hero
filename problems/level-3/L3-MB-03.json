@@ -1,0 +1,43 @@
+{
+  "id": "L3-MB-03",
+  "level": 3,
+  "category": "Mobile and phones",
+  "title": "App notifications not arriving",
+  "character": {
+    "name": "Saima",
+    "department": "Reception",
+    "personality": "friendly, chatty",
+    "gender": "female"
+  },
+  "symptom": "A work app on a phone is not showing notifications",
+  "user_description": "The Teams app on my phone doesn't ping me any more. I only see messages when I open it. I've missed two calls from the front gate!",
+  "options": [
+    {
+      "text": "Check the app's notification settings, battery saver and Focus or Do Not Disturb, background data, that the app is up to date and she is signed in, and reinstall only as a last step",
+      "correct": true,
+      "why": "Notifications are often blocked by a phone setting or battery saving. These checks find the cause without losing anything."
+    },
+    {
+      "text": "Factory reset the phone",
+      "correct": false,
+      "why": "Wipes the phone for what is usually a simple setting."
+    },
+    {
+      "text": "Get her a new phone",
+      "correct": false,
+      "why": "The phone works. A setting is most likely blocking notifications."
+    },
+    {
+      "text": "Turn off the phone's security updates",
+      "correct": false,
+      "why": "Has nothing to do with notifications and leaves the phone unsafe."
+    }
+  ],
+  "hints": [
+    "Are notifications turned on for this app?",
+    "Could a battery or focus setting be silencing it?",
+    "Is the app still signed in and up to date?"
+  ],
+  "real_world_tip": "Many phones put apps to sleep to save battery. Setting the work app to 'not optimised' or 'unrestricted' often brings notifications back.",
+  "reviewed": true
+}

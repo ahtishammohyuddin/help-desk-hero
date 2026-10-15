@@ -1,0 +1,43 @@
+{
+  "id": "L3-SC-03",
+  "level": 3,
+  "category": "Security and phishing",
+  "title": "Company laptop lost on a trip",
+  "character": {
+    "name": "Haroon",
+    "department": "Management",
+    "personality": "stressed, direct",
+    "gender": "male"
+  },
+  "symptom": "A company laptop was lost while travelling",
+  "user_description": "I think my laptop was taken from my bag at the airport. It has board papers on it. I land back tomorrow. What should I do now?",
+  "options": [
+    {
+      "text": "Wait until he is back to deal with it",
+      "correct": false,
+      "why": "Every hour gives someone more time to try to get in."
+    },
+    {
+      "text": "Just order him a new laptop",
+      "correct": false,
+      "why": "Replacing the device does nothing to protect the data on the lost one."
+    },
+    {
+      "text": "Do nothing because it has a password",
+      "correct": false,
+      "why": "A password helps, but company data still needs protecting and the loss must be reported."
+    },
+    {
+      "text": "Report it now: remote lock or wipe through device management, confirm the drive encryption (BitLocker) was on, reset his password, revoke sessions and follow the lost-device policy, including a police report if it was stolen",
+      "correct": true,
+      "why": "Remote lock or wipe and encryption protect the data, and a password reset stops anyone using saved sign-ins. The policy covers anything else required."
+    }
+  ],
+  "hints": [
+    "What can IT do to a laptop remotely?",
+    "What protects the data if someone takes the drive out?",
+    "Could someone use sign-ins already saved on it?"
+  ],
+  "real_world_tip": "Ask exactly when and where it was last seen. That helps with the police report and with checking sign-in logs since then.",
+  "reviewed": true
+}

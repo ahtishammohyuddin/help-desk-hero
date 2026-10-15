@@ -1,0 +1,43 @@
+{
+  "id": "L3-SW-02",
+  "level": 3,
+  "category": "Software and installs",
+  "title": "App works for one user but not another",
+  "character": {
+    "name": "Nida",
+    "department": "Accounts",
+    "personality": "puzzled, patient",
+    "gender": "female"
+  },
+  "symptom": "A business app opens for one user but fails for another on the same PC",
+  "user_description": "When Ahmed signs into this PC, the invoice app works. When I sign in, it shows an error and closes. Same computer!",
+  "options": [
+    {
+      "text": "Reinstall Windows",
+      "correct": false,
+      "why": "The app works for another user on the same PC, so Windows and the app install are fine."
+    },
+    {
+      "text": "Make her an administrator",
+      "correct": false,
+      "why": "Admin rights do not fix a profile or permission problem and add risk."
+    },
+    {
+      "text": "Give her a new PC",
+      "correct": false,
+      "why": "Her profile and access would bring the same problem along."
+    },
+    {
+      "text": "Since the PC is fine, look at her profile and access: compare with the working user, check the app's group permissions, and reset her app settings or cache",
+      "correct": true,
+      "why": "When one user fails on a working PC, the difference is in that user's settings or permissions."
+    }
+  ],
+  "hints": [
+    "What is the same for both users, and what is different?",
+    "Where does an app keep each user's settings?",
+    "Could she be missing a permission Ahmed has?"
+  ],
+  "real_world_tip": "Per-user app settings usually live in the user's AppData folder. Renaming the app's folder there lets it start fresh without deleting anything.",
+  "reviewed": true
+}

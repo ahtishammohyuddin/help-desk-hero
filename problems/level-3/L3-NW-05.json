@@ -1,0 +1,43 @@
+{
+  "id": "L3-NW-05",
+  "level": 3,
+  "category": "Networking and Wi-Fi",
+  "title": "Wi-Fi drops when walking between floors",
+  "character": {
+    "name": "Sana",
+    "department": "HR",
+    "personality": "curious, polite",
+    "gender": "female"
+  },
+  "symptom": "A laptop's Wi-Fi drops briefly when the user walks between floors",
+  "user_description": "When I carry my laptop from the second floor to the meeting room upstairs, my call drops and Wi-Fi reconnects. Is my laptop faulty?",
+  "options": [
+    {
+      "text": "Tell her not to walk around during calls",
+      "correct": false,
+      "why": "Avoids the problem instead of fixing it."
+    },
+    {
+      "text": "Give everyone long network cables",
+      "correct": false,
+      "why": "Not practical, and the problem is how Wi-Fi hands over between areas."
+    },
+    {
+      "text": "Turn off Wi-Fi security so it connects faster",
+      "correct": false,
+      "why": "Makes the network unsafe and is not the cause."
+    },
+    {
+      "text": "Check whether it is one device or many and update her Wi-Fi driver. If many devices drop, report the exact spots to the network team, since moving between access points (roaming) may need tuning",
+      "correct": true,
+      "why": "One device points to its driver. Many devices point to how access points hand over, which the network team can adjust."
+    }
+  ],
+  "hints": [
+    "Is it only her laptop, or others too?",
+    "What happens when a laptop moves from one access point to another?",
+    "What details would help the network team?"
+  ],
+  "real_world_tip": "Ask a colleague to walk the same route with their laptop. If theirs drops too, it is the network, not her laptop.",
+  "reviewed": true
+}

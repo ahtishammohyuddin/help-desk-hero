@@ -1,0 +1,43 @@
+{
+  "id": "L3-EM-04",
+  "level": 3,
+  "category": "Email and Outlook / M365",
+  "title": "Huge mailbox makes Outlook slow",
+  "character": {
+    "name": "Farah",
+    "department": "Finance",
+    "personality": "busy, tired",
+    "gender": "female"
+  },
+  "symptom": "Outlook is very slow for a user with a very large mailbox",
+  "user_description": "Outlook takes forever to open and freezes when I search. I keep every email since 2015, just in case. Is that the problem?",
+  "options": [
+    {
+      "text": "Delete all her old emails",
+      "correct": false,
+      "why": "Old mail may be needed for records, and deleting it all is far more than needed."
+    },
+    {
+      "text": "Turn off cached mode for everyone in the company",
+      "correct": false,
+      "why": "Changes everyone's Outlook for one person's problem and can make others slower."
+    },
+    {
+      "text": "Give her a brand-new mailbox",
+      "correct": false,
+      "why": "Loses her mail history and does not address the cause."
+    },
+    {
+      "text": "Check the mailbox size, archive old mail as the company policy allows, remove big old attachments, and limit how much mail Outlook keeps offline (for example 1 year)",
+      "correct": true,
+      "why": "Less mail stored on the PC makes Outlook faster, while archiving keeps older mail available when needed."
+    }
+  ],
+  "hints": [
+    "How big is her mailbox?",
+    "Does all her old mail need to be on the PC?",
+    "What does company policy say about keeping email?"
+  ],
+  "real_world_tip": "The 'mail to keep offline' slider is in the account settings. Older mail stays on the server and can still be searched online.",
+  "reviewed": true
+}

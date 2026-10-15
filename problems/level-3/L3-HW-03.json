@@ -1,0 +1,43 @@
+{
+  "id": "L3-HW-03",
+  "level": 3,
+  "category": "Hardware",
+  "title": "Laptop dead after liquid spill",
+  "character": {
+    "name": "Sana",
+    "department": "HR",
+    "personality": "upset, apologetic",
+    "gender": "female"
+  },
+  "symptom": "A laptop stopped working after coffee was spilled on it",
+  "user_description": "I knocked my coffee over the keyboard. The screen went black straight away. I've wiped it off. Should I try turning it on again?",
+  "options": [
+    {
+      "text": "Turn it on again to see if it still works",
+      "correct": false,
+      "why": "Power running through wet parts can short the board and destroy what might still be saved."
+    },
+    {
+      "text": "Do not switch it on. Unplug the charger, take the battery out if it comes out, keep it open with the keyboard facing down, send it for repair, check her backups and give her a loaner",
+      "correct": true,
+      "why": "Keeping power off gives the laptop the best chance. Repair can clean and test it properly, and a loaner keeps her working."
+    },
+    {
+      "text": "Dry it with a hair dryer",
+      "correct": false,
+      "why": "Heat can damage parts and can push the liquid further inside."
+    },
+    {
+      "text": "Leave it in a bag of rice for a day",
+      "correct": false,
+      "why": "Rice does not remove liquid from inside a laptop, and sugar or milk in coffee keeps causing damage. It needs a proper repair."
+    }
+  ],
+  "hints": [
+    "What is the riskiest thing you could do right now?",
+    "Can the laptop be dried properly at the desk?",
+    "How can she keep working while it is repaired?"
+  ],
+  "real_world_tip": "Ask what was spilled. Sugary or milky drinks leave sticky residue that corrodes parts, so tell the repair team.",
+  "reviewed": true
+}

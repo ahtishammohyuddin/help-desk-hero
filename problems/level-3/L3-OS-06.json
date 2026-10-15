@@ -1,0 +1,43 @@
+{
+  "id": "L3-OS-06",
+  "level": 3,
+  "category": "Windows and OS",
+  "title": "Remote Desktop connection fails",
+  "character": {
+    "name": "Farah",
+    "department": "Finance",
+    "personality": "working from home, stressed",
+    "gender": "female"
+  },
+  "symptom": "User cannot connect to their office PC with Remote Desktop",
+  "user_description": "I'm working from home and Remote Desktop says it can't connect to my office PC. It worked last week. I need a file from it today.",
+  "options": [
+    {
+      "text": "Check the office PC is on and reachable (VPN connected, right PC name), that Remote Desktop is turned on for it, that she is allowed (Remote Desktop Users group), and that the firewall allows Remote Desktop",
+      "correct": true,
+      "why": "Remote Desktop needs every link in the chain working: the PC on, the network path, the feature turned on and her permission."
+    },
+    {
+      "text": "Open port 3389 on the company firewall to the internet",
+      "correct": false,
+      "why": "Exposing Remote Desktop to the whole internet is a serious security risk and a common way in for attackers."
+    },
+    {
+      "text": "Make her an administrator on the office PC",
+      "correct": false,
+      "why": "Admin rights are not needed for Remote Desktop and add risk."
+    },
+    {
+      "text": "Reinstall Windows on the office PC",
+      "correct": false,
+      "why": "Nothing points to Windows being broken. Check the simple links first."
+    }
+  ],
+  "hints": [
+    "Is the office PC actually switched on?",
+    "How does she reach the office network from home?",
+    "Does she have permission to connect?"
+  ],
+  "real_world_tip": "Remote Desktop uses port 3389 by default. In most companies it should only be reachable through the VPN, never straight from the internet.",
+  "reviewed": true
+}

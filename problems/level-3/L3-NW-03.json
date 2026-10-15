@@ -1,0 +1,74 @@
+{
+  "id": "L3-NW-03",
+  "level": 3,
+  "category": "Networking and Wi-Fi",
+  "title": "Intermittent packet loss",
+  "character": {
+    "name": "Ahmed",
+    "department": "Accounts",
+    "personality": "patient, observant",
+    "gender": "male"
+  },
+  "symptom": "Calls and apps keep freezing for a few seconds, suggesting packet loss",
+  "user_description": "My video calls freeze every few minutes and the accounting app sometimes says connection lost. Then it comes back. It's been like this all week.",
+  "options": [
+    {
+      "text": "Run a continuous ping (ping -t) to the gateway and beyond to see where the loss starts, try another cable and port, note the times, and escalate if the problem is beyond the desk",
+      "correct": true,
+      "why": "Pinging step by step shows where packets go missing. Swapping the cable and port rules out the desk, and the timings help the network team."
+    },
+    {
+      "text": "Restart his PC every time it freezes",
+      "correct": false,
+      "why": "Does not find the cause and loses work."
+    },
+    {
+      "text": "Reinstall all his apps",
+      "correct": false,
+      "why": "The apps work when the network does. The drops come from the connection."
+    },
+    {
+      "text": "Tell him to stop using video calls",
+      "correct": false,
+      "why": "Avoids the problem instead of fixing it."
+    }
+  ],
+  "hints": [
+    "Is the problem on the PC, the desk cable, or further away?",
+    "How can you see packets going missing?",
+    "What information would help the network team?"
+  ],
+  "real_world_tip": "Ping the gateway first, then something further like a company server. If the loss already shows to the gateway, the problem is close to the desk.",
+  "escalation": {
+    "team": "network",
+    "team_why": "Loss beyond the desk comes from switches, links or other network kit that the network team manages.",
+    "details": [
+      {
+        "text": "Ping results showing where the loss starts",
+        "send": true,
+        "why": "Shows them exactly which part of the path is dropping packets."
+      },
+      {
+        "text": "The times it happens",
+        "send": true,
+        "why": "Lets them match the drops to switch logs or busy periods."
+      },
+      {
+        "text": "What you already tried (another cable and port)",
+        "send": true,
+        "why": "Rules out the desk, so they do not repeat it."
+      },
+      {
+        "text": "Ask them to restart the main switch right now",
+        "send": false,
+        "why": "Cuts off the whole office during work hours. Let the network team decide how to fix it."
+      },
+      {
+        "text": "His password",
+        "send": false,
+        "why": "Not needed, and passwords are never shared."
+      }
+    ]
+  },
+  "reviewed": true
+}

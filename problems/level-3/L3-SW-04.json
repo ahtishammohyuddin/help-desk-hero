@@ -1,0 +1,43 @@
+{
+  "id": "L3-SW-04",
+  "level": 3,
+  "category": "Software and installs",
+  "title": "Build a silent install package",
+  "character": {
+    "name": "Naveed",
+    "department": "IT Operations",
+    "personality": "senior, busy, direct",
+    "gender": "male"
+  },
+  "symptom": "IT needs to install an app on many PCs without anyone clicking through the installer",
+  "user_description": "We need the new timesheet app on 200 PCs next week. Nobody should have to click through the installer. Can you prepare it?",
+  "options": [
+    {
+      "text": "Use the installer's documented silent switches (for MSI files, msiexec /i app.msi /qn), test on a test PC first, then deploy with the deployment tool",
+      "correct": true,
+      "why": "Silent switches install without screens. Testing first catches problems before they hit 200 users."
+    },
+    {
+      "text": "Deploy it straight to everyone without testing",
+      "correct": false,
+      "why": "One mistake would break the install on all 200 PCs at once."
+    },
+    {
+      "text": "Click through the installer on all 200 PCs by hand",
+      "correct": false,
+      "why": "Slow, error-prone, and exactly what silent installs avoid."
+    },
+    {
+      "text": "Ask users to install it themselves",
+      "correct": false,
+      "why": "Most users do not have admin rights, and installs would be inconsistent."
+    }
+  ],
+  "hints": [
+    "Can installers run without showing any screens?",
+    "Where do you find the right switches for an installer?",
+    "What should happen before it goes to 200 PCs?"
+  ],
+  "real_world_tip": "Check the vendor's documentation for the switches. Non-MSI installers each use their own, and guessing can cause a half-finished install.",
+  "reviewed": true
+}

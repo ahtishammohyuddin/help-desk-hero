@@ -1,0 +1,43 @@
+{
+  "id": "L3-PR-04",
+  "level": 3,
+  "category": "Printers and scanners",
+  "title": "Scan to folder: access denied",
+  "character": {
+    "name": "Nida",
+    "department": "Accounts",
+    "personality": "frustrated",
+    "gender": "female"
+  },
+  "symptom": "Scanning to a network folder from the printer fails with access denied",
+  "user_description": "When I scan to the Accounts folder, the printer says access denied. It worked last month. I have 50 invoices to scan!",
+  "options": [
+    {
+      "text": "Give Everyone full control of the scan folder",
+      "correct": false,
+      "why": "Lets anyone change or delete scanned invoices. Far too much access."
+    },
+    {
+      "text": "Type her own username and password into the printer",
+      "correct": false,
+      "why": "Her password would be stored on a shared device and break when she changes it."
+    },
+    {
+      "text": "Check the folder path, that the account the printer uses has not had its password changed or expired, and that it has permission to write to the folder",
+      "correct": true,
+      "why": "Scan to folder uses a saved account. A changed password or missing write permission are the usual causes."
+    },
+    {
+      "text": "Switch her to scanning by USB instead",
+      "correct": false,
+      "why": "Avoids the problem and is not practical for a shared printer."
+    }
+  ],
+  "hints": [
+    "Which account does the printer use to save scans?",
+    "What changes over time that could break a saved login?",
+    "What permission does it need on the folder?"
+  ],
+  "real_world_tip": "The printer's web page usually shows the saved scan settings. Update the password there once the account owner has reset it.",
+  "reviewed": true
+}

@@ -1,0 +1,43 @@
+{
+  "id": "L3-HW-04",
+  "level": 3,
+  "category": "Hardware",
+  "title": "Replace failed SSD and restore the image",
+  "character": {
+    "name": "Imran",
+    "department": "Sales",
+    "personality": "anxious, rushed",
+    "gender": "male"
+  },
+  "symptom": "A laptop's SSD has failed and the laptop needs a new drive and a fresh company setup",
+  "user_description": "My laptop says no boot device found. The repair desk said the SSD is dead. How long until I get it back? All my work is in OneDrive, I think.",
+  "options": [
+    {
+      "text": "Use any system image you have, even one made for a different laptop model",
+      "correct": false,
+      "why": "An image made for different hardware can miss drivers or fail to start. Use the right image for this model."
+    },
+    {
+      "text": "Check where his files are backed up, fit a compatible SSD (same size and connection type, M.2 NVMe or SATA), put the company image on it with the imaging tool, restore his data, then test",
+      "correct": true,
+      "why": "The right drive, the standard company image and his restored files give him a working laptop that matches company setup."
+    },
+    {
+      "text": "Reinstall Windows from a USB stick and hand it straight back",
+      "correct": false,
+      "why": "Skips company apps, security settings and his data. He would not be able to work properly."
+    },
+    {
+      "text": "Let him use his personal laptop for work instead",
+      "correct": false,
+      "why": "Personal devices are not managed or secured by the company."
+    }
+  ],
+  "hints": [
+    "Where are his files, if the old drive is dead?",
+    "Does any SSD fit any laptop?",
+    "How does the company set up a laptop the standard way?"
+  ],
+  "real_world_tip": "Ask him to sign in to OneDrive on the web first, to confirm his files are really there before you promise anything.",
+  "reviewed": true
+}

@@ -1,0 +1,74 @@
+{
+  "id": "L3-AC-04",
+  "level": 3,
+  "category": "Accounts and passwords",
+  "title": "Service account password expired",
+  "character": {
+    "name": "Naveed",
+    "department": "IT Operations",
+    "personality": "senior, busy, direct",
+    "gender": "male"
+  },
+  "symptom": "An overnight job stopped running because the account it uses has an expired password",
+  "user_description": "The nightly report job failed with a logon error. I think its service account password expired over the weekend. Can you look into it?",
+  "options": [
+    {
+      "text": "Run the job using your own account so it works tonight",
+      "correct": false,
+      "why": "Ties a system job to a person's account, and it breaks again when your password changes or you leave."
+    },
+    {
+      "text": "Quietly set the account's password to never expire, without approval",
+      "correct": false,
+      "why": "Changes security policy without permission and does not update the places where the old password is stored."
+    },
+    {
+      "text": "Turn the job off so the errors stop",
+      "correct": false,
+      "why": "The report still does not run, and the business is left without it."
+    },
+    {
+      "text": "Confirm it in the logs (logon failure for the service account), then escalate to the team that owns the account so the password is updated everywhere it is used",
+      "correct": true,
+      "why": "Service account passwords are stored in services and scheduled tasks. The owning team must change it and update every place it is used."
+    }
+  ],
+  "hints": [
+    "What does the error in the log say?",
+    "Who owns service accounts and the jobs that use them?",
+    "Where else might that old password be stored?"
+  ],
+  "real_world_tip": "Many companies now use managed service accounts, where Windows changes the password automatically so this cannot happen.",
+  "escalation": {
+    "team": "server",
+    "team_why": "Service accounts and the jobs that run on servers belong to the server team. They can change the password and update every service and scheduled task that uses it.",
+    "details": [
+      {
+        "text": "Which job or app stopped (the nightly report job)",
+        "send": true,
+        "why": "Tells them where to look."
+      },
+      {
+        "text": "When it started failing",
+        "send": true,
+        "why": "Shows how long reports have been missing and matches the expiry date."
+      },
+      {
+        "text": "The logon failure error from the log",
+        "send": true,
+        "why": "Proves the cause is the account, not the job itself."
+      },
+      {
+        "text": "The new password, written in the ticket",
+        "send": false,
+        "why": "Never write passwords in tickets. The server team sets and stores it securely."
+      },
+      {
+        "text": "Your own password, so they can test with it",
+        "send": false,
+        "why": "Never share your password, and a person's account should not run system jobs."
+      }
+    ]
+  },
+  "reviewed": true
+}

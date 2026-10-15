@@ -1,0 +1,74 @@
+{
+  "id": "L3-SW-05",
+  "level": 3,
+  "category": "Software and installs",
+  "title": "Licence server unreachable",
+  "character": {
+    "name": "Usman",
+    "department": "Operations",
+    "personality": "practical, impatient",
+    "gender": "male"
+  },
+  "symptom": "A design app says it cannot contact the licence server for every user",
+  "user_description": "The planning software says 'cannot contact licence server' and won't open. Everyone in Operations has the same message since 9am.",
+  "options": [
+    {
+      "text": "Reinstall the app on every PC",
+      "correct": false,
+      "why": "Everyone fails at once, so the app on the PCs is not the cause."
+    },
+    {
+      "text": "Use a licence key found online",
+      "correct": false,
+      "why": "Illegal, unsafe, and could bring malware into the company."
+    },
+    {
+      "text": "Tell users to wait for it to fix itself",
+      "correct": false,
+      "why": "A whole team cannot work, and the cause needs finding."
+    },
+    {
+      "text": "Everyone failing points to the server side. Note the time and the exact error, then escalate",
+      "correct": true,
+      "why": "When every user gets the same error at once, the shared part is the problem: the licence server or its service."
+    }
+  ],
+  "hints": [
+    "One user or everyone?",
+    "What do all the PCs share?",
+    "Who looks after the licence server?"
+  ],
+  "real_world_tip": "Check whether the licence server itself was restarted or updated around 9am. That is often the trigger.",
+  "escalation": {
+    "team": "server",
+    "team_why": "The licence server is a shared server, so the server team checks it and its licence service.",
+    "details": [
+      {
+        "text": "The app name and the exact error message",
+        "send": true,
+        "why": "Tells them which licence service to check."
+      },
+      {
+        "text": "That everyone in Operations is affected",
+        "send": true,
+        "why": "Shows it is a server problem, not one PC."
+      },
+      {
+        "text": "When it started (9am)",
+        "send": true,
+        "why": "Helps them match it to a restart, update or expiry."
+      },
+      {
+        "text": "Use a free licence key from a website",
+        "send": false,
+        "why": "Unlicensed keys are illegal and unsafe. Never suggest them."
+      },
+      {
+        "text": "Each user's password",
+        "send": false,
+        "why": "Not needed, and passwords are never shared."
+      }
+    ]
+  },
+  "reviewed": true
+}

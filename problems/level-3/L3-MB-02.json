@@ -1,0 +1,43 @@
+{
+  "id": "L3-MB-02",
+  "level": 3,
+  "category": "Mobile and phones",
+  "title": "Device enrolment fails",
+  "character": {
+    "name": "Imran",
+    "department": "Sales",
+    "personality": "impatient",
+    "gender": "male"
+  },
+  "symptom": "A new phone will not enrol in the company's device management",
+  "user_description": "I got a new phone and the company app says enrolment failed. I've tried three times. I need my work email on it today.",
+  "options": [
+    {
+      "text": "Factory reset the phone again and again",
+      "correct": false,
+      "why": "Resetting does not fix account, licence or limit problems, and wastes time."
+    },
+    {
+      "text": "Let him use work email without enrolling",
+      "correct": false,
+      "why": "Breaks company policy and leaves company data unprotected on the phone."
+    },
+    {
+      "text": "Sign in with a colleague's account",
+      "correct": false,
+      "why": "Never use someone else's account. It also links the phone to the wrong person."
+    },
+    {
+      "text": "Check he is allowed to enrol and has a licence, the phone meets the minimum OS version, he signs in with his work account, and he has not hit the device limit (remove old devices first), then retry",
+      "correct": true,
+      "why": "Enrolment fails for a reason. These checks cover the usual causes, and removing old devices often fixes it straight away."
+    }
+  ],
+  "hints": [
+    "Is he signing in with the right account?",
+    "Could his old phone still be counted against him?",
+    "Does the new phone meet the company's requirements?"
+  ],
+  "real_world_tip": "Device management tools usually limit how many devices each user can enrol. The exact number depends on how the company has set it up.",
+  "reviewed": true
+}

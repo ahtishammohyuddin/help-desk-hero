@@ -39,5 +39,5 @@
     "Is there a command to fetch and check policies now?"
   ],
   "real_world_tip": "Some policies, like drive maps and software installs, only apply at sign-in or restart, so gpupdate may ask you to sign out.",
-  "reviewed": false
+  "reviewed": true
 }

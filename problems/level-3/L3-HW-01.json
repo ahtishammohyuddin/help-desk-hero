@@ -39,5 +39,5 @@
     "Does any RAM stick fit any PC?"
   ],
   "real_world_tip": "Windows Memory Diagnostic runs at the next restart and shows results after you sign in. If you have two sticks, test them one at a time to find the bad one.",
-  "reviewed": false
+  "reviewed": true
 }

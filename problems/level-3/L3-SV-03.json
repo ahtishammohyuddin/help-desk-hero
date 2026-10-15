@@ -39,5 +39,5 @@
     "Who should confirm the restored folder is the right one?"
   ],
   "real_world_tip": "Previous Versions only appears if shadow copies are switched on for that drive. Ask the server team how often snapshots are taken.",
-  "reviewed": false
+  "reviewed": true
 }

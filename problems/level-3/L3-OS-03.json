@@ -39,5 +39,5 @@
     "What could stop this happening next time?"
   ],
   "real_world_tip": "Before future BIOS or firmware updates, suspend BitLocker so the update does not trigger the recovery screen. It turns back on after the restart.",
-  "reviewed": false
+  "reviewed": true
 }

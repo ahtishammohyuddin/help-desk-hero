@@ -2,6 +2,7 @@
 // messages, the welcome card and the start-up screen.
 // Text from the server is always escaped before display.
 
+import { canSend, TEAM_ICONS } from './escalation.js';
 import { ACHIEVEMENTS } from './achievements.js';
 import { countdown, EVENTS } from './events.js';
 import { DISCLAIMER, NAME_MAX } from './cards.js';
@@ -134,6 +135,11 @@ export function renderTicketPanel(person, ticket, detail) {
   } else if (detail.state === 'error') {
     body = `<p class="notice bad">This ticket could not load. Check that the backend is still running, then try again.</p>`;
     actions = `<button class="btn" data-action="retry">Try again ${key('R')}</button><button class="btn ghost" data-action="later">Close ${key('E')}</button>`;
+  } else if (detail.escalation && !detail.escalation.review) {
+    const esc_ = detail.escalation;
+    body = escalationFormHtml(detail);
+    actions = `<button class="btn ghost" data-action="later">Come back later ${key('E')}</button>
+      <button class="btn" data-action="send-escalation" ${canSend(esc_) ? '' : 'disabled'}>${esc_.sending ? 'Sending…' : 'Send escalation'}</button>`;
   } else if (detail.result) {
     const pending = jobStage(detail.job) !== 'finished';
     body = resultHtml(detail) + jobHtml(person, detail) + seniorHtml(detail);
@@ -384,7 +390,11 @@ function resultHtml(detail) {
 
   let banner;
   const pending = jobStage(detail.job) !== 'finished';
-  if (pending) banner = `<div class="banner blue"><span class="icon">✓</span><div><b>Right fix!</b> Now do it in person to close the ticket. The timer is still running.</div></div>`;
+  const review = detail.escalation?.review;
+  const second = r.attempt === 1 ? '' : ' (second try)';
+  if (review?.perfect) banner = `<div class="banner good"><span class="icon">✓</span><div><b>Escalated to the right team, with the right details!</b>${second} +${r.xp} XP${bonusText}</div></div>`;
+  else if (review) banner = `<div class="banner warn"><span class="icon">!</span><div><b>Right fix, but the escalation needed work.</b> Half XP: +${r.xp} XP. See below what to change next time.</div></div>`;
+  else if (pending) banner = `<div class="banner blue"><span class="icon">✓</span><div><b>Right fix!</b> Now do it in person to close the ticket. The timer is still running.</div></div>`;
   else if (detail.job && r.attempt === 1) banner = `<div class="banner good"><span class="icon">✓</span><div><b>Fixed in person!</b> +${r.xp} XP${bonusText}</div></div>`;
   else if (detail.job) banner = `<div class="banner good"><span class="icon">✓</span><div><b>Fixed in person on your second try.</b> +${r.xp} XP</div></div>`;
   else if (r.is_correct && r.attempt === 1) banner = `<div class="banner good"><span class="icon">✓</span><div><b>Solved!</b> +${r.xp} XP${bonusText}</div></div>`;
@@ -393,6 +403,7 @@ function resultHtml(detail) {
 
   const card = (cls, title, text) => `<div class="expl ${cls}"><div class="expl-t">${title}</div><p>${esc(text)}</p></div>`;
   const parts = [banner];
+  if (review) parts.push(escalationReviewHtml(review));
   detail.wrong.forEach((w) => {
     const e = byId(w.id);
     parts.push(card('bad', `Why "${esc(e.text)}" didn't work`, e.why));
@@ -401,6 +412,42 @@ function resultHtml(detail) {
   parts.push(card('good', `The right fix: ${esc(correct.text)}`, correct.why));
   if (r.real_world_tip) parts.push(`<div class="tip"><b>From real help desks:</b> ${esc(r.real_world_tip)}</div>`);
   return parts.join('');
+}
+
+// ---------- escalation ----------
+
+function escalationFormHtml(detail) {
+  const e = detail.escalation;
+  const teams = e.form.teams
+    .map((t) => `<button class="team${e.team === t.id ? ' on' : ''}" data-team="${esc(t.id)}" aria-pressed="${e.team === t.id}">
+      <span class="team-icon" aria-hidden="true">${TEAM_ICONS[t.id] ?? '👥'}</span>${esc(t.name)}</button>`)
+    .join('');
+  const items = e.form.details
+    .map((d) => {
+      const on = e.picked.includes(d.id);
+      return `<button class="send-item${on ? ' on' : ''}" data-detail="${d.id}" role="checkbox" aria-checked="${on}">
+        <span class="box" aria-hidden="true">${on ? '✓' : ''}</span><span>${esc(d.text)}</span></button>`;
+    })
+    .join('');
+  return `<div class="banner blue"><span class="icon">✓</span><div><b>Right call!</b> This one needs a specialist team. Escalate it to close the ticket. The timer is still running.</div></div>
+    <div class="esc-step"><div class="esc-t"><span class="esc-n">1</span> Which team should take it?</div><div class="teams">${teams}</div></div>
+    <div class="esc-step"><div class="esc-t"><span class="esc-n">2</span> What should the ticket include? <small>Tick everything useful. Leave out anything that doesn't belong.</small></div><div class="send-list">${items}</div></div>
+    ${e.error ? '<p class="notice bad">Could not reach the server. Try sending again.</p>' : ''}`;
+}
+
+function escalationReviewHtml(review) {
+  const rows = review.details
+    .filter((d) => d.send || d.chosen)
+    .map((d) => {
+      const state = d.send && d.chosen ? 'good' : d.send ? 'missed' : 'bad';
+      const label = state === 'good' ? '✓ Sent' : state === 'missed' ? 'Missed' : '✕ Should not be sent';
+      return `<li class="${state}"><span class="tag">${label}</span><b>${esc(d.text)}</b><small>${esc(d.why)}</small></li>`;
+    })
+    .join('');
+  const team = review.team_correct
+    ? `<p><b>✓ ${esc(review.correct_team.name)}</b> was the right team. ${esc(review.team_why)}</p>`
+    : `<p><b>✕ It should go to the ${esc(review.correct_team.name)}.</b> ${esc(review.team_why)}</p>`;
+  return `<div class="expl esc-review"><div class="expl-t">Your escalation</div>${team}<ul class="esc-rows">${rows}</ul></div>`;
 }
 
 // The places to visit for a physical fix, ticked off as they are done.

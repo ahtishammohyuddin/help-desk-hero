@@ -44,6 +44,7 @@ export const api = {
     request(`/problems/${enc(id)}/check`, { method: 'POST', body: { option_id: optionId, attempt, next_hint: nextHint } }),
   handsOn: (id) => request(`/problems/${enc(id)}/hands-on`),
   finishHandsOn: (id, attempt) => request(`/problems/${enc(id)}/hands-on/finish`, { method: 'POST', body: { attempt } }),
+  escalate: (id, body) => request(`/problems/${enc(id)}/escalate`, { method: 'POST', body }),
   daily: (day) => request(`/daily/${enc(day)}`),
   coach: (stats) => request('/coach', { method: 'POST', body: stats, timeout: 20000 }),
   hint: (id, n) => request(`/problems/${enc(id)}/hints/${n}`),

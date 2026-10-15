@@ -77,6 +77,15 @@ HANDS_ON_GOALS = (
     "charging", "phone_charging", "second_screen", "dock", "cooling", "wifi_report",
 )
 HANDS_ON_REQUIRED = {"report_port": "switch_port_dead"}  # required action -> fault it needs
+# Teams a ticket can be escalated to (id -> name shown in the game).
+ESCALATION_TEAMS: dict[str, str] = {
+    "network": "Network team",
+    "security": "Security team",
+    "server": "Server team",
+    "vendor": "Vendor support",
+}
+MIN_ESCALATION_DETAILS = 3
+MAX_ESCALATION_DETAILS = 6
 GENDERS = ("female", "male")
 MIN_OPTIONS = 3
 MAX_OPTIONS = 4
@@ -223,10 +232,47 @@ def validate_problem(problem: object) -> list[str]:
         if problem.get("physical_steps") is not None:
             errors.append("use either hands_on or physical_steps, not both")
 
+    # --- optional escalation: after the right answer, send the ticket to another team ---
+    escalation = problem.get("escalation")
+    if escalation is not None:
+        errors.extend(_validate_escalation(escalation))
+        if hands_on is not None or problem.get("physical_steps") is not None:
+            errors.append("escalation cannot be combined with hands_on or physical_steps")
+
     # --- reviewed ---
     if not isinstance(problem["reviewed"], bool):
         errors.append("reviewed must be true or false")
 
+    return errors
+
+
+def _validate_escalation(escalation: object) -> list[str]:
+    if not isinstance(escalation, dict):
+        return ["escalation must be an object"]
+    errors: list[str] = []
+    if escalation.get("team") not in ESCALATION_TEAMS:
+        errors.append(f"escalation.team must be one of {', '.join(ESCALATION_TEAMS)}")
+    if not _is_nonempty_str(escalation.get("team_why")):
+        errors.append("escalation.team_why must be a non-empty string")
+    details = escalation.get("details")
+    if not isinstance(details, list) or not MIN_ESCALATION_DETAILS <= len(details) <= MAX_ESCALATION_DETAILS:
+        return errors + [f"escalation.details must be a list of {MIN_ESCALATION_DETAILS}-{MAX_ESCALATION_DETAILS} items"]
+    for i, d in enumerate(details, start=1):
+        if not isinstance(d, dict):
+            errors.append(f"escalation detail {i} must be an object")
+            continue
+        if not _is_nonempty_str(d.get("text")):
+            errors.append(f"escalation detail {i}: text must be a non-empty string")
+        if not isinstance(d.get("send"), bool):
+            errors.append(f"escalation detail {i}: send must be true or false")
+        if not _is_nonempty_str(d.get("why")):
+            errors.append(f"escalation detail {i}: why must be a non-empty string")
+    sends = [d.get("send") for d in details if isinstance(d, dict)]
+    if True not in sends or False not in sends:
+        errors.append("escalation.details needs at least one detail to send and one not to send")
+    texts = [d.get("text", "").strip().lower() for d in details if isinstance(d, dict)]
+    if len(set(texts)) != len(texts):
+        errors.append("escalation.details has a repeated text")
     return errors
 
 
@@ -334,3 +380,4 @@ def main(argv: list[str] | None = None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+

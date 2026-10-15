@@ -188,3 +188,8 @@ test('no tickets when everyone is busy or the pool is empty', () => {
   for (let i = 0; i < 10; i++) q.update(0.01, [{ name: 'Solo' }], 2);
   assert.equal(q.open.length, 1);
 });
+
+test('an escalation with mistakes earns half XP', () => {
+  assert.equal(xpFor({ ...base, level: 3, escalationMissed: true }), 15);
+  assert.equal(xpFor({ ...base, level: 3, escalationMissed: false }), 30);
+});

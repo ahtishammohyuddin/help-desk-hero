@@ -39,5 +39,5 @@
     "Is it safe to remove old backups without checking?"
   ],
   "real_world_tip": "Test restores regularly, not just after failures. A backup that has never been restored is only a hope.",
-  "reviewed": false
+  "reviewed": true
 }

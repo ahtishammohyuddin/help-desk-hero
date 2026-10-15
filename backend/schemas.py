@@ -82,6 +82,46 @@ class PhysicalStep(BaseModel):
     action: str
 
 
+class EscalationTeam(BaseModel):
+    id: str
+    name: str
+
+
+class EscalationDetail(BaseModel):
+    id: int  # position in the original file
+    text: str
+
+
+class EscalationForm(BaseModel):
+    """The escalation form, without the answers: which team, and which details to send."""
+
+    teams: list[EscalationTeam]
+    details: list[EscalationDetail]
+
+
+class EscalateRequest(BaseModel):
+    team: str = Field(max_length=20)
+    details: list[int] = Field(default_factory=list, max_length=10)  # ids of the details the player ticked
+
+
+class EscalationReview(BaseModel):
+    id: int
+    text: str
+    send: bool  # should it be sent?
+    chosen: bool  # did the player send it?
+    why: str
+
+
+class EscalationResult(BaseModel):
+    problem_id: str
+    team_correct: bool
+    chosen_team: str
+    correct_team: EscalationTeam
+    team_why: str
+    details: list[EscalationReview]
+    perfect: bool  # right team and exactly the right details
+
+
 class CheckRequest(BaseModel):
     option_id: int
     attempt: int = Field(1, ge=1, le=MAX_ATTEMPTS)  # which try this is
@@ -109,6 +149,8 @@ class CheckResult(BaseModel):
     real_world_tip: str | None = None
     # Only sent when the answer is right: listing them earlier would give the answer away.
     physical_steps: list[PhysicalStep] | None = None
+    # Only sent when the answer is right and the ticket must go to another team.
+    escalation: EscalationForm | None = None
 
 
 class HandsOn(BaseModel):

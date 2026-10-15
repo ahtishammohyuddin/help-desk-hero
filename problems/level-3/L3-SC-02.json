@@ -39,5 +39,41 @@
     "Is this something the help desk should handle alone?"
   ],
   "real_world_tip": "Unless your incident plan says otherwise, many plans say to leave the PC powered on so evidence in memory is kept. Take a photo of the ransom note with your phone.",
-  "reviewed": false
+  "escalation": {
+    "team": "security",
+    "team_why": "Ransomware is a major security incident. The security team leads the response, checks whether it has spread and decides how to recover.",
+    "details": [
+      {
+        "text": "When she first noticed the renamed files",
+        "send": true,
+        "why": "Helps them work out when the attack started and what else to check."
+      },
+      {
+        "text": "A photo of the ransom note",
+        "send": true,
+        "why": "Helps them work out which ransomware this is."
+      },
+      {
+        "text": "Which shared drives were mapped on her PC",
+        "send": true,
+        "why": "Ransomware often encrypts shared drives too, so these need checking fast."
+      },
+      {
+        "text": "That the PC is now disconnected from the network",
+        "send": true,
+        "why": "Tells them it is contained, so they can plan the next step."
+      },
+      {
+        "text": "Her password, so they can sign in to her PC",
+        "send": false,
+        "why": "Never put a password in a ticket. The security team has its own ways in and does not need it."
+      },
+      {
+        "text": "The make and model of her monitor",
+        "send": false,
+        "why": "Has nothing to do with the incident."
+      }
+    ]
+  },
+  "reviewed": true
 }

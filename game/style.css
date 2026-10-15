@@ -504,3 +504,41 @@ kbd {
 .dsq.ok { background: var(--good); }
 .dsq.bad { background: var(--bad); }
 .stat-row.three { grid-template-columns: repeat(3, 1fr); }
+
+/* ---------- escalation form ---------- */
+.banner.warn { background: var(--warn-soft); }
+.banner.warn .icon { background: var(--warn); }
+.esc-step { margin: 12px 0; }
+.esc-t { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 8px; font-weight: 700; font-size: 16px; margin-bottom: 8px; }
+.esc-t small { flex-basis: 100%; font-weight: 400; color: var(--muted); font-size: 14px; }
+.esc-n { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: var(--blue); color: #fff; font-size: 13px; }
+.teams { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.team {
+  display: flex; align-items: center; gap: 10px; padding: 12px; border: 2px solid var(--line); border-radius: 12px;
+  background: var(--paper); font: inherit; font-size: 15px; font-weight: 700; color: var(--ink); cursor: pointer; text-align: left;
+}
+.team:hover { border-color: var(--blue); }
+.team.on { border-color: var(--blue); background: var(--blue-soft); }
+.team-icon { font-size: 22px; }
+.send-list { display: grid; gap: 6px; }
+.send-item {
+  display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px;
+  background: var(--paper); font: inherit; font-size: 15px; line-height: 1.4; color: var(--ink); cursor: pointer; text-align: left;
+}
+.send-item:hover { border-color: var(--blue); }
+.send-item.on { border-color: var(--blue); background: #f8fbff; }
+.send-item .box {
+  flex: none; display: grid; place-items: center; width: 20px; height: 20px; margin-top: 1px; border: 2px solid var(--muted);
+  border-radius: 5px; font-size: 13px; font-weight: 700; color: #fff;
+}
+.send-item.on .box { background: var(--blue); border-color: var(--blue); }
+.esc-review { border-left-color: var(--blue); }
+.esc-review > p { margin-bottom: 8px; }
+.esc-rows { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.esc-rows li { display: grid; gap: 2px; padding: 8px 10px; border-radius: 8px; background: var(--wash); font-size: 14px; line-height: 1.4; }
+.esc-rows li small { color: var(--muted); font-size: 14px; }
+.esc-rows .tag { justify-self: start; padding: 1px 8px; border-radius: 999px; font-size: 12px; font-weight: 700; color: #fff; }
+.esc-rows .good .tag { background: var(--good); }
+.esc-rows .missed .tag { background: var(--warn); }
+.esc-rows .bad .tag { background: var(--bad); }
+@media (max-width: 520px) { .teams { grid-template-columns: 1fr; } }

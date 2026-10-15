@@ -10,6 +10,7 @@ import {
 } from './handson.js';
 import { createEmployees } from './employees.js';
 import { Input } from './input.js';
+import { canSend, escalationBody, newEscalation, pickTeam, toggleDetail } from './escalation.js';
 import { advance, createJob, finish, jobLabel, jobStage, PLACES, placeInReach, placesWaiting, WORK_SECONDS } from './jobs.js';
 import { nearestWithin } from './logic.js';
 import { Minimap } from './minimap.js';
@@ -213,6 +214,7 @@ function start() {
   const details = new Map(); // ticket number -> what we fetched for it
   const queueLabel = (t) => {
     const d = details.get(t.number);
+    if (d?.escalation && !d.escalation.review) return `Next: escalate it (talk to ${t.employee})`;
     if (needsServerRoom(d?.sim)) return 'Next: Server room';
     if (d?.sim?.station === 'survey' && !d.result) {
       const left = spotsLeft(d.sim).length;
@@ -474,9 +476,10 @@ function start() {
       hintsUsed: ticket.hintsUsed,
       secondsLeft: ticket.secondsLeft,
       sla: ticket.sla,
+      escalationMissed: result.escalation_ok === false,
     });
-    // Streak: tickets in a row solved on the first try. A mistake resets it.
-    const firstTryWin = result.is_correct && result.attempt === 1;
+    // Streak: tickets in a row solved on the first try. A mistake (or a wrong escalation) resets it.
+    const firstTryWin = result.is_correct && result.attempt === 1 && result.escalation_ok !== false;
     progress.streak = firstTryWin ? progress.streak + 1 : 0;
     progress.bestStreak = Math.max(progress.bestStreak, progress.streak);
     const mult = firstTryWin ? streakMultiplier(progress.streak) : 1;
@@ -575,12 +578,47 @@ function start() {
         sound.correct();
         return;
       }
+      // Escalation: the right call, but the ticket closes only once it is sent to the right team.
+      if (result.is_correct && result.escalation) {
+        detail.result = { ...result, xp: null, mult: 1 };
+        detail.escalation = newEscalation(result.escalation);
+        sound.correct();
+        return;
+      }
       finishTicket(ticket, detail, result);
     } catch {
       detail.answerError = true;
     } finally {
       detail.answering = false;
       refreshTicketPanel();
+    }
+  }
+
+  // ---------- escalation ----------
+  function editEscalation(change) {
+    const detail = activeTicket && details.get(activeTicket.number);
+    if (!detail?.escalation || detail.escalation.review) return;
+    detail.escalation = change(detail.escalation);
+    sound.click();
+    refreshTicketPanel();
+  }
+
+  async function sendEscalation() {
+    if (!activeTicket) return;
+    const ticket = activeTicket;
+    const detail = details.get(ticket.number);
+    if (!detail?.escalation || !canSend(detail.escalation)) return;
+    detail.escalation = { ...detail.escalation, sending: true, error: false };
+    refreshTicketPanel();
+    try {
+      const review = await api.escalate(ticket.problemId, escalationBody(detail.escalation));
+      detail.escalation = { ...detail.escalation, sending: false, review };
+      finishTicket(ticket, detail, { ...detail.result, escalation_ok: review.perfect });
+    } catch {
+      detail.escalation = { ...detail.escalation, sending: false, error: true };
+    } finally {
+      refreshTicketPanel();
+      if (detail.escalation.review) $('ticket').scrollTop = 0; // show the result from the top
     }
   }
 
@@ -1238,6 +1276,11 @@ function start() {
     const mode = e.target.closest('[data-mode]');
     if (mode) return onDeskPart('mode', mode.dataset.mode);
     if (e.target.closest('[data-action="report-wifi"]')) return reportWifi();
+    const team = e.target.closest('[data-team]');
+    if (team) return editEscalation((esc) => pickTeam(esc, team.dataset.team));
+    const sendDetail = e.target.closest('[data-detail]');
+    if (sendDetail) return editEscalation((esc) => toggleDetail(esc, Number(sendDetail.dataset.detail)));
+    if (e.target.closest('[data-action="send-escalation"]')) return sendEscalation();
     const decoy = e.target.closest('[data-decoy]');
     if (decoy) return chooseOptionById(Number(decoy.dataset.decoy));
     const option = e.target.closest('.opt');
@@ -1364,7 +1407,7 @@ function start() {
     if (switchTicket) ui.updateTicketTimer(switchTicket, false);
     if (activeTicket) {
       const d = details.get(activeTicket.number);
-      ui.updateTicketTimer(activeTicket, Boolean(d?.result) && jobStage(d.job) === 'finished');
+      ui.updateTicketTimer(activeTicket, Boolean(d?.result) && jobStage(d.job) === 'finished' && !(d.escalation && !d.escalation.review));
     }
 
     // Name tags, with priority and time left for anyone who has an open ticket

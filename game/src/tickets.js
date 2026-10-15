@@ -31,12 +31,13 @@ export function maxLevelFor(xp) {
 /**
  * XP for one ticket.
  * Base is 10 per problem level, times the priority multiplier.
- * Solved on the second try (after a mistake): half XP.
+ * Solved on the second try (after a mistake): half XP. Escalated with mistakes: half XP.
  * -25% per hint the player asked for (never below 25% of the base), half XP if the SLA was
  * breached, +25% speed bonus if answered with more than half the SLA time left.
  * Not solved: 0.
  */
 export const SECOND_TRY_XP = 0.5;
+export const ESCALATION_MISS_XP = 0.5; // escalated to the wrong team, or with the wrong details
 
 /** Bonus for answering several tickets in a row right on the first try. */
 export function streakMultiplier(streak) {
@@ -45,10 +46,11 @@ export function streakMultiplier(streak) {
   return 1;
 }
 
-export function xpFor({ level, priority, correct, attempt = 1, hintsUsed = 0, secondsLeft, sla }) {
+export function xpFor({ level, priority, correct, attempt = 1, hintsUsed = 0, secondsLeft, sla, escalationMissed = false }) {
   if (!correct) return 0;
   let xp = 10 * level * PRIORITIES[priority].xp;
   if (attempt > 1) xp *= SECOND_TRY_XP;
+  if (escalationMissed) xp *= ESCALATION_MISS_XP;
   xp *= Math.max(0.25, 1 - 0.25 * hintsUsed);
   if (secondsLeft <= 0) xp *= 0.5;
   else if (secondsLeft > sla / 2) xp *= 1.25;

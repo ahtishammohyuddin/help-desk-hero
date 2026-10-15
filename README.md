@@ -45,6 +45,8 @@ Some problems have `physical_steps` in their JSON (each with a `place`: `printer
 
 Hands-on tickets: a problem can have a `hands_on` scenario instead, for example `{"faults": ["video_cable_loose"], "goal": "display"}`. The player inspects the desk (back of the PC, monitor, power strip, wall port, keyboard and mouse), the switch in the server room, the shared printer (screen, test page, cleaning routine, front door, paper path, toner cartridge, back panel), a laptop desk (charger, dock, second monitor with its input button and Windows key + P, work phone, vents), or walks the office measuring Wi-Fi signal before reporting weak coverage. Spare parts come from the parts cabinet, where the player picks the item they think they need, reseats cables, flips switches or moves a switch port, then asks the person to test. A small simulation (`game/src/handson.js`) works out the lights and screens from what is plugged in, so the clues are always consistent. The problem's wrong options become "other things to try", with their reviewed explanations. The allowed faults are listed in `tools/validate_problems.py`, and a test keeps that list in step with the game.
 
+Escalation (Level 3 and up): a problem can have an `escalation` with the right `team` (`network`, `security`, `server` or `vendor`), a `team_why`, and 3-6 `details`, each marked `send: true` or `false` with a `why`. After the right answer, the player picks the team and ticks what to include in the handover, for example the time it started and an example IP address, but never a user's password. The server checks the form against the reviewed file (`POST /problems/{id}/escalate`); a wrong team or wrong details halves the ticket's XP and shows why.
+
 After each shift a "senior tech" coach writes a short note. The backend works out the facts from the shift numbers (no AI), picks real-world tips only from reviewed problems the player missed, and asks the AI to word a two-to-four sentence note from those facts and tips alone. The game sends no names or personal data, only numbers, topic names and problem ids. Without AI, the note is written from the numbers.
 
 The daily challenge gives everyone the same 5 question tickets each day. The server picks them from a hash of the date, using only reviewed level 1-2 question tickets. One try per day, scored on right answers and time spent choosing, with a day streak and a share card whose squares show right and wrong without giving answers away.
@@ -69,6 +71,7 @@ Open http://127.0.0.1:8000/docs for the interactive API page.
 | `GET /problems/{id}` | One problem for play, with no answers or explanations |
 | `POST /problems/{id}/answer` | Check an answer, returns explanations for every option |
 | `POST /problems/{id}/check` | One try (used by the game). A wrong first try returns only why that choice is wrong plus a hint; the correct answer is revealed only on the final try |
+| `POST /problems/{id}/escalate` | Check an escalation (team and details) against the reviewed answer |
 | `GET /problems/{id}/hints/{n}` | Hint number n (1 is the gentlest) |
 | `POST /problems/{id}/rephrase` | Fresh AI wording of the employee's complaint |
 | `POST /problems/{id}/ask` | "Ask the senior tech" follow-up question |

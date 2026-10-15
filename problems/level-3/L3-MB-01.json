@@ -39,5 +39,5 @@
     "Does the company have a rule for lost devices?"
   ],
   "real_world_tip": "A remote lock can buy time if the phone might be found. Wipe once it is clearly lost, because a wiped phone can no longer be tracked.",
-  "reviewed": false
+  "reviewed": true
 }

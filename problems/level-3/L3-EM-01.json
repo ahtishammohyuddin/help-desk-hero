@@ -39,5 +39,5 @@
     "How long might a rebuild take?"
   ],
   "real_world_tip": "Rebuilding can take hours on a big mailbox, and search results are incomplete until it finishes. Start it at the end of the day if you can.",
-  "reviewed": false
+  "reviewed": true
 }

@@ -39,5 +39,5 @@
     "Can the server tell you which device is causing the lockout?"
   ],
   "real_world_tip": "Phones syncing work email are the most common cause after a password change. Ask the user to update the password on every device they use.",
-  "reviewed": false
+  "reviewed": true
 }

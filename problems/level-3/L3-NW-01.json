@@ -39,5 +39,36 @@
     "Who looks after the DHCP server?"
   ],
   "real_world_tip": "A 169.254 address is called APIPA: Windows gives itself one when no DHCP server answers. Run ipconfig on two or three PCs to confirm before escalating.",
-  "reviewed": false
+  "escalation": {
+    "team": "network",
+    "team_why": "DHCP and the floor's switches are run by the network team. A fault that affects a whole floor is fixed in one central place, not PC by PC.",
+    "details": [
+      {
+        "text": "Which floor, and roughly how many users are affected",
+        "send": true,
+        "why": "Shows how big the problem is and narrows down where to look."
+      },
+      {
+        "text": "An example address from ipconfig (169.254...)",
+        "send": true,
+        "why": "Shows the PCs are not getting an address from DHCP."
+      },
+      {
+        "text": "When it started",
+        "send": true,
+        "why": "Helps them match it to a change or failure at that time."
+      },
+      {
+        "text": "The websites people usually visit",
+        "send": false,
+        "why": "Has nothing to do with getting an IP address."
+      },
+      {
+        "text": "Everyone's passwords so they can test the PCs",
+        "send": false,
+        "why": "Never collect or share passwords. The network team tests with their own accounts."
+      }
+    ]
+  },
+  "reviewed": true
 }

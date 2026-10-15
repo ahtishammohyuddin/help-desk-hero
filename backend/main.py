@@ -54,9 +54,15 @@ from backend.schemas import (
     CoachResponse,
     CoachTip,
     DailyChallenge,
+    EscalateRequest,
+    EscalationDetail,
+    EscalationForm,
+    EscalationResult,
+    EscalationReview,
+    EscalationTeam,
 )
 from backend.ai_service import coach_facts
-from tools.validate_problems import CATEGORIES
+from tools.validate_problems import CATEGORIES, ESCALATION_TEAMS
 
 MAX_COACH_TIPS = 2
 DAILY_COUNT = 5
@@ -237,9 +243,47 @@ def create_app(problems_dir: Path | None = None, ai_client: object = FROM_ENV) -
             result.real_world_tip = problem.get("real_world_tip")
             if is_correct and problem.get("physical_steps"):
                 result.physical_steps = [PhysicalStep(**step) for step in problem["physical_steps"]]
+            if is_correct and problem.get("escalation"):
+                result.escalation = escalation_form(problem["escalation"])
         elif body.next_hint <= len(problem["hints"]):
             result.hint = problem["hints"][body.next_hint - 1]
         return result
+
+    def escalation_form(escalation: dict) -> EscalationForm:
+        details = [EscalationDetail(id=i, text=d["text"]) for i, d in enumerate(escalation["details"])]
+        random.shuffle(details)  # the order in the file must not give the answer away
+        return EscalationForm(
+            teams=[EscalationTeam(id=k, name=v) for k, v in ESCALATION_TEAMS.items()],
+            details=details,
+        )
+
+    @app.post("/problems/{problem_id}/escalate", response_model=EscalationResult)
+    def escalate(request: Request, problem_id: str, body: EscalateRequest) -> EscalationResult:
+        """Check the escalation form against the reviewed answer in the problem file."""
+        problem = find_or_404(request, problem_id)
+        escalation = problem.get("escalation")
+        if escalation is None:
+            raise HTTPException(status_code=404, detail="This problem is not escalated")
+        if body.team not in ESCALATION_TEAMS:
+            raise HTTPException(status_code=400, detail="Unknown team")
+        details = escalation["details"]
+        chosen = set(body.details)
+        if any(not 0 <= i < len(details) for i in chosen):
+            raise HTTPException(status_code=400, detail="Unknown detail id")
+        should = {i for i, d in enumerate(details) if d["send"]}
+        team_correct = body.team == escalation["team"]
+        return EscalationResult(
+            problem_id=problem["id"],
+            team_correct=team_correct,
+            chosen_team=body.team,
+            correct_team=EscalationTeam(id=escalation["team"], name=ESCALATION_TEAMS[escalation["team"]]),
+            team_why=escalation["team_why"],
+            details=[
+                EscalationReview(id=i, text=d["text"], send=d["send"], chosen=i in chosen, why=d["why"])
+                for i, d in enumerate(details)
+            ],
+            perfect=team_correct and chosen == should,
+        )
 
     @app.get("/problems/{problem_id}/hands-on", response_model=HandsOn)
     def get_hands_on(request: Request, problem_id: str) -> HandsOn:

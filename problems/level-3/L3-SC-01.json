@@ -39,5 +39,41 @@
     "Who else needs to know about this email?"
   ],
   "real_world_tip": "Ask the user when they clicked and keep the original email (as an attachment, not forwarded as a link) for the security team. Never ask for or write down the password they typed.",
-  "reviewed": false
+  "escalation": {
+    "team": "security",
+    "team_why": "A stolen password is a security incident. The security team can check the sign-in logs, find anyone else who got the same email and block the sender.",
+    "details": [
+      {
+        "text": "When he clicked the link and signed in",
+        "send": true,
+        "why": "The team checks the sign-in logs from that moment onwards."
+      },
+      {
+        "text": "The sender's address, with the email attached as a file (not forwarded as a link)",
+        "send": true,
+        "why": "Lets them block the sender and find everyone else who received it."
+      },
+      {
+        "text": "What he typed into the page (his work email and password)",
+        "send": true,
+        "why": "Tells them what the attacker may now have, without writing the password itself down."
+      },
+      {
+        "text": "What you have already done (password reset, sessions signed out)",
+        "send": true,
+        "why": "Saves time and stops them repeating steps or missing one."
+      },
+      {
+        "text": "The password he typed, so they can check it",
+        "send": false,
+        "why": "Never write a password in a ticket or email. They only need to know it was entered, and you have already reset it."
+      },
+      {
+        "text": "His home address",
+        "send": false,
+        "why": "Has nothing to do with the incident. Only share personal details when they are needed."
+      }
+    ]
+  },
+  "reviewed": true
 }

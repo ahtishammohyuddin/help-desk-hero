@@ -1,0 +1,43 @@
+{
+  "id": "L3-SV-03",
+  "level": 3,
+  "category": "Servers, backups, Active Directory",
+  "title": "Folder deleted from a file share",
+  "character": {
+    "name": "Farah",
+    "department": "Finance",
+    "personality": "stressed, apologetic",
+    "gender": "female"
+  },
+  "symptom": "A folder was deleted from a shared drive last week and is now needed",
+  "user_description": "I think I deleted the Q3 Reports folder from the finance drive last week by mistake. I need it for a meeting tomorrow. Please tell me it's not gone!",
+  "options": [
+    {
+      "text": "Tell her it is gone because it was deleted from a server",
+      "correct": false,
+      "why": "File servers often keep earlier versions, and backups exist for exactly this."
+    },
+    {
+      "text": "Restore the backup straight over the live share",
+      "correct": false,
+      "why": "This could overwrite other people's newer work across the whole share."
+    },
+    {
+      "text": "Check Previous Versions on the parent folder first, if shadow copies are on; if not, restore the folder from backup to a separate location, then confirm with her before moving it back",
+      "correct": true,
+      "why": "Previous Versions is quick when it is available. Restoring to a separate location protects newer files, and the user confirms it is the right copy."
+    },
+    {
+      "text": "Ask her to rebuild the reports from scratch",
+      "correct": false,
+      "why": "Wastes a lot of work when the folder can very likely be recovered."
+    }
+  ],
+  "hints": [
+    "Do servers keep older copies of files?",
+    "What could go wrong if you restore over the live share?",
+    "Who should confirm the restored folder is the right one?"
+  ],
+  "real_world_tip": "Previous Versions only appears if shadow copies are switched on for that drive. Ask the server team how often snapshots are taken.",
+  "reviewed": false
+}

@@ -1,0 +1,43 @@
+{
+  "id": "L3-CH-02",
+  "level": 3,
+  "category": "Customer handling",
+  "title": "Ticket needs another team, user is frustrated",
+  "character": {
+    "name": "Sana",
+    "department": "HR",
+    "personality": "frustrated, firm",
+    "gender": "female"
+  },
+  "symptom": "User is unhappy that their issue must go to a specialist team",
+  "user_description": "Why can't you just fix it? I've been waiting two days and now you're telling me it's going to another team? Nobody tells me anything!",
+  "options": [
+    {
+      "text": "Promise it will definitely be fixed today",
+      "correct": false,
+      "why": "You cannot control the other team's work. A broken promise makes her trust IT even less."
+    },
+    {
+      "text": "Explain honestly why it needs a specialist team, give her the ticket number and a realistic time for the next update, then follow up",
+      "correct": true,
+      "why": "Honesty and clear expectations reduce frustration. Following up shows the ticket has not been forgotten."
+    },
+    {
+      "text": "Tell her the other team is slow and it is not your fault",
+      "correct": false,
+      "why": "Blaming colleagues looks unprofessional and does not help her."
+    },
+    {
+      "text": "Close the ticket since it is not your team's job",
+      "correct": false,
+      "why": "The user still has the problem. Escalating means handing over properly, not walking away."
+    }
+  ],
+  "hints": [
+    "What does she want most: a fix, or to know what is happening?",
+    "Can you promise what another team will do?",
+    "How can you show her the ticket has not been forgotten?"
+  ],
+  "real_world_tip": "When you escalate, write a clear summary in the ticket so the user never has to explain the problem again to the next team.",
+  "reviewed": false
+}

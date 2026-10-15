@@ -1,0 +1,43 @@
+{
+  "id": "L3-AC-01",
+  "level": 3,
+  "category": "Accounts and passwords",
+  "title": "Account keeps locking out",
+  "character": {
+    "name": "Nida",
+    "department": "Accounts",
+    "personality": "frustrated",
+    "gender": "female"
+  },
+  "symptom": "User's account locks again shortly after every unlock, even though she types the right password",
+  "user_description": "This is the third day in a row. You unlock me, I sign in fine, then an hour later I'm locked out again. I changed my password last week, I'm typing it right!",
+  "options": [
+    {
+      "text": "Turn off account lockout for her account",
+      "correct": false,
+      "why": "This removes protection against password guessing and leaves the real cause in place."
+    },
+    {
+      "text": "Give her a password that never expires",
+      "correct": false,
+      "why": "It does not fix the lockouts and weakens security."
+    },
+    {
+      "text": "Unlock her account every morning when she calls",
+      "correct": false,
+      "why": "This wastes time every day and never finds the cause."
+    },
+    {
+      "text": "Find the source: lockout events on the domain controller (event 4740) show which computer caused it. Usually an old password is still saved on her phone, in Credential Manager, a mapped drive or a service, so update or remove it",
+      "correct": true,
+      "why": "Something keeps trying her old password and triggers the lockout. Finding and updating it stops the lockouts for good."
+    }
+  ],
+  "hints": [
+    "What changed just before this started?",
+    "Where else might her old password still be saved?",
+    "Can the server tell you which device is causing the lockout?"
+  ],
+  "real_world_tip": "Phones syncing work email are the most common cause after a password change. Ask the user to update the password on every device they use.",
+  "reviewed": false
+}

@@ -1,0 +1,43 @@
+{
+  "id": "L3-NW-01",
+  "level": 3,
+  "category": "Networking and Wi-Fi",
+  "title": "DHCP not handing out addresses",
+  "character": {
+    "name": "Usman",
+    "department": "Operations",
+    "personality": "practical, impatient",
+    "gender": "male"
+  },
+  "symptom": "Many PCs on one floor have no network and show IP addresses starting with 169.254",
+  "user_description": "Nobody on our floor has network since this morning. I checked my IP like you showed me once and it says 169.254 something. Is it all our cables?",
+  "options": [
+    {
+      "text": "Give every PC on the floor a fixed IP address by hand",
+      "correct": false,
+      "why": "This can cause address conflicts, bypasses how the network is managed, and leaves the real fault unfixed."
+    },
+    {
+      "text": "Replace the network cables on every PC",
+      "correct": false,
+      "why": "Many PCs failing at once points to something they share, not dozens of bad cables."
+    },
+    {
+      "text": "Reinstall the network drivers on each PC",
+      "correct": false,
+      "why": "The drivers work fine. A 169.254 address means the PC asked for an address and got no reply."
+    },
+    {
+      "text": "Recognise that 169.254 means the PCs got no address from DHCP; since the whole floor is affected, collect details and escalate to the network team to check the DHCP server or scope",
+      "correct": true,
+      "why": "When many PCs fail together, the cause is shared, such as the DHCP server, a full address scope or the floor switch. The network team can fix that in one place."
+    }
+  ],
+  "hints": [
+    "What does an address starting with 169.254 tell you?",
+    "One PC or many: what does that point to?",
+    "Who looks after the DHCP server?"
+  ],
+  "real_world_tip": "A 169.254 address is called APIPA: Windows gives itself one when no DHCP server answers. Run ipconfig on two or three PCs to confirm before escalating.",
+  "reviewed": false
+}

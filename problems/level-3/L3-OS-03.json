@@ -1,0 +1,43 @@
+{
+  "id": "L3-OS-03",
+  "level": 3,
+  "category": "Windows and OS",
+  "title": "BitLocker asks for recovery key",
+  "character": {
+    "name": "Ahmed",
+    "department": "Accounts",
+    "personality": "anxious, rushed",
+    "gender": "male"
+  },
+  "symptom": "Laptop asks for a BitLocker recovery key after a BIOS update",
+  "user_description": "My laptop installed an update last night and now it's a blue screen asking for a BitLocker recovery key. I never got any key! Is my laptop broken?",
+  "options": [
+    {
+      "text": "Reinstall Windows to get past the screen",
+      "correct": false,
+      "why": "This wipes the drive and all his data. The key exists and can be found."
+    },
+    {
+      "text": "Verify who he is, then give him the 48-digit recovery key from where the company stores it (such as Active Directory, Entra ID or Intune)",
+      "correct": true,
+      "why": "Firmware updates can trigger BitLocker recovery. Company devices normally back up their key, and verifying identity first stops someone else getting into the laptop."
+    },
+    {
+      "text": "Tell him to keep restarting until it stops asking",
+      "correct": false,
+      "why": "The screen will keep coming back. It needs the recovery key."
+    },
+    {
+      "text": "Try some likely passwords as the key",
+      "correct": false,
+      "why": "The recovery key is a 48-digit number, not a password, so guessing will not work."
+    }
+  ],
+  "hints": [
+    "Where do company devices usually keep their BitLocker key?",
+    "Why must you check who is asking before giving the key?",
+    "What could stop this happening next time?"
+  ],
+  "real_world_tip": "Before future BIOS or firmware updates, suspend BitLocker so the update does not trigger the recovery screen. It turns back on after the restart.",
+  "reviewed": false
+}

@@ -1,0 +1,43 @@
+{
+  "id": "L3-SC-02",
+  "level": 3,
+  "category": "Security and phishing",
+  "title": "Ransom note on one PC",
+  "character": {
+    "name": "Farah",
+    "department": "Finance",
+    "personality": "panicking",
+    "gender": "female"
+  },
+  "symptom": "Files on the PC have strange extensions and a ransom note has appeared",
+  "user_description": "All my files have weird names now and there's a text file on my desktop saying I have to pay to get them back! What is happening? Should I restart?",
+  "options": [
+    {
+      "text": "Restart the PC to see if it goes away",
+      "correct": false,
+      "why": "Restarting does not undo encryption and can destroy evidence the security team needs."
+    },
+    {
+      "text": "Disconnect the PC from the network straight away (cable out, Wi-Fi off), do not sign in anywhere else, follow the incident plan and escalate to the security team urgently",
+      "correct": true,
+      "why": "Ransomware can spread to shared drives and other PCs. Cutting the network contains it, and the security team leads the response."
+    },
+    {
+      "text": "Restore her files from backup onto the same PC right away",
+      "correct": false,
+      "why": "The infection is still on the PC, so restored files can be encrypted again. Clean-up comes after the security team has investigated."
+    },
+    {
+      "text": "Pay the ransom so she can keep working",
+      "correct": false,
+      "why": "Paying does not guarantee the files come back and encourages more attacks. That decision is never made at the help desk."
+    }
+  ],
+  "hints": [
+    "Could this spread to other computers?",
+    "What is the fastest way to cut the PC off from everything else?",
+    "Is this something the help desk should handle alone?"
+  ],
+  "real_world_tip": "Unless your incident plan says otherwise, many plans say to leave the PC powered on so evidence in memory is kept. Take a photo of the ransom note with your phone.",
+  "reviewed": false
+}

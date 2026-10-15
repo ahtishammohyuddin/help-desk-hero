@@ -1,0 +1,43 @@
+{
+  "id": "L3-MB-01",
+  "level": 3,
+  "category": "Mobile and phones",
+  "title": "Lost phone, remote wipe decision",
+  "character": {
+    "name": "Imran",
+    "department": "Sales",
+    "personality": "worried",
+    "gender": "male"
+  },
+  "symptom": "A company phone with work email and apps has been lost",
+  "user_description": "I think I left my work phone in a taxi last night. It has all my email and the customer app on it. What should I do?",
+  "options": [
+    {
+      "text": "Wait a few days in case it turns up",
+      "correct": false,
+      "why": "Anyone who finds it has time to try to get in."
+    },
+    {
+      "text": "Keep ringing it until someone answers",
+      "correct": false,
+      "why": "Worth a try alongside the real steps, but it does nothing to protect the data."
+    },
+    {
+      "text": "Do nothing because the phone has a PIN",
+      "correct": false,
+      "why": "A PIN helps, but company data still needs protecting, and policy usually requires reporting a lost device."
+    },
+    {
+      "text": "Remote lock or wipe it through the company's device management (for example Intune), reset his password, sign him out of sessions and report it as the policy says",
+      "correct": true,
+      "why": "Device management lets IT protect company data even when the phone is gone. A password reset and sign-out stop anyone using saved sessions."
+    }
+  ],
+  "hints": [
+    "Can IT control a company phone remotely?",
+    "Could someone use apps that are already signed in?",
+    "Does the company have a rule for lost devices?"
+  ],
+  "real_world_tip": "A remote lock can buy time if the phone might be found. Wipe once it is clearly lost, because a wiped phone can no longer be tracked.",
+  "reviewed": false
+}

@@ -1,0 +1,43 @@
+{
+  "id": "L3-OS-04",
+  "level": 3,
+  "category": "Windows and OS",
+  "title": "Group Policy not applying",
+  "character": {
+    "name": "Sana",
+    "department": "HR",
+    "personality": "polite, curious",
+    "gender": "female"
+  },
+  "symptom": "A new company setting pushed by Group Policy has not appeared on one PC",
+  "user_description": "Everyone else got the new HR shared drive this morning, but it's not showing on my PC. I work from home some days, if that matters.",
+  "options": [
+    {
+      "text": "Check the PC can reach the domain (in the office or on the VPN), run gpupdate /force, check the result with gpresult /r, and sign out or restart if asked",
+      "correct": true,
+      "why": "Group Policy only updates when the PC can reach a domain controller. gpupdate /force fetches it now and gpresult /r shows which policies applied."
+    },
+    {
+      "text": "Reinstall Windows so the PC picks up all policies fresh",
+      "correct": false,
+      "why": "Far too drastic. A policy refresh usually solves this in minutes."
+    },
+    {
+      "text": "Add the setting by hand in the registry",
+      "correct": false,
+      "why": "Manual changes are not managed, can be overwritten and hide the real reason the policy did not apply."
+    },
+    {
+      "text": "Tell her to wait a few weeks for it to appear",
+      "correct": false,
+      "why": "If the PC cannot reach the domain, waiting will not help, and she needs the drive now."
+    }
+  ],
+  "hints": [
+    "How does a PC receive Group Policy?",
+    "She works from home some days. Why might that matter?",
+    "Is there a command to fetch and check policies now?"
+  ],
+  "real_world_tip": "Some policies, like drive maps and software installs, only apply at sign-in or restart, so gpupdate may ask you to sign out.",
+  "reviewed": false
+}

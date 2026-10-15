@@ -165,7 +165,7 @@ Total: 203 problems. Review each level and tell me what to change.
 - `L3-AC-04` Service account password expired
 
 **Email and Outlook / M365** (5)
-- `L3-EM-01` Outlook profile corrupted
+- `L3-EM-01` Outlook search misses recent emails
 - `L3-EM-02` Delegate cannot send as manager
 - `L3-EM-03` No mail from one external sender
 - `L3-EM-04` Huge mailbox makes Outlook slow
@@ -187,7 +187,7 @@ Total: 203 problems. Review each level and tell me what to change.
 - `L3-SW-05` Licence server unreachable
 
 **Security and phishing** (5)
-- `L3-SC-01` Phishing email reported by several users
+- `L3-SC-01` Entered password on a phishing page
 - `L3-SC-02` Ransom note on one PC
 - `L3-SC-03` Company laptop lost on a trip
 - `L3-SC-04` Antivirus alert on a user PC
@@ -201,11 +201,11 @@ Total: 203 problems. Review each level and tell me what to change.
 **Servers, backups, Active Directory** (3)
 - `L3-SV-01` Overnight backup job failed
 - `L3-SV-02` Mapped drive access denied
-- `L3-SV-03` Server disk space running low
+- `L3-SV-03` Folder deleted from a file share
 
 **Customer handling** (2)
 - `L3-CH-01` VIP demands to skip the queue
-- `L3-CH-02` Explain downtime to a non-technical manager
+- `L3-CH-02` Ticket needs another team, user is frustrated
 
 ## Level 4 (38)
 

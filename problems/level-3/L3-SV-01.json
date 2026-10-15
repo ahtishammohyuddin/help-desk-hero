@@ -1,0 +1,43 @@
+{
+  "id": "L3-SV-01",
+  "level": 3,
+  "category": "Servers, backups, Active Directory",
+  "title": "Overnight backup job failed",
+  "character": {
+    "name": "Naveed",
+    "department": "IT Operations",
+    "personality": "senior, busy, direct",
+    "gender": "male"
+  },
+  "symptom": "The nightly backup job has failed three nights in a row",
+  "user_description": "The backup alerts have been red since Monday. I haven't had time to look. Can you take it?",
+  "options": [
+    {
+      "text": "Ignore it for now because older backups still exist",
+      "correct": false,
+      "why": "Every failed night is data that cannot be recovered if something goes wrong today."
+    },
+    {
+      "text": "Delete old backups to make room, without checking",
+      "correct": false,
+      "why": "Old backups may be needed for retention rules, and the failure may not even be about space."
+    },
+    {
+      "text": "Read the job log to find the error, fix the cause (for example a full destination or expired credentials), run the job manually, confirm it completes, then test restoring a file",
+      "correct": true,
+      "why": "The log tells you why it failed. A backup is only proven good when a restore works."
+    },
+    {
+      "text": "Switch off the alert so it stops showing red",
+      "correct": false,
+      "why": "Hides the problem without fixing it."
+    }
+  ],
+  "hints": [
+    "What does the backup software record when a job fails?",
+    "How do you know a backup is actually usable?",
+    "Is it safe to remove old backups without checking?"
+  ],
+  "real_world_tip": "Test restores regularly, not just after failures. A backup that has never been restored is only a hope.",
+  "reviewed": false
+}

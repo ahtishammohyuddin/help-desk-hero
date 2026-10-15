@@ -1,0 +1,43 @@
+{
+  "id": "L3-HW-01",
+  "level": 3,
+  "category": "Hardware",
+  "title": "Random blue screens, suspect faulty RAM",
+  "character": {
+    "name": "Usman",
+    "department": "Operations",
+    "personality": "practical, impatient",
+    "gender": "male"
+  },
+  "symptom": "PC crashes with blue screens at random, often showing MEMORY_MANAGEMENT",
+  "user_description": "My PC keeps crashing with a blue screen, two or three times a day. I took a photo, it says MEMORY_MANAGEMENT. I've lost work twice now.",
+  "options": [
+    {
+      "text": "Reinstall Windows first",
+      "correct": false,
+      "why": "Faulty hardware will keep crashing a fresh install too, and you lose time and settings."
+    },
+    {
+      "text": "Add any spare RAM stick you can find in the cabinet",
+      "correct": false,
+      "why": "RAM must match the motherboard (type and speed). A mismatched stick may not fit or may cause more crashes."
+    },
+    {
+      "text": "Back up his work, run Windows Memory Diagnostic (mdsched.exe), and if it finds errors, replace the faulty RAM module with a matching one",
+      "correct": true,
+      "why": "The stop code points to memory. A test confirms it before you replace parts, and a matching module fixes it."
+    },
+    {
+      "text": "Ignore it unless it happens more often",
+      "correct": false,
+      "why": "Random crashes lose work and can corrupt files. They need fixing."
+    }
+  ],
+  "hints": [
+    "What does the stop code point to?",
+    "How can you confirm the problem before replacing parts?",
+    "Does any RAM stick fit any PC?"
+  ],
+  "real_world_tip": "Windows Memory Diagnostic runs at the next restart and shows results after you sign in. If you have two sticks, test them one at a time to find the bad one.",
+  "reviewed": false
+}

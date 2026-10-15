@@ -1,0 +1,43 @@
+{
+  "id": "L3-SC-01",
+  "level": 3,
+  "category": "Security and phishing",
+  "title": "Entered password on a phishing page",
+  "character": {
+    "name": "Imran",
+    "department": "Sales",
+    "personality": "embarrassed, worried",
+    "gender": "male"
+  },
+  "symptom": "User typed their work password into a fake sign-in page from an email link",
+  "user_description": "I clicked a link in an email about a shared invoice and it asked me to sign in, so I did. Then the page just went blank. My colleague says it was probably fake. What do I do?",
+  "options": [
+    {
+      "text": "Tell him to delete the email and carry on, since nothing seems to have happened",
+      "correct": false,
+      "why": "The attacker may already have the password. Deleting the email does nothing to stop them signing in."
+    },
+    {
+      "text": "Just run an antivirus scan on his PC",
+      "correct": false,
+      "why": "A fake sign-in page steals the password itself. A scan of the PC does not stop someone using that password from anywhere."
+    },
+    {
+      "text": "Reset his password now, sign him out of all sessions, check his MFA methods and mailbox rules for anything new, then escalate to the security team",
+      "correct": true,
+      "why": "Acting fast locks the attacker out. Attackers often add their own MFA method or a forwarding rule, so checking those matters, and the security team needs to know in case others got the same email."
+    },
+    {
+      "text": "Wait and see if anything unusual happens on his account",
+      "correct": false,
+      "why": "By the time something unusual shows, the attacker may have read mail, sent more phishing or stolen data."
+    }
+  ],
+  "hints": [
+    "Does the attacker already have something they can use?",
+    "Can an attacker stay signed in even after one change?",
+    "Who else needs to know about this email?"
+  ],
+  "real_world_tip": "Ask the user when they clicked and keep the original email (as an attachment, not forwarded as a link) for the security team. Never ask for or write down the password they typed.",
+  "reviewed": false
+}

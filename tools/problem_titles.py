@@ -172,7 +172,7 @@ TITLES: dict[str, dict[int, list[str]]] = {
             "Add a shared mailbox to Outlook",
         ],
         3: [
-            "Outlook profile corrupted",
+            "Outlook search misses recent emails",
             "Delegate cannot send as manager",
             "No mail from one external sender",
             "Huge mailbox makes Outlook slow",
@@ -267,7 +267,7 @@ TITLES: dict[str, dict[int, list[str]]] = {
             "Gift card request from the CEO",
         ],
         3: [
-            "Phishing email reported by several users",
+            "Entered password on a phishing page",
             "Ransom note on one PC",
             "Company laptop lost on a trip",
             "Antivirus alert on a user PC",
@@ -320,7 +320,7 @@ TITLES: dict[str, dict[int, list[str]]] = {
         3: [
             "Overnight backup job failed",
             "Mapped drive access denied",
-            "Server disk space running low",
+            "Folder deleted from a file share",
         ],
         4: [
             "Restore a deleted folder from backup",
@@ -352,7 +352,7 @@ TITLES: dict[str, dict[int, list[str]]] = {
         ],
         3: [
             "VIP demands to skip the queue",
-            "Explain downtime to a non-technical manager",
+            "Ticket needs another team, user is frustrated",
         ],
         4: [
             "Repeat complaint about the same issue",

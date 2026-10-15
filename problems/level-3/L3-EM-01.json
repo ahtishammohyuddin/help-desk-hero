@@ -1,0 +1,43 @@
+{
+  "id": "L3-EM-01",
+  "level": 3,
+  "category": "Email and Outlook / M365",
+  "title": "Outlook search misses recent emails",
+  "character": {
+    "name": "Saima",
+    "department": "Reception",
+    "personality": "friendly, chatty",
+    "gender": "female"
+  },
+  "symptom": "Outlook search does not find emails from the last few weeks",
+  "user_description": "I know the email from the courier came last week, I saw it! But when I search in Outlook it only finds old stuff. It's driving me mad.",
+  "options": [
+    {
+      "text": "Create her a brand-new mailbox",
+      "correct": false,
+      "why": "The mail is all there. Only the search index is out of date."
+    },
+    {
+      "text": "Delete old emails so search has less to look through",
+      "correct": false,
+      "why": "Deleting mail risks losing records and does not fix a broken index."
+    },
+    {
+      "text": "Rebuild the Windows search index (Indexing Options, Advanced, Rebuild), let it finish, then test the search again",
+      "correct": true,
+      "why": "Outlook search on a PC relies on the Windows search index. Rebuilding it makes recent mail findable again."
+    },
+    {
+      "text": "Reinstall Microsoft Office first",
+      "correct": false,
+      "why": "Reinstalling takes far longer and does not usually fix a stale index."
+    }
+  ],
+  "hints": [
+    "Is the email missing, or just not found by search?",
+    "What does Outlook use to search quickly?",
+    "How long might a rebuild take?"
+  ],
+  "real_world_tip": "Rebuilding can take hours on a big mailbox, and search results are incomplete until it finishes. Start it at the end of the day if you can.",
+  "reviewed": false
+}

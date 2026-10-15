@@ -70,6 +70,17 @@ export function animateWalk(person, phase, amount) {
   rightArm.rotation.x = swing * 0.8;
 }
 
+export const SEAT_DROP = 0.31; // hips at 0.8 come down to a chair seat at about 0.49
+
+/** Pose a person sitting on a chair: thighs forward, lower legs implied under the desk. */
+export function sitDown(person) {
+  const { leftLeg, rightLeg, leftArm, rightArm } = person.userData.limbs;
+  leftLeg.rotation.x = rightLeg.rotation.x = -1.35; // legs forward, feet slightly down
+  leftArm.rotation.x = rightArm.rotation.x = -0.7; // hands towards the keyboard
+  person.position.y = -SEAT_DROP;
+  person.userData.seated = true;
+}
+
 /** A floating "!" shown above someone who needs help. */
 export function makeAlertMarker() {
   const g = new THREE.Group();

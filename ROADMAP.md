@@ -14,13 +14,14 @@
 - [x] All 47 planned Level 3 problems written
 
 ## Phase 7: make it look and feel like a real game
-- [ ] Game logo
+- [x] Game logo (designed by Ahtisham; in `game/assets/`)
 - [ ] Loading screen and main menu (Continue, New game, Daily challenge, My progress, Settings, How to play),
       player name stored only on the player's device, never sent to the AI or server
 - [ ] More professional certificate (logo, frame, signature-style line, certificate ID; still says it is a
       training game, not an accredited certification)
 - [ ] Bigger, realistic office:
-  - [ ] Every person who reports a PC problem has a real desk with a PC (no one standing in open space)
+  - [x] Every person who reports a PC problem sits at a real desk with a PC (no one standing in open space);
+        desk tickets only go to people who actually have a PC there
   - [ ] Office staff move around (walk to the printer, kitchen, meetings)
   - [ ] Lounge / chill area with a sofa and TV, where the player can play small mini-games
   - [ ] Learning area: open the PC there to browse notes on every IT support topic, written simply,
@@ -28,6 +29,8 @@
   - [ ] Small real-office details (sitting area, plants, kitchen, meeting room)
   - [ ] Desk upgrades and technician customisation
 - [ ] Three graphics modes: Smooth, Balanced, Realistic (the current detailed look)
+- [ ] Sound: footsteps while walking, sounds for the mini-games, and very quiet calm background music,
+      each with its own on/off switch in Settings (music made in code or free-licensed, nothing that costs money)
 
 ## Phase 8
 - [ ] Free-text answers graded against reviewed answers

@@ -1459,7 +1459,7 @@ function start() {
         }
       }
       if (person.marker.visible) {
-        person.marker.position.y = 2.15 + Math.sin(time * 3) * 0.08;
+        person.marker.position.y = (person.marker.userData.baseY ?? 2.15) + Math.sin(time * 3) * 0.08;
         person.marker.rotation.y = time * 2;
       }
     }

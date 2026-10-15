@@ -2,11 +2,41 @@
 // Everything you can click has data-part (desk) or data-spare (switch).
 // The look comes from readings(sim), so lights always match the kit.
 
-import { PARTS, printerReadings, readings, SPARE_PORTS, SWITCH_PORTS } from './handson.js';
+import { ITEM_NAMES, ITEMS, PARTS, printerReadings, readings, SPARE_PORTS, SWITCH_PORTS } from './handson.js';
 
 const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 
 const CABLE = '#2a2f36';
+
+/**
+ * Text that always fits its box: wraps onto up to maxLines lines, then squeezes the
+ * longest line if it is still too wide. Widths are estimated from the font size,
+ * so nothing ever runs outside a screen or label.
+ */
+export function fitText(text, x, y, maxWidth, { size = 11, lineHeight = size + 2, cls = 'tiny', anchor = 'middle', maxLines = 3, weight = 400 } = {}) {
+  const charW = size * (weight >= 700 ? 0.6 : 0.55);
+  const perLine = Math.max(4, Math.floor(maxWidth / charW));
+  const lines = [];
+  let line = '';
+  for (const word of String(text).split(/\s+/).filter(Boolean)) {
+    const next = line ? `${line} ${word}` : word;
+    if (next.length > perLine && line) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = next;
+    }
+  }
+  if (line) lines.push(line);
+  if (lines.length > maxLines) lines.splice(maxLines - 1, lines.length, lines.slice(maxLines - 1).join(' '));
+  const top = y - ((lines.length - 1) * lineHeight) / 2;
+  return lines
+    .map((l, i) => {
+      const squeeze = l.length * charW > maxWidth ? ` textLength="${maxWidth}" lengthAdjust="spacingAndGlyphs"` : '';
+      return `<text x="${x}" y="${top + i * lineHeight}" text-anchor="${anchor}" class="${cls}" style="font-size:${size}px"${squeeze}>${esc(l)}</text>`;
+    })
+    .join('');
+}
 const GREEN = '#33d17a';
 const DARK_LED = '#4a525c';
 
@@ -213,8 +243,7 @@ export function printerSvg(sim) {
   const p = sim.printer;
   const r = printerReadings(sim);
   const open = p.door === 'open';
-  const words = r.screen.split('. ');
-  const screenText = words.map((w, i) => `<text x="310" y="${88 + i * 13}" text-anchor="middle" class="screen-text">${esc(w)}</text>`).join('');
+  const screenText = r.screen ? fitText(r.screen.replace(/\. /g, '. '), 310, 95, 92, { size: 10, lineHeight: 11, cls: 'screen-text', weight: 700 }) : '';
 
   const interior = open
     ? `<rect x="60" y="130" width="180" height="150" rx="4" fill="#1f252d"/>
@@ -228,12 +257,12 @@ export function printerSvg(sim) {
         <rect x="120" y="140" width="60" height="8" rx="4" fill="#9aa4ae"/><text x="150" y="214" text-anchor="middle" class="lbl">Front door</text>`, [56, 126, 188, 158]);
 
   const cartridgeOut = p.cartridge === 'out'
-    ? `${pPart('cartridge', p.tonerLow && sim.carrying === 'toner' ? 'Put in the new toner cartridge' : 'Put the toner cartridge back', `<rect x="420" y="250" width="140" height="28" rx="4" fill="#11161c" stroke="#5b6b7c"/><text x="490" y="269" text-anchor="middle" class="tiny light">${p.tonerLow ? 'Toner: 3% left' : 'Toner cartridge'}</text>`, [414, 244, 152, 40])}
+    ? `${pPart('cartridge', p.tonerLow && sim.carrying === 'toner' ? 'Put in the new toner cartridge' : 'Put the toner cartridge back', `<rect x="420" y="250" width="140" height="28" rx="4" fill="#11161c" stroke="#5b6b7c"/>${fitText(p.tonerLow ? 'Toner: 3% left' : 'Toner cartridge', 490, 268, 128, { cls: 'tiny light' })}`, [414, 244, 152, 40])}
        ${p.seal ? pPart('seal', 'Pull out the protective seal', '<rect x="560" y="256" width="30" height="16" rx="3" fill="#ff8a1f"/><text x="575" y="290" text-anchor="middle" class="tiny strong">seal</text>', [554, 248, 42, 46]) : ''}
        <text x="490" y="240" text-anchor="middle" class="lbl">Taken out</text>`
     : '';
-  const carrying = sim.carrying === 'toner'
-    ? '<rect x="420" y="214" width="60" height="14" rx="3" fill="#11161c"/><text x="488" y="225" class="tiny">You have a new toner cartridge</text>'
+  const carrying = sim.carrying
+    ? `<rect x="414" y="204" width="162" height="28" rx="6" fill="#fff8db"/>${fitText(`Carrying: ${ITEM_NAMES[sim.carrying] ?? sim.carrying}`, 495, 222, 150, { size: 11, weight: 700, cls: 'tiny ink' })}`
     : '';
 
   return `<svg class="station" viewBox="0 0 600 310" role="img" aria-label="The shared printer">
@@ -244,13 +273,13 @@ export function printerSvg(sim) {
     <rect x="70" y="62" width="160" height="10" rx="3" fill="#b7c2cd"/>
     ${testPage(sim.testPage)}
     <!-- control panel -->
-    <rect x="252" y="70" width="116" height="104" rx="6" fill="#2b313a"/>
-    <rect x="260" y="76" width="100" height="32" rx="3" fill="${r.powered ? '#cdeccf' : '#151a20'}"/>
+    <rect x="252" y="70" width="116" height="106" rx="6" fill="#2b313a"/>
+    <rect x="258" y="76" width="104" height="38" rx="3" fill="${r.powered ? '#cdeccf' : '#151a20'}"/>
     ${screenText}
-    ${pPart('power', r.powered ? 'Switch the printer off' : 'Switch the printer on', `<circle cx="274" cy="130" r="11" fill="#11161c" stroke="#5b6b7c"/><circle cx="274" cy="130" r="4" fill="${r.powered ? '#33d17a' : '#4a525c'}"/>`, [260, 116, 28, 28])}
-    <text x="274" y="160" text-anchor="middle" class="tiny light">power</text>
-    ${pPart('test', 'Print a test page', '<rect x="296" y="118" width="64" height="20" rx="4" fill="#4b5563"/><text x="328" y="132" text-anchor="middle" class="tiny light">Test page</text>', [292, 114, 72, 28])}
-    ${pPart('clean', 'Run the cleaning routine', '<rect x="296" y="144" width="64" height="20" rx="4" fill="#4b5563"/><text x="328" y="158" text-anchor="middle" class="tiny light">Cleaning</text>', [292, 140, 72, 28])}
+    ${pPart('power', r.powered ? 'Switch the printer off' : 'Switch the printer on', `<circle cx="274" cy="136" r="11" fill="#11161c" stroke="#5b6b7c"/><circle cx="274" cy="136" r="4" fill="${r.powered ? '#33d17a' : '#4a525c'}"/>`, [260, 122, 28, 28])}
+    <text x="274" y="165" text-anchor="middle" class="tiny light">power</text>
+    ${pPart('test', 'Print a test page', '<rect x="296" y="122" width="64" height="20" rx="4" fill="#4b5563"/><text x="328" y="136" text-anchor="middle" class="tiny light">Test page</text>', [292, 118, 72, 28])}
+    ${pPart('clean', 'Run the cleaning routine', '<rect x="296" y="147" width="64" height="20" rx="4" fill="#4b5563"/><text x="328" y="161" text-anchor="middle" class="tiny light">Cleaning</text>', [292, 143, 72, 28])}
     ${interior}
     <!-- back of the printer -->
     <rect x="410" y="34" width="170" height="160" rx="8" fill="#3a4450"/>
@@ -277,4 +306,52 @@ export function printerSummary(sim) {
     `Front door: ${sim.printer.door}`,
     `Last test page: ${sim.testPage ? page[sim.testPage] : 'none yet'}`,
   ];
+}
+
+// ---------- the parts cabinet ----------
+
+// A simple picture for each item, drawn around (0, 0) in a box about 70 x 40.
+const ITEM_ICONS = {
+  toner: '<rect x="-34" y="-11" width="68" height="22" rx="4" fill="#11161c"/><rect x="-30" y="-4" width="14" height="8" rx="2" fill="#2f6feb"/>',
+  network_cable: '<path d="M-26 6 C -10 -18, 10 18, 26 -6" stroke="#2f6feb" stroke-width="5" fill="none"/><rect x="-34" y="2" width="12" height="10" rx="2" fill="#cfd6de"/><rect x="22" y="-12" width="12" height="10" rx="2" fill="#cfd6de"/>',
+  video_cable: '<path d="M-26 6 C -10 -18, 10 18, 26 -6" stroke="#1f252d" stroke-width="5" fill="none"/><rect x="-36" y="1" width="16" height="10" rx="2" fill="#5b6b7c"/><rect x="20" y="-13" width="16" height="10" rx="2" fill="#5b6b7c"/>',
+  phone_cable: '<path d="M-26 6 C -10 -18, 10 18, 26 -6" stroke="#9aa4ae" stroke-width="6" fill="none"/><path d="M-26 6 C -10 -18, 10 18, 26 -6" stroke="#ffffff" stroke-width="3" fill="none"/><rect x="-34" y="2" width="10" height="7" rx="2" fill="#9aa4ae"/><rect x="24" y="-10" width="8" height="6" rx="2" fill="#9aa4ae"/>',
+  laptop_charger: '<rect x="-18" y="-10" width="36" height="20" rx="4" fill="#1f252d"/><circle cx="10" cy="-3" r="2" fill="#33d17a"/><path d="M18 0 C 30 0, 30 12, 36 12" stroke="#1f252d" stroke-width="3" fill="none"/>',
+  dock_cable: '<path d="M-26 6 C -10 -18, 10 18, 26 -6" stroke="#5b6b7c" stroke-width="4" fill="none"/><rect x="-34" y="2" width="11" height="7" rx="3" fill="#1f252d"/><rect x="23" y="-10" width="11" height="7" rx="3" fill="#1f252d"/>',
+  usb_keyboard: '<rect x="-34" y="-10" width="68" height="20" rx="3" fill="#2b313a"/><rect x="-28" y="-5" width="56" height="4" fill="#4b5563"/><rect x="-22" y="2" width="44" height="4" fill="#4b5563"/>',
+  usb_mouse: '<ellipse cx="0" cy="0" rx="11" ry="15" fill="#2b313a"/><path d="M0 -15 L0 -4" stroke="#4b5563" stroke-width="2"/>',
+};
+
+/** The open parts cabinet. carrying: the item in your hands, which is missing from its shelf. */
+export function cabinetSvg(carrying) {
+  const keys = Object.keys(ITEMS);
+  const cols = 3;
+  const cellW = 120;
+  const cellH = 78;
+  const left = 120;
+  const top = 34;
+  const cells = keys.map((key, i) => {
+    const cx = left + (i % cols) * cellW + cellW / 2;
+    const cy = top + Math.floor(i / cols) * cellH + 34;
+    const taken = carrying === key;
+    const label = fitText(ITEMS[key], cx, cy + 32, cellW - 14, { size: 11, cls: 'tiny ink', maxLines: 2, lineHeight: 12 });
+    if (taken) {
+      return `<rect x="${cx - 40}" y="${cy - 18}" width="80" height="36" rx="6" fill="none" stroke="#9aa4ae" stroke-dasharray="4 4"/>${fitText('(you have it)', cx, cy + 32, cellW - 14, { size: 11, cls: 'tiny' })}`;
+    }
+    return `<g class="part" data-item="${key}" tabindex="0" role="button" aria-label="Take the ${esc(ITEMS[key].toLowerCase())}"><title>Take the ${esc(ITEMS[key].toLowerCase())}</title>
+      <rect x="${cx - 54}" y="${cy - 28}" width="108" height="72" rx="8" class="hit"/>
+      <g transform="translate(${cx} ${cy})">${ITEM_ICONS[key] ?? ''}</g>${label}</g>`;
+  });
+  const rows = Math.ceil(keys.length / cols);
+  const shelves = Array.from({ length: rows }, (_, r) => `<rect x="${left - 10}" y="${top + (r + 1) * cellH - 6}" width="${cols * cellW + 20}" height="6" fill="#9aa4ae"/>`).join('');
+  const h = top + rows * cellH + 24;
+  return `<svg class="station" viewBox="0 0 600 ${h}" role="img" aria-label="The open parts cabinet">
+    <rect x="0" y="0" width="600" height="${h}" rx="12" fill="#e9edf2"/>
+    <rect x="${left - 18}" y="14" width="${cols * cellW + 36}" height="${h - 24}" rx="6" fill="#4a525c"/>
+    <rect x="${left - 10}" y="22" width="${cols * cellW + 20}" height="${h - 40}" fill="#f4f6f8"/>
+    <path d="M${left - 18} 14 L${left - 92} 34 L${left - 92} ${h - 30} L${left - 18} ${h - 10} Z" fill="#5b6570"/>
+    <path d="M${left + cols * cellW + 18} 14 L${left + cols * cellW + 92} 34 L${left + cols * cellW + 92} ${h - 30} L${left + cols * cellW + 18} ${h - 10} Z" fill="#5b6570"/>
+    <rect x="${left - 70}" y="${h / 2 - 12}" width="6" height="24" rx="3" fill="#cfd6de"/><rect x="${left + cols * cellW + 64}" y="${h / 2 - 12}" width="6" height="24" rx="3" fill="#cfd6de"/>
+    ${shelves}${cells.join('')}
+  </svg>`;
 }

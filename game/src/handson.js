@@ -33,6 +33,19 @@ const FAULT_PARTS = {
   mouse_unplugged: ['mouse', 'out'],
 };
 
+// What is on the shelves of the parts cabinet. The player picks what they think they need.
+export const ITEMS = {
+  toner: 'Toner cartridge',
+  network_cable: 'Network cable',
+  video_cable: 'Video cable',
+  phone_cable: 'Phone charging cable',
+  laptop_charger: 'Laptop charger',
+  dock_cable: 'Dock cable',
+  usb_keyboard: 'Spare keyboard',
+  usb_mouse: 'Spare mouse',
+};
+export const ITEM_NAMES = ITEMS;
+
 // Printer faults (all break printing). The printer is shared, so its station is at the printer.
 const PRINTER_FAULTS = {
   printer_off: 'the printer is switched off',
@@ -227,6 +240,9 @@ export function printerAction(sim, action) {
       if (p.tonerLow && sim.carrying === 'toner') {
         return changedPrinter(sim, { cartridge: 'in', tonerLow: false }, 'You put in the new toner cartridge. The old one goes in the recycling box.', { carrying: null });
       }
+      if (p.tonerLow && sim.carrying) {
+        return changedPrinter(sim, { cartridge: 'in' }, `You put the old cartridge back. The ${ITEMS[sim.carrying].toLowerCase()} you brought will not fit here: this needs a new toner cartridge.`);
+      }
       return changedPrinter(sim, { cartridge: 'in' }, 'You put the toner cartridge back in.');
     case 'seal':
       if (p.cartridge !== 'out' || !p.seal) return same(sim, '');
@@ -251,10 +267,27 @@ export function printerAction(sim, action) {
   }
 }
 
-/** Take a new toner cartridge from the parts cabinet. */
+/**
+ * Take an item from the parts cabinet. You carry one thing at a time, so anything
+ * you were holding goes back on the shelf. Returns { carrying, message, changed }.
+ */
+export function takeItem(carrying, item) {
+  if (!(item in ITEMS)) return { carrying, message: '', changed: false };
+  if (carrying === item) return { carrying, message: `You are already carrying the ${ITEMS[item].toLowerCase()}.`, changed: false };
+  const swap = carrying ? ` You put the ${ITEMS[carrying].toLowerCase()} back on the shelf.` : '';
+  return { carrying: item, message: `You take the ${ITEMS[item].toLowerCase()}.${swap}`, changed: true };
+}
+
+/** Put the carried item back in the cabinet. */
+export function putBack(carrying) {
+  if (!carrying) return { carrying, message: '', changed: false };
+  return { carrying: null, message: `You put the ${ITEMS[carrying].toLowerCase()} back on the shelf.`, changed: true };
+}
+
+/** Take a new toner cartridge (kept for the printer flow and tests). */
 export function takeToner(sim) {
-  if (sim.carrying === 'toner') return same(sim, 'You are already carrying a new toner cartridge.');
-  return { sim: { ...sim, carrying: 'toner' }, message: 'You take a new toner cartridge from the parts cabinet.', changed: true };
+  const step = takeItem(sim.carrying, 'toner');
+  return { sim: { ...sim, carrying: step.carrying }, message: step.message, changed: step.changed };
 }
 
 /** Places this ticket needs right now, for markers: 'printer', 'parts_cabinet'. */

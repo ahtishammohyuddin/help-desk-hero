@@ -219,3 +219,29 @@ test('a printer that is off shows a blank screen and prints nothing', () => {
   s = act(s, 'power');
   assert.equal(tryIt(s, 'Nida').solved, true);
 });
+
+// ---------- parts cabinet ----------
+import { ITEMS, putBack, takeItem } from '../src/handson.js';
+
+test('the parts cabinet: carry one item at a time, swap or put it back', () => {
+  let step = takeItem(null, 'video_cable');
+  assert.equal(step.carrying, 'video_cable');
+  assert.match(step.message, /take the video cable/);
+  step = takeItem(step.carrying, 'toner');
+  assert.equal(step.carrying, 'toner');
+  assert.match(step.message, /put the video cable back/);
+  assert.equal(takeItem('toner', 'toner').changed, false);
+  assert.equal(takeItem('toner', 'unicorn').changed, false);
+  assert.equal(putBack('toner').carrying, null);
+  assert.equal(putBack(null).changed, false);
+  assert.ok(Object.keys(ITEMS).length >= 6);
+});
+
+test('bringing the wrong item to the printer does not fix low toner', () => {
+  let s = { ...printer(['toner_low']), carrying: 'network_cable' };
+  s = act(s, 'door', 'cartridge');
+  const back = printerAction(s, 'cartridge');
+  assert.match(back.message, /will not fit here/);
+  assert.equal(back.sim.printer.tonerLow, true);
+  assert.equal(back.sim.carrying, 'network_cable');
+});

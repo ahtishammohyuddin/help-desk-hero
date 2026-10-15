@@ -6,7 +6,8 @@ import { ACHIEVEMENTS } from './achievements.js';
 import { DISCLAIMER, NAME_MAX } from './cards.js';
 import { needsServerRoom, placesNeeded } from './handson.js';
 import { jobStage, PLACES } from './jobs.js';
-import { deskSummary, deskSvg, printerSummary, printerSvg, switchSvg } from './stations.js';
+import { cabinetSvg, deskSummary, deskSvg, printerSummary, printerSvg, switchSvg } from './stations.js';
+import { ITEMS } from './handson.js';
 import { topicStatus } from './shift.js';
 import { PRIORITIES, RANKS, rankFor, streakMultiplier } from './tickets.js';
 
@@ -270,6 +271,34 @@ export function renderPrinterPanel(person, ticket, detail) {
     <footer class="tp-actions"><button class="btn ghost" data-action="close-station">Close ${key('E')}</button></footer>`;
   sheet.hidden = false;
   if (!wasOpen) sheet.scrollTop = 0;
+}
+
+/** The parts cabinet: pick what you need. log: recent messages. */
+export function renderCabinetPanel(carrying, log) {
+  const sheet = $('ticket');
+  const wasOpen = !sheet.hidden;
+  sheet.innerHTML = `
+    <header class="tp-head">
+      <span class="avatar big" style="--c:#4a525c" aria-hidden="true">C</span>
+      <div class="tp-who"><div class="tp-name">Parts cabinet</div><div class="small">${carrying ? `You are carrying: ${esc(ITEMS[carrying])}` : 'Your hands are empty'}</div></div>
+    </header>
+    <div class="tp-body">
+      <p class="small">Click an item to take it. You can carry one thing at a time; taking another puts the first one back.</p>
+      ${cabinetSvg(carrying)}
+      ${log.length ? `<ul class="sim-log">${log.slice(-2).map((m, i, a) => `<li class="${i === a.length - 1 ? 'new' : ''}">${esc(m)}</li>`).join('')}</ul>` : ''}
+    </div>
+    <footer class="tp-actions">
+      ${carrying ? `<button class="btn ghost" data-action="put-back">Put it back</button>` : ''}
+      <button class="btn" data-action="close-station">Close ${key('E')}</button>
+    </footer>`;
+  sheet.hidden = false;
+  if (!wasOpen) sheet.scrollTop = 0;
+}
+
+/** The small "Carrying" chip on screen. */
+export function setCarrying(item) {
+  $('carry').hidden = !item;
+  $('carry').innerHTML = item ? `Carrying: <b>${esc(ITEMS[item])}</b>` : '';
 }
 
 function questionHtml(person, detail) {

@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import { api, API_BASE } from './api.js';
 import { FollowCamera } from './camera.js';
 import {
-  createSim, moveToSpare, needsServerRoom, placesNeeded, printerAction, reportPort, reseat, takeToner, test as testFix,
+  createSim, moveToSpare, needsServerRoom, placesNeeded, printerAction, putBack, reportPort, reseat, takeItem, test as testFix,
 } from './handson.js';
 import { createEmployees } from './employees.js';
 import { Input } from './input.js';
@@ -224,13 +224,17 @@ function start() {
       const visit = (kind, place, action) => ({ ticket, kind, job: { steps: [{ place, action }], index: 0, finished: false } });
       if (needsServerRoom(d?.sim)) return [visit('switch', 'server_room', `Check Desk ${byName.get(ticket.employee).desk}'s port on the switch`)];
       if (d?.sim?.station === 'printer' && !d.result) {
+        // The cabinet itself is always open to use (below); here it only adds its marker.
         return placesNeeded(d.sim).map((place) =>
           place === 'printer'
             ? visit('printer', 'printer', `Check the printer for ${ticket.employee}`)
-            : visit('toner', 'parts_cabinet', 'Take a new toner cartridge'));
+            : visit('cabinet', 'parts_cabinet', 'Open the parts cabinet'));
       }
       return [];
     });
+  // The parts cabinet can always be opened. It only gets a marker when a ticket needs it.
+  const CABINET = { ticket: null, kind: 'cabinet', quiet: true, job: { steps: [{ place: 'parts_cabinet', action: 'Open the parts cabinet' }], index: 0, finished: false } };
+  const allPlaces = () => [...activeJobs(), CABINET];
   let working = null; // { ticket, step, place, t }: the player is doing a step at a place
   let nearPlace = null; // a place in reach with a step waiting
   let backendReady = false;
@@ -342,7 +346,7 @@ function start() {
         detail.description = reworded?.user_description || problem.user_description; // fallback text
         if (scenario) {
           detail.handsOn = scenario;
-          detail.sim = createSim(scenario, person.desk);
+          detail.sim = { ...createSim(scenario, person.desk), carrying: carried };
         }
         detail.state = 'ready';
       })
@@ -536,7 +540,34 @@ function start() {
     stationKind = kind;
     renderSwitch();
   }
+  // What the player is carrying from the parts cabinet (one item at a time).
+  let carried = null;
+  const cabinetLog = [];
+  function setCarried(item) {
+    carried = item;
+    ui.setCarrying(item);
+    // Every open hands-on ticket sees what the player is holding.
+    for (const d of details.values()) if (d.sim) d.sim = { ...d.sim, carrying: item };
+  }
+  function openCabinet() {
+    switchTicket = null;
+    stationKind = 'cabinet';
+    cabinetLog.length = 0;
+    sound.click();
+    renderSwitch();
+  }
+  function onCabinet(action, item) {
+    const step = action === 'take' ? takeItem(carried, item) : putBack(carried);
+    if (!step.message) return;
+    setCarried(step.carrying);
+    cabinetLog.push(step.message);
+    if (step.changed) sound.click();
+    renderSwitch();
+    ui.renderQueue(queue.open, byName, queueLabel);
+  }
+
   function renderSwitch() {
+    if (stationKind === 'cabinet') return ui.renderCabinetPanel(carried, cabinetLog);
     const detail = switchTicket && details.get(switchTicket.number);
     if (!detail) return closeSwitch();
     const person = byName.get(switchTicket.employee);
@@ -553,7 +584,12 @@ function start() {
     if (!detail?.sim) return;
     if (action === 'move') simAction(detail, moveToSpare(detail.sim, arg));
     else if (action === 'report') simAction(detail, reportPort(detail.sim));
-    else if (action === 'printer') simAction(detail, printerAction(detail.sim, arg));
+    else if (action === 'printer') {
+      // The printer may use what the player is carrying (a new toner cartridge).
+      const step = printerAction({ ...detail.sim, carrying: carried }, arg);
+      simAction(detail, step);
+      if (step.message) setCarried(step.sim.carrying);
+    }
     renderSwitch();
     ui.renderQueue(queue.open, byName, queueLabel);
   }
@@ -794,7 +830,7 @@ function start() {
   });
 
   input.onPress('KeyE', () => {
-    if (switchTicket) closeSwitch();
+    if (stationKind) closeSwitch();
     else if (talkingTo) closeConversation();
     else if (working || overlayOpen()) return;
     else if (nearPlace) startWork(nearPlace);
@@ -803,6 +839,7 @@ function start() {
 
   // ---------- physical fixes ----------
   function startWork(target) {
+    if (target.kind === 'cabinet') return openCabinet();
     if (target.kind === 'switch' || target.kind === 'printer') return openSwitch(target.ticket, target.kind);
     working = { ...target, t: 0 };
     player.face(target.place.markX, target.place.markZ);
@@ -816,11 +853,7 @@ function start() {
     $('prompt').hidden = false;
     if (working.t < WORK_SECONDS) return;
     const detail = details.get(working.ticket.number);
-    if (working.kind === 'toner' && detail?.sim) {
-      simAction(detail, takeToner(detail.sim));
-      ui.toast('Got a new toner cartridge. Next: <b>Printer</b>');
-      ui.renderQueue(queue.open, byName, queueLabel);
-    } else if (detail?.job) {
+    if (detail?.job) {
       detail.job = advance(detail.job);
       sound.correct();
       const next = jobLabel(detail.job, working.ticket.employee).replace(/^Next: /, '');
@@ -830,7 +863,7 @@ function start() {
     working = null;
   }
   input.onPress('Escape', () => {
-    if (switchTicket && !overlayOpen()) closeSwitch();
+    if (stationKind && !overlayOpen()) closeSwitch();
     else if (shareOpen) closeShare();
     else if (progressOpen) closeProgress();
     else if (helpOpen) closeHelp();
@@ -901,7 +934,10 @@ function start() {
     input.onPress(`Numpad${i}`, () => chooseOption(i - 1));
   }
   $('ticket').addEventListener('click', (e) => {
-    if (switchTicket) {
+    if (stationKind) {
+      const item = e.target.closest('[data-item]');
+      if (item) return onCabinet('take', item.dataset.item);
+      if (e.target.closest('[data-action="put-back"]')) return onCabinet('put-back');
       const spare = e.target.closest('[data-spare]');
       if (spare) return onSwitchAction('move', Number(spare.dataset.spare));
       const printerPart = e.target.closest('[data-printer]');
@@ -962,7 +998,7 @@ function start() {
     const dt = Math.min(rawDt, 0.05); // cap so a slow frame can't teleport the player
     const time = clock.elapsedTime;
 
-    player.update(dt, input.state, followCam.yaw, colliders, talkingTo !== null || overlayOpen() || working !== null || switchTicket !== null);
+    player.update(dt, input.state, followCam.yaw, colliders, talkingTo !== null || overlayOpen() || working !== null || stationKind !== null);
     if (switchTicket && !queue.open.includes(switchTicket)) closeSwitch();
     followCam.focusTarget = activeTicket ? 1 : 0;
     followCam.update(dt, player.position);
@@ -991,15 +1027,16 @@ function start() {
 
     // Physical fixes: a place with a step waiting comes before people nearby.
     const jobs = activeJobs();
+    const places = allPlaces();
     if (working && (!queue.open.includes(working.ticket) || overlayOpen())) {
       if (!queue.open.includes(working.ticket)) working = null; // shift ended mid-step
     } else if (working) {
       updateWork(dt);
     }
-    nearPlace = talkingTo || working || switchTicket ? null : placeInReach(player.position, jobs);
+    nearPlace = talkingTo || working || stationKind ? null : placeInReach(player.position, places);
 
     // Who is close enough to talk to?
-    nearby = talkingTo || working || switchTicket ? null : nearestWithin(player.position, employees, TALK_RADIUS);
+    nearby = talkingTo || working || stationKind ? null : nearestWithin(player.position, employees, TALK_RADIUS);
     if (nearPlace && nearby) {
       // Both in reach (Nida stands next to the printer): use whichever is closer.
       const toPlace = Math.hypot(nearPlace.place.x - player.position.x, nearPlace.place.z - player.position.z);
@@ -1007,7 +1044,7 @@ function start() {
       if (toPerson < toPlace) nearPlace = null;
       else nearby = null;
     }
-    if (switchTicket) {
+    if (stationKind) {
       $('prompt').hidden = true;
     } else if (working) {
       // the prompt shows the progress bar (updateWork)

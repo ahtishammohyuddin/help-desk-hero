@@ -405,3 +405,18 @@ kbd {
 .desk-no { font-size: 11px; color: var(--muted); font-weight: 700; }
 .station .cable { pointer-events: none; }
 .station .screen-text { font: 700 10px var(--font); fill: #1f3b24; }
+
+/* ---------- keep text inside its box ---------- */
+#prompt { max-width: min(560px, calc(100vw - 32px)); text-align: center; border-radius: 22px; line-height: 1.4; }
+#prompt .work-bar { margin: 6px auto 0; }
+.sheet, .sheet * { overflow-wrap: anywhere; }
+.sheet .opt, .sheet .btn { overflow-wrap: normal; }
+.station .tiny.ink { fill: var(--ink); }
+.carry { position: fixed; left: 50%; bottom: 100px; transform: translateX(-50%); padding: 6px 14px; border-radius: 99px; background: #fff8db; box-shadow: var(--shadow); font-size: 14px; }
+/* Buttons always visible at the bottom of the window, and drawings shrink on short screens */
+.sheet .tp-actions { position: sticky; bottom: -16px; z-index: 1; margin: 12px -20px -16px; padding: 12px 20px 16px; background: var(--paper); border-top: 1px solid var(--line); border-radius: 0 0 18px 18px; }
+.station { max-height: 46vh; }
+@media (max-height: 820px) {
+  .sheet { max-height: calc(100vh - 90px); }
+  .sim-log li:not(:nth-last-child(-n+2)) { display: none; }
+}

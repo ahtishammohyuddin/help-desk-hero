@@ -1,7 +1,10 @@
 // Run with: node --test game/tests/handson.test.mjs
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { createSim, moveToSpare, needsServerRoom, readings, reportPort, reseat, test as tryIt } from '../src/handson.js';
+import {
+  createSim, moveToSpare, needsServerRoom, placesNeeded, printerAction, printerReadings, readings, reportPort, reseat, takeToner,
+  test as tryIt,
+} from '../src/handson.js';
 
 const sim = (faults, goal, required = [], desk = 4) => createSim({ faults, goal, required }, desk);
 
@@ -119,10 +122,100 @@ const VALIDATOR_FAULTS = {
   network_cable_loose: 'internet', wall_cable_loose: 'internet', switch_port_dead: 'internet',
   video_cable_loose: 'display', monitor_power_loose: 'display', power_strip_off: 'power',
   pc_power_loose: 'power', keyboard_unplugged: 'keyboard', mouse_unplugged: 'mouse',
+  printer_off: 'print', printer_network_loose: 'print', paper_jam: 'print', toner_low: 'print',
+  toner_seal_left: 'print', needs_cleaning: 'print',
 };
 
 test('every fault the validator allows really breaks its goal in the simulation', () => {
   for (const [fault, goal] of Object.entries(VALIDATOR_FAULTS)) {
-    assert.equal(readings(createSim({ faults: [fault], goal }, 3)).works[goal], false, fault);
+    const s = createSim({ faults: [fault], goal }, 3);
+    const works = goal === 'print' ? printerReadings(s).works : readings(s).works[goal];
+    assert.equal(works, false, fault);
   }
+});
+
+// ---------- printer ----------
+
+const printer = (faults) => createSim({ faults, goal: 'print' }, 6);
+const act = (s, ...actions) => actions.reduce((cur, a) => printerAction(cur, a).sim, s);
+
+test('printer offline: the screen says no network until the cable is reseated', () => {
+  let s = printer(['printer_network_loose']);
+  assert.equal(s.station, 'printer');
+  assert.equal(printerReadings(s).screen, 'No network connection');
+  assert.deepEqual(placesNeeded(s), ['printer']);
+  assert.match(tryIt(s, 'Nida').message, /offline on the PC/);
+  // The test page still prints: it does not need the network.
+  assert.equal(act(s, 'test').testPage, 'good');
+  s = act(s, 'net');
+  assert.equal(printerReadings(s).screen, 'Ready');
+  assert.deepEqual(placesNeeded(s), []);
+  assert.equal(tryIt(s, 'Nida').solved, true);
+});
+
+test('paper jam: the sheet and then the torn scrap must both come out, and the door must close', () => {
+  let s = printer(['paper_jam']);
+  assert.match(printerReadings(s).screen, /Paper jam/);
+  assert.equal(printerAction(s, 'sheet').changed, false); // door still closed
+  s = act(s, 'door');
+  assert.equal(printerAction(s, 'scrap').changed, false); // the sheet comes first
+  s = act(s, 'sheet');
+  assert.equal(printerReadings(s).jammed, true); // the scrap is still inside
+  s = act(s, 'door');
+  assert.match(tryIt(s, 'Asad').message, /still says paper jam/);
+  s = act(s, 'door', 'scrap');
+  assert.match(tryIt(s, 'Asad').message, /front door is open/);
+  s = act(s, 'door');
+  assert.equal(tryIt(s, 'Asad').solved, true);
+});
+
+test('toner low: faint test page, a new cartridge from the parts cabinet, then good prints', () => {
+  let s = printer(['toner_low']);
+  assert.equal(act(s, 'test').testPage, 'faint');
+  s = act(s, 'door', 'cartridge');
+  assert.equal(s.printer.cartridge, 'out');
+  assert.deepEqual(placesNeeded(s), ['printer', 'parts_cabinet']);
+  assert.equal(printerAction(s, 'door').changed, false); // cannot close with the cartridge out
+  s = act(s, 'cartridge'); // put the old one back: still low
+  assert.equal(s.printer.tonerLow, true);
+  s = takeToner(s).sim;
+  assert.equal(takeToner(s).changed, false);
+  assert.deepEqual(placesNeeded(s), ['printer']);
+  s = act(s, 'cartridge', 'cartridge'); // take the old one out, put the new one in
+  assert.equal(s.printer.tonerLow, false);
+  assert.equal(s.carrying, null);
+  s = act(s, 'door');
+  assert.equal(act(s, 'test').testPage, 'good');
+  assert.equal(tryIt(s, 'Maryam').solved, true);
+});
+
+test('streaks: the cleaning routine fixes them, but only with the printer on and the door shut', () => {
+  let s = printer(['needs_cleaning']);
+  const first = printerAction(s, 'test');
+  assert.equal(first.sim.testPage, 'streaks');
+  assert.match(first.message, /fault is in the printer itself/);
+  assert.equal(printerAction(act(s, 'door'), 'clean').changed, false);
+  assert.equal(printerAction(act(s, 'power'), 'clean').changed, false);
+  s = act(s, 'clean');
+  assert.equal(act(s, 'test').testPage, 'good');
+  assert.equal(tryIt(s, 'Shazia').solved, true);
+});
+
+test('blank pages: the protective seal must be pulled from the cartridge', () => {
+  let s = printer(['toner_seal_left']);
+  assert.equal(act(s, 'test').testPage, 'blank');
+  s = act(s, 'door');
+  const out = printerAction(s, 'cartridge');
+  assert.match(out.message, /protective seal tab/);
+  s = act(out.sim, 'seal', 'cartridge', 'door');
+  assert.equal(act(s, 'test').testPage, 'good');
+  assert.equal(tryIt(s, 'Tahira').solved, true);
+});
+
+test('a printer that is off shows a blank screen and prints nothing', () => {
+  let s = printer(['printer_off']);
+  assert.equal(printerReadings(s).screen, '');
+  assert.match(printerAction(s, 'test').message, /printer is off/);
+  s = act(s, 'power');
+  assert.equal(tryIt(s, 'Nida').solved, true);
 });

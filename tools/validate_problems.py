@@ -54,8 +54,15 @@ HANDS_ON_FAULTS: dict[str, str] = {
     "pc_power_loose": "power",  # PC power cable loose at the back of the PC
     "keyboard_unplugged": "keyboard",
     "mouse_unplugged": "mouse",
+    # printer faults: the player works at the shared printer
+    "printer_off": "print",
+    "printer_network_loose": "print",  # network cable loose at the back of the printer
+    "paper_jam": "print",  # jammed sheet, with a torn scrap left behind
+    "toner_low": "print",  # needs a new cartridge from the parts cabinet
+    "toner_seal_left": "print",  # protective seal left in the toner cartridge
+    "needs_cleaning": "print",  # streaks until the printer's cleaning routine is run
 }
-HANDS_ON_GOALS = ("internet", "display", "power", "keyboard", "mouse")
+HANDS_ON_GOALS = ("internet", "display", "power", "keyboard", "mouse", "print")
 HANDS_ON_REQUIRED = {"report_port": "switch_port_dead"}  # required action -> fault it needs
 GENDERS = ("female", "male")
 MIN_OPTIONS = 3

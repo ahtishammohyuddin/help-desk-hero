@@ -2,7 +2,7 @@
 // Everything you can click has data-part (desk) or data-spare (switch).
 // The look comes from readings(sim), so lights always match the kit.
 
-import { PARTS, readings, SPARE_PORTS, SWITCH_PORTS } from './handson.js';
+import { PARTS, printerReadings, readings, SPARE_PORTS, SWITCH_PORTS } from './handson.js';
 
 const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 
@@ -182,5 +182,99 @@ export function deskSummary(sim) {
     `PC power light: ${r.pcOn ? 'on' : 'off'}`,
     `Monitor: ${screenWords[r.screen]}`,
     `Network light on the PC: ${r.link ? 'blinking' : 'off'}`,
+  ];
+}
+
+// ---------- the printer ----------
+
+/** A clickable printer part. */
+function pPart(action, label, inner, hit) {
+  return `<g class="part" data-printer="${action}" tabindex="0" role="button" aria-label="${esc(label)}"><title>${esc(label)}</title>
+    <rect x="${hit[0]}" y="${hit[1]}" width="${hit[2]}" height="${hit[3]}" rx="6" class="hit"/>${inner}</g>`;
+}
+
+/** The last test page, sticking out of the output tray. */
+function testPage(quality) {
+  if (!quality) return '';
+  const lines = [];
+  for (let i = 0; i < 6; i++) {
+    const color = quality === 'faint' ? '#d9dee4' : '#3b4552';
+    if (quality !== 'blank') lines.push(`<rect x="${98}" y="${30 + i * 9}" width="${i % 3 === 2 ? 40 : 64}" height="3" fill="${color}"/>`);
+  }
+  const streaks = quality === 'streaks'
+    ? '<rect x="112" y="24" width="3" height="60" fill="#7b8794" opacity="0.7"/><rect x="141" y="24" width="2" height="60" fill="#7b8794" opacity="0.6"/>'
+    : '';
+  return `<rect x="90" y="22" width="80" height="62" fill="#fff" stroke="#cfd6de"/>${lines.join('')}${streaks}
+    <text x="130" y="16" text-anchor="middle" class="tiny">Last test page</text>`;
+}
+
+/** Front of the shared printer, its back panel, and the toner cartridge when it is out. */
+export function printerSvg(sim) {
+  const p = sim.printer;
+  const r = printerReadings(sim);
+  const open = p.door === 'open';
+  const words = r.screen.split('. ');
+  const screenText = words.map((w, i) => `<text x="310" y="${88 + i * 13}" text-anchor="middle" class="screen-text">${esc(w)}</text>`).join('');
+
+  const interior = open
+    ? `<rect x="60" y="130" width="180" height="150" rx="4" fill="#1f252d"/>
+       <path d="M70 236 L230 236" stroke="#4a525c" stroke-width="3" stroke-dasharray="6 5"/>
+       <text x="150" y="272" text-anchor="middle" class="tiny light">paper path</text>
+       ${p.cartridge === 'in' ? pPart('cartridge', 'Take out the toner cartridge', `<rect x="80" y="148" width="140" height="30" rx="4" fill="#11161c" stroke="#5b6b7c"/><text x="150" y="168" text-anchor="middle" class="tiny light">Toner cartridge</text>`, [74, 142, 152, 42]) : '<rect x="80" y="148" width="140" height="30" rx="4" fill="none" stroke="#5b6b7c" stroke-dasharray="4 4"/>'}
+       ${p.jamSheet ? pPart('sheet', 'Pull out the jammed sheet', '<path d="M96 222 L196 214 L204 248 L104 256 Z" fill="#fafafa" stroke="#cfd6de"/><path d="M110 232 l70 -5 M112 240 l70 -5" stroke="#cfd6de"/>', [90, 208, 120, 54]) : ''}
+       ${!p.jamSheet && p.jamScrap ? pPart('scrap', 'Remove the torn scrap of paper', '<path d="M168 228 l12 -4 l4 9 l-6 3 l3 6 l-11 2 Z" fill="#fafafa" stroke="#cfd6de"/>', [158, 216, 34, 32]) : ''}
+       ${pPart('door', 'Close the front door', '<rect x="60" y="282" width="180" height="14" rx="3" fill="#cfd6de"/><text x="150" y="293" text-anchor="middle" class="tiny">close door</text>', [56, 278, 188, 22])}`
+    : pPart('door', 'Open the front door', `<rect x="60" y="130" width="180" height="150" rx="4" fill="#dfe4ea" stroke="#b7c2cd"/>
+        <rect x="120" y="140" width="60" height="8" rx="4" fill="#9aa4ae"/><text x="150" y="214" text-anchor="middle" class="lbl">Front door</text>`, [56, 126, 188, 158]);
+
+  const cartridgeOut = p.cartridge === 'out'
+    ? `${pPart('cartridge', p.tonerLow && sim.carrying === 'toner' ? 'Put in the new toner cartridge' : 'Put the toner cartridge back', `<rect x="420" y="250" width="140" height="28" rx="4" fill="#11161c" stroke="#5b6b7c"/><text x="490" y="269" text-anchor="middle" class="tiny light">${p.tonerLow ? 'Toner: 3% left' : 'Toner cartridge'}</text>`, [414, 244, 152, 40])}
+       ${p.seal ? pPart('seal', 'Pull out the protective seal', '<rect x="560" y="256" width="30" height="16" rx="3" fill="#ff8a1f"/><text x="575" y="290" text-anchor="middle" class="tiny strong">seal</text>', [554, 248, 42, 46]) : ''}
+       <text x="490" y="240" text-anchor="middle" class="lbl">Taken out</text>`
+    : '';
+  const carrying = sim.carrying === 'toner'
+    ? '<rect x="420" y="214" width="60" height="14" rx="3" fill="#11161c"/><text x="488" y="225" class="tiny">You have a new toner cartridge</text>'
+    : '';
+
+  return `<svg class="station" viewBox="0 0 600 310" role="img" aria-label="The shared printer">
+    <rect x="0" y="0" width="600" height="310" rx="12" fill="#e9edf2"/>
+    <!-- body -->
+    <rect x="40" y="34" width="340" height="24" rx="6" fill="#c9d1da"/>
+    <rect x="40" y="56" width="340" height="244" rx="8" fill="#eceff2" stroke="#b7c2cd"/>
+    <rect x="70" y="62" width="160" height="10" rx="3" fill="#b7c2cd"/>
+    ${testPage(sim.testPage)}
+    <!-- control panel -->
+    <rect x="252" y="70" width="116" height="104" rx="6" fill="#2b313a"/>
+    <rect x="260" y="76" width="100" height="32" rx="3" fill="${r.powered ? '#cdeccf' : '#151a20'}"/>
+    ${screenText}
+    ${pPart('power', r.powered ? 'Switch the printer off' : 'Switch the printer on', `<circle cx="274" cy="130" r="11" fill="#11161c" stroke="#5b6b7c"/><circle cx="274" cy="130" r="4" fill="${r.powered ? '#33d17a' : '#4a525c'}"/>`, [260, 116, 28, 28])}
+    <text x="274" y="160" text-anchor="middle" class="tiny light">power</text>
+    ${pPart('test', 'Print a test page', '<rect x="296" y="118" width="64" height="20" rx="4" fill="#4b5563"/><text x="328" y="132" text-anchor="middle" class="tiny light">Test page</text>', [292, 114, 72, 28])}
+    ${pPart('clean', 'Run the cleaning routine', '<rect x="296" y="144" width="64" height="20" rx="4" fill="#4b5563"/><text x="328" y="158" text-anchor="middle" class="tiny light">Cleaning</text>', [292, 140, 72, 28])}
+    ${interior}
+    <!-- back of the printer -->
+    <rect x="410" y="34" width="170" height="160" rx="8" fill="#3a4450"/>
+    <text x="495" y="54" text-anchor="middle" class="lbl light">Back of printer</text>
+    <rect x="430" y="76" width="26" height="18" rx="2" fill="#11161c"/>
+    <path class="cable" d="M443 85 C 443 140, 420 150, 420 194" stroke="#2a2f36" stroke-width="5" fill="none"/>
+    <text x="466" y="89" class="tiny light">Power</text>
+    <rect x="${505 - 9}" y="${130 - 8}" width="18" height="16" rx="2" fill="#11161c"/>
+    ${cable(505, 194, 505, 130, p.net, { bend: -20 })}
+    ${led(540, 130, r.online, { blink: true, color: '#ffb02e' })}
+    <text x="505" y="170" text-anchor="middle" class="tiny light">Network</text>
+    ${pPart('net', 'Check the printer network cable', `<rect x="${505 - 8}" y="${(p.net === 'loose' ? 148 : 130) - 7}" width="16" height="14" rx="2" fill="#11161c" stroke="#8a97a5" stroke-width="1.2"/>${sim.looked.printerNet ? `<circle cx="519" cy="${(p.net === 'loose' ? 148 : 130) - 11}" r="5" fill="#1f9d55"/>` : ''}`, [485, p.net === 'loose' ? 133 : 115, 40, 32])}
+    ${carrying}
+    ${cartridgeOut}
+  </svg>`;
+}
+
+export function printerSummary(sim) {
+  const r = printerReadings(sim);
+  const page = { good: 'clean', faint: 'very faint', streaks: 'streaky', blank: 'blank' };
+  return [
+    `Screen: ${r.powered ? r.screen : 'off'}`,
+    `Network light: ${r.online ? 'blinking' : 'off'}`,
+    `Front door: ${sim.printer.door}`,
+    `Last test page: ${sim.testPage ? page[sim.testPage] : 'none yet'}`,
   ];
 }

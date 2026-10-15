@@ -404,3 +404,4 @@ kbd {
 .notice.blue-note { background: var(--blue-soft); color: var(--ink); }
 .desk-no { font-size: 11px; color: var(--muted); font-weight: 700; }
 .station .cable { pointer-events: none; }
+.station .screen-text { font: 700 10px var(--font); fill: #1f3b24; }

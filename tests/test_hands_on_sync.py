@@ -19,7 +19,7 @@ def _keys(text: str, block: str) -> set[str]:
 
 def test_game_simulates_every_validator_fault():
     source = (GAME / "src" / "handson.js").read_text(encoding="utf-8")
-    simulated = _keys(source, "const FAULT_PARTS") | {"switch_port_dead"}  # the port is handled separately
+    simulated = _keys(source, "const FAULT_PARTS") | _keys(source, "const PRINTER_FAULTS") | {"switch_port_dead"}
     assert simulated == set(HANDS_ON_FAULTS)
 
 

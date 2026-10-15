@@ -4,9 +4,9 @@
 
 import { ACHIEVEMENTS } from './achievements.js';
 import { DISCLAIMER, NAME_MAX } from './cards.js';
-import { needsServerRoom } from './handson.js';
+import { needsServerRoom, placesNeeded } from './handson.js';
 import { jobStage, PLACES } from './jobs.js';
-import { deskSummary, deskSvg, switchSvg } from './stations.js';
+import { deskSummary, deskSvg, printerSummary, printerSvg, switchSvg } from './stations.js';
 import { topicStatus } from './shift.js';
 import { PRIORITIES, RANKS, rankFor, streakMultiplier } from './tickets.js';
 
@@ -144,6 +144,10 @@ export function renderTicketPanel(person, ticket, detail) {
       body = deskHtml(person, detail);
       actions = `${hintBtn}<button class="btn ghost" data-action="talk-view">Back to ${esc(person.name)} ${key('B')}</button>
         <button class="btn" data-action="test" ${detail.answering ? 'disabled' : ''}>Ask ${esc(person.name)} to test ${key('T')}</button>`;
+    } else if (detail.sim.station === 'printer') {
+      body = handsOnTalkHtml(person, detail);
+      actions = `${hintBtn}<button class="btn ghost" data-action="later">On my way ${key('E')}</button>
+        <button class="btn" data-action="test" ${detail.answering ? 'disabled' : ''}>Ask ${esc(person.name)} to print again ${key('T')}</button>`;
     } else {
       body = handsOnTalkHtml(person, detail);
       actions = `${hintBtn}<button class="btn ghost" data-action="later">Come back later ${key('E')}</button>
@@ -194,7 +198,9 @@ function handsOnTalkHtml(person, detail) {
     <div class="bubble">${esc(detail.description)}</div>
     ${hintsAndRetry(detail)}
     ${logHtml(detail)}
-    <div class="handson-intro"><b>This one is hands-on.</b> Inspect ${esc(person.name)}'s desk and find what is wrong. Checking things is free.</div>
+    ${detail.sim.station === 'printer'
+      ? `<div class="handson-intro"><b>This one is hands-on.</b> Go to the printer (follow the blue marker) and find what is wrong. Checking things and printing test pages is free. When it is fixed, come back and ask ${esc(person.name)} to print again.</div>`
+      : `<div class="handson-intro"><b>This one is hands-on.</b> Inspect ${esc(person.name)}'s desk and find what is wrong. Checking things is free.</div>`}
     <h3 class="ask">Or try one of these instead</h3>
     <div class="opts">${decoys}</div>
     <p class="small">A wrong fix costs XP, like a wrong answer.</p>`;
@@ -234,6 +240,34 @@ export function renderSwitchPanel(person, ticket, detail) {
       ${canReport ? `<button class="btn" data-action="report">Log the faulty port for the network team ${key('L')}</button>` : ''}
       <button class="btn ghost" data-action="close-station">Close ${key('E')}</button>
     </footer>`;
+  sheet.hidden = false;
+  if (!wasOpen) sheet.scrollTop = 0;
+}
+
+/** The shared printer, opened by walking to it and pressing E. */
+export function renderPrinterPanel(person, ticket, detail) {
+  const sim = detail.sim;
+  const sheet = $('ticket');
+  const wasOpen = !sheet.hidden;
+  const cabinet = placesNeeded(sim).includes('parts_cabinet')
+    ? '<div class="notice blue-note"><b>Next:</b> get a new toner cartridge from the parts cabinet (blue marker), then come back.</div>'
+    : '';
+  const done = placesNeeded(sim).length === 0
+    ? `<div class="notice blue-note">The printer looks fixed. Go back to ${esc(person.name)} and ask them to print again.</div>`
+    : '';
+  sheet.innerHTML = `
+    <header class="tp-head">
+      <span class="avatar big" style="--c:#5b6b7c" aria-hidden="true">P</span>
+      <div class="tp-who"><div class="tp-name">Shared printer</div><div class="small">For ${esc(person.name)}, Desk ${person.desk}, ticket ${ticket.number}</div></div>
+      <div class="tp-meta">${priorityBadge(ticket.priority)}<span id="tp-timer" class="timer"></span></div>
+    </header>
+    <div class="tp-body">
+      <p class="small">Read the screen, print a test page, open the front door, and check the back of the printer. Click a part to use it.</p>
+      ${printerSvg(sim)}
+      <ul class="readings">${printerSummary(sim).map((t) => `<li>${esc(t)}</li>`).join('')}</ul>
+      ${cabinet}${done}${logHtml(detail)}
+    </div>
+    <footer class="tp-actions"><button class="btn ghost" data-action="close-station">Close ${key('E')}</button></footer>`;
   sheet.hidden = false;
   if (!wasOpen) sheet.scrollTop = 0;
 }

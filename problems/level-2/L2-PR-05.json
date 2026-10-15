@@ -39,11 +39,11 @@
     "Could something have been left on a new cartridge?"
   ],
   "real_world_tip": "Brand new cartridges often have a plastic seal or tape that must be removed. Forgetting it gives blank pages.",
-  "physical_steps": [
-    {
-      "place": "printer",
-      "action": "Print the test page and check the cartridge has no protective seal left on"
-    }
-  ],
+  "hands_on": {
+    "faults": [
+      "toner_seal_left"
+    ],
+    "goal": "print"
+  },
   "reviewed": true
 }

@@ -33,6 +33,19 @@ const FAULT_PARTS = {
   mouse_unplugged: ['mouse', 'out'],
 };
 
+// Printer faults (all break printing). The printer is shared, so its station is at the printer.
+const PRINTER_FAULTS = {
+  printer_off: 'the printer is switched off',
+  printer_network_loose: 'the network cable is loose at the back of the printer',
+  paper_jam: 'a sheet is jammed, and a torn scrap stays behind when it is pulled out',
+  toner_low: 'the toner cartridge is nearly empty',
+  toner_seal_left: 'the protective seal was left in the toner cartridge',
+  needs_cleaning: 'the printer needs its cleaning routine',
+};
+
+/** Is this a printer scenario (station at the printer) rather than a desk one? */
+export const isPrinterScenario = (scenario) => scenario.faults.some((f) => f in PRINTER_FAULTS);
+
 /** A new simulation for one ticket. deskNumber is the person's desk (and switch port). */
 export function createSim(scenario, deskNumber) {
   const desk = {
@@ -47,10 +60,28 @@ export function createSim(scenario, deskNumber) {
       desk[part] = broken;
     }
   }
+  const has = (f) => scenario.faults.includes(f);
+  const printer = isPrinterScenario(scenario)
+    ? {
+        power: has('printer_off') ? 'off' : 'on',
+        net: has('printer_network_loose') ? 'loose' : 'in',
+        door: 'closed',
+        jamSheet: has('paper_jam'),
+        jamScrap: has('paper_jam'),
+        cartridge: 'in',
+        tonerLow: has('toner_low'),
+        seal: has('toner_seal_left'),
+        dirty: has('needs_cleaning'),
+      }
+    : null;
   return {
     goal: scenario.goal,
     required: [...(scenario.required ?? [])],
     deskNumber,
+    station: printer ? 'printer' : 'desk',
+    printer,
+    carrying: null, // e.g. 'toner' after taking a cartridge from the parts cabinet
+    testPage: null, // the last printer test page: 'good', 'faint', 'streaks', 'blank'
     desk,
     port: { number: deskNumber, dead: portDead, movedTo: null },
     done: {}, // required actions done, e.g. { report_port: true }
@@ -136,12 +167,125 @@ export function reportPort(sim) {
   };
 }
 
+// ---------- the printer ----------
+
+/** What the printer shows and whether it can print. */
+export function printerReadings(sim) {
+  const p = sim.printer;
+  const powered = p.power === 'on';
+  const online = powered && p.net === 'in';
+  const jammed = p.jamSheet || p.jamScrap;
+  let screen;
+  if (!powered) screen = '';
+  else if (p.door === 'open') screen = 'Front door open';
+  else if (jammed) screen = 'Paper jam. Open the front door';
+  else if (!online) screen = 'No network connection';
+  else if (p.tonerLow) screen = 'Toner low (3%)';
+  else screen = 'Ready';
+  const canPrint = powered && p.door === 'closed' && !jammed && p.cartridge === 'in';
+  const quality = p.seal ? 'blank' : p.tonerLow ? 'faint' : p.dirty ? 'streaks' : 'good';
+  return { powered, online, jammed, screen, canPrint, quality, works: online && canPrint && quality === 'good' };
+}
+
+const changedPrinter = (sim, patch, message, extra = {}) => ({
+  sim: { ...sim, ...extra, printer: { ...sim.printer, ...patch } },
+  message,
+  changed: true,
+});
+const same = (sim, message) => ({ sim, message, changed: false });
+
+/** Every printer action, by name. Returns { sim, message, changed }. */
+export function printerAction(sim, action) {
+  const p = sim.printer;
+  const r = printerReadings(sim);
+  const looked = (k) => ({ looked: { ...sim.looked, [k]: true } });
+  switch (action) {
+    case 'power':
+      return changedPrinter(sim, { power: r.powered ? 'off' : 'on' }, r.powered ? 'You switch the printer off.' : 'You switch the printer on. It warms up.');
+    case 'net':
+      if (p.net === 'in') return same({ ...sim, ...looked('printerNet') }, 'You check the network cable at the back of the printer. It is already firmly in.');
+      return changedPrinter(sim, { net: 'in' }, 'The network cable at the back of the printer was loose. You push it in until it clicks.', looked('printerNet'));
+    case 'door':
+      if (p.door === 'open' && p.cartridge === 'out') return same(sim, 'Put the toner cartridge back before closing the door.');
+      return changedPrinter(sim, { door: p.door === 'open' ? 'closed' : 'open' }, p.door === 'open' ? 'You close the front door.' : 'You open the front door.');
+    case 'sheet':
+      if (p.door !== 'open' || !p.jamSheet) return same(sim, '');
+      return changedPrinter(sim, { jamSheet: false }, 'You gently pull the jammed sheet out along the paper path. Check that nothing is left inside.');
+    case 'scrap':
+      if (p.door !== 'open' || p.jamSheet || !p.jamScrap) return same(sim, '');
+      return changedPrinter(sim, { jamScrap: false }, 'You remove a small torn scrap of paper that was still stuck inside.');
+    case 'cartridge':
+      if (p.door !== 'open') return same(sim, '');
+      if (p.cartridge === 'in') {
+        const note = p.tonerLow
+          ? 'It feels very light, and the level shows 3%. You need a new toner cartridge from the parts cabinet.'
+          : p.seal
+            ? 'An orange protective seal tab is still sticking out of it.'
+            : 'It looks fine.';
+        return changedPrinter(sim, { cartridge: 'out' }, `You take out the toner cartridge. ${note}`, looked('cartridge'));
+      }
+      if (p.tonerLow && sim.carrying === 'toner') {
+        return changedPrinter(sim, { cartridge: 'in', tonerLow: false }, 'You put in the new toner cartridge. The old one goes in the recycling box.', { carrying: null });
+      }
+      return changedPrinter(sim, { cartridge: 'in' }, 'You put the toner cartridge back in.');
+    case 'seal':
+      if (p.cartridge !== 'out' || !p.seal) return same(sim, '');
+      return changedPrinter(sim, { seal: false }, 'You pull out the orange protective seal. New cartridges ship with it, and it blocks the toner.');
+    case 'clean':
+      if (!r.powered) return same(sim, 'The printer is off.');
+      if (p.door === 'open') return same(sim, 'Close the front door first.');
+      return changedPrinter(sim, { dirty: false }, 'You run the cleaning routine from the printer menu. It takes about a minute.');
+    case 'test': {
+      if (!r.powered) return same(sim, 'The printer is off, so nothing prints.');
+      if (!r.canPrint) return same({ ...sim, testPage: null }, `The test page does not print: the screen says "${r.screen}".`);
+      const words = {
+        good: 'The test page comes out clean and sharp.',
+        faint: 'The test page comes out very light and faded.',
+        streaks: 'The test page has streaks running down it. So the fault is in the printer itself, not the document.',
+        blank: 'The test page comes out completely blank. So the fault is in the printer itself, not the document or the driver.',
+      };
+      return { sim: { ...sim, testPage: r.quality }, message: words[r.quality], changed: true };
+    }
+    default:
+      return same(sim, '');
+  }
+}
+
+/** Take a new toner cartridge from the parts cabinet. */
+export function takeToner(sim) {
+  if (sim.carrying === 'toner') return same(sim, 'You are already carrying a new toner cartridge.');
+  return { sim: { ...sim, carrying: 'toner' }, message: 'You take a new toner cartridge from the parts cabinet.', changed: true };
+}
+
+/** Places this ticket needs right now, for markers: 'printer', 'parts_cabinet'. */
+export function placesNeeded(sim) {
+  if (!sim || sim.station !== 'printer') return [];
+  if (printerReadings(sim).works) return [];
+  const places = ['printer'];
+  if (sim.printer.tonerLow && sim.looked.cartridge && sim.carrying !== 'toner') places.push('parts_cabinet');
+  return places;
+}
+
+// Why printing still fails, in the person's words, worked out from the printer.
+function printFailure(sim) {
+  const r = printerReadings(sim);
+  if (!r.powered) return 'the printer is still off';
+  if (r.jammed) return 'the printer still says paper jam';
+  if (sim.printer.door === 'open' || sim.printer.cartridge === 'out') return 'the printer says its front door is open';
+  if (!r.online) return 'the printer still shows as offline on the PC';
+  if (r.quality === 'blank') return 'the page still comes out blank';
+  if (r.quality === 'faint') return 'the print is still very light and faded';
+  if (r.quality === 'streaks') return 'there are still streaks down the page';
+  return 'it still does not print';
+}
+
 const GOAL_WORDS = {
   internet: ['the internet works again', 'there is still no internet'],
   display: ['the picture is back on the monitor', 'the monitor still shows no picture'],
   power: ['the PC starts up', 'the PC still will not turn on'],
   keyboard: ['typing works again', 'the keyboard still does not type'],
   mouse: ['the mouse pointer moves again', 'the mouse pointer still does not move'],
+  print: ['the document prints properly', null], // failures come from printFailure()
 };
 
 /**
@@ -150,6 +294,10 @@ const GOAL_WORDS = {
  * A failed test can give a clue about where to look next.
  */
 export function test(sim, name) {
+  if (sim.station === 'printer') {
+    const ok = printerReadings(sim).works;
+    return { sim, ok, solved: ok, message: `${name} prints again: ${ok ? GOAL_WORDS.print[0] : printFailure(sim)}.` };
+  }
   const r = readings(sim);
   const ok = r.works[sim.goal];
   const missing = sim.required.filter((a) => !sim.done[a]);

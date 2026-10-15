@@ -4,7 +4,9 @@
 import * as THREE from 'three';
 import { api, API_BASE } from './api.js';
 import { FollowCamera } from './camera.js';
-import { createSim, moveToSpare, needsServerRoom, reportPort, reseat, test as testFix } from './handson.js';
+import {
+  createSim, moveToSpare, needsServerRoom, placesNeeded, printerAction, reportPort, reseat, takeToner, test as testFix,
+} from './handson.js';
 import { createEmployees } from './employees.js';
 import { Input } from './input.js';
 import { advance, createJob, finish, jobLabel, jobStage, PLACES, placeInReach, placesWaiting, WORK_SECONDS } from './jobs.js';
@@ -206,6 +208,10 @@ function start() {
   const queueLabel = (t) => {
     const d = details.get(t.number);
     if (needsServerRoom(d?.sim)) return 'Next: Server room';
+    if (d?.sim?.station === 'printer' && !d.result) {
+      const need = placesNeeded(d.sim);
+      return need.includes('parts_cabinet') ? 'Next: Parts cabinet' : need.length ? 'Next: Printer' : `Next: back to ${t.employee}`;
+    }
     if (d?.sim && d.sim.port.movedTo !== null && !d.result) return `Next: back to ${t.employee}`;
     return jobLabel(d?.job, t.employee);
   };
@@ -215,9 +221,13 @@ function start() {
     queue.open.flatMap((ticket) => {
       const d = details.get(ticket.number);
       if (jobStage(d?.job) !== 'finished') return [{ ticket, job: d.job }];
-      if (needsServerRoom(d?.sim)) {
-        const action = `Check Desk ${byName.get(ticket.employee).desk}'s port on the switch`;
-        return [{ ticket, kind: 'switch', job: { steps: [{ place: 'server_room', action }], index: 0, finished: false } }];
+      const visit = (kind, place, action) => ({ ticket, kind, job: { steps: [{ place, action }], index: 0, finished: false } });
+      if (needsServerRoom(d?.sim)) return [visit('switch', 'server_room', `Check Desk ${byName.get(ticket.employee).desk}'s port on the switch`)];
+      if (d?.sim?.station === 'printer' && !d.result) {
+        return placesNeeded(d.sim).map((place) =>
+          place === 'printer'
+            ? visit('printer', 'printer', `Check the printer for ${ticket.employee}`)
+            : visit('toner', 'parts_cabinet', 'Take a new toner cartridge'));
       }
       return [];
     });
@@ -518,26 +528,32 @@ function start() {
     }
   }
 
-  // The switch in the server room, opened by walking there and pressing E.
-  let switchTicket = null;
-  function openSwitch(ticket) {
+  // Stations away from the desk (the server room switch, the printer), opened by walking there and pressing E.
+  let switchTicket = null; // the ticket a station is open for
+  let stationKind = null; // 'switch' or 'printer'
+  function openSwitch(ticket, kind = 'switch') {
     switchTicket = ticket;
+    stationKind = kind;
     renderSwitch();
   }
   function renderSwitch() {
     const detail = switchTicket && details.get(switchTicket.number);
     if (!detail) return closeSwitch();
-    ui.renderSwitchPanel(byName.get(switchTicket.employee), switchTicket, detail);
+    const person = byName.get(switchTicket.employee);
+    if (stationKind === 'printer') ui.renderPrinterPanel(person, switchTicket, detail);
+    else ui.renderSwitchPanel(person, switchTicket, detail);
   }
   function closeSwitch() {
     switchTicket = null;
+    stationKind = null;
     ui.hideTicketPanel();
   }
-  function onSwitchAction(action, port) {
+  function onSwitchAction(action, arg) {
     const detail = switchTicket && details.get(switchTicket.number);
     if (!detail?.sim) return;
-    if (action === 'move') simAction(detail, moveToSpare(detail.sim, port));
+    if (action === 'move') simAction(detail, moveToSpare(detail.sim, arg));
     else if (action === 'report') simAction(detail, reportPort(detail.sim));
+    else if (action === 'printer') simAction(detail, printerAction(detail.sim, arg));
     renderSwitch();
     ui.renderQueue(queue.open, byName, queueLabel);
   }
@@ -787,7 +803,7 @@ function start() {
 
   // ---------- physical fixes ----------
   function startWork(target) {
-    if (target.kind === 'switch') return openSwitch(target.ticket);
+    if (target.kind === 'switch' || target.kind === 'printer') return openSwitch(target.ticket, target.kind);
     working = { ...target, t: 0 };
     player.face(target.place.markX, target.place.markZ);
     sound.click();
@@ -800,7 +816,11 @@ function start() {
     $('prompt').hidden = false;
     if (working.t < WORK_SECONDS) return;
     const detail = details.get(working.ticket.number);
-    if (detail?.job) {
+    if (working.kind === 'toner' && detail?.sim) {
+      simAction(detail, takeToner(detail.sim));
+      ui.toast('Got a new toner cartridge. Next: <b>Printer</b>');
+      ui.renderQueue(queue.open, byName, queueLabel);
+    } else if (detail?.job) {
       detail.job = advance(detail.job);
       sound.correct();
       const next = jobLabel(detail.job, working.ticket.employee).replace(/^Next: /, '');
@@ -884,6 +904,8 @@ function start() {
     if (switchTicket) {
       const spare = e.target.closest('[data-spare]');
       if (spare) return onSwitchAction('move', Number(spare.dataset.spare));
+      const printerPart = e.target.closest('[data-printer]');
+      if (printerPart) return onSwitchAction('printer', printerPart.dataset.printer);
       const act = e.target.closest('[data-action]')?.dataset.action;
       if (act === 'report') onSwitchAction('report');
       else if (act === 'close-station') closeSwitch();
@@ -977,7 +999,14 @@ function start() {
     nearPlace = talkingTo || working || switchTicket ? null : placeInReach(player.position, jobs);
 
     // Who is close enough to talk to?
-    nearby = talkingTo || working || nearPlace || switchTicket ? null : nearestWithin(player.position, employees, TALK_RADIUS);
+    nearby = talkingTo || working || switchTicket ? null : nearestWithin(player.position, employees, TALK_RADIUS);
+    if (nearPlace && nearby) {
+      // Both in reach (Nida stands next to the printer): use whichever is closer.
+      const toPlace = Math.hypot(nearPlace.place.x - player.position.x, nearPlace.place.z - player.position.z);
+      const toPerson = Math.hypot(nearby.x - player.position.x, nearby.z - player.position.z);
+      if (toPerson < toPlace) nearPlace = null;
+      else nearby = null;
+    }
     if (switchTicket) {
       $('prompt').hidden = true;
     } else if (working) {

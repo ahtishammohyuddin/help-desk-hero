@@ -2,12 +2,14 @@
 // Later we can swap any piece for a real low-poly model without changing the rest.
 //
 // Coordinates: X runs west (-) to east (+), Z runs north (-) to south (+), Y is up.
-// The office floor covers X -20..20 and Z -14..14. One unit is roughly one metre.
+// The main office covers X -20..20 and Z -14..14; the east wing (kitchen, lounge, meeting room,
+// learning corner) covers X 20..36. One unit is roughly one metre.
 
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
-export const BOUNDS = { minX: -20, maxX: 20, minZ: -14, maxZ: 14 };
+export const BOUNDS = { minX: -20, maxX: 36, minZ: -14, maxZ: 14 };
+export const MAIN_MAX_X = 20; // the wall between the main office and the east wing
 export const PLAYER_START = { x: -15, z: 9 };
 
 const COLORS = {
@@ -31,6 +33,14 @@ const COLORS = {
   plantPot: 0xc0704b,
   plant: 0x5f9e5a,
   glass: 0xa9d6e8,
+  kitchenFloor: 0xd9d4ca,
+  loungeRug: 0x7b8fa6,
+  meetingCarpet: 0xbfc8d4,
+  learnCarpet: 0xd8cfe6,
+  sofa: 0x4f6d8f,
+  wood: 0x9b7653,
+  counter: 0xe9e4dc,
+  fridge: 0xdfe4e8,
 };
 
 /** Builds everything into `scene`. Returns colliders and things that animate. */
@@ -81,22 +91,32 @@ export function buildOffice(scene) {
   floorPatch(-20, -13, -14, -7.5, COLORS.carpetPrint);   // printer corner
   floorPatch(-20, -11, 5.5, 14, COLORS.carpetHelp);      // IT help desk
   floorPatch(10, 20, -14, -6, COLORS.serverFloor);       // server room
+  floorPatch(20.2, 36, -14, -6.5, COLORS.kitchenFloor);   // kitchen
+  floorPatch(22, 31, -4.2, 3.8, COLORS.loungeRug);       // lounge rug
+  floorPatch(26.2, 36, 6, 14, COLORS.meetingCarpet);      // meeting room
+  floorPatch(20.2, 26, 6, 14, COLORS.learnCarpet);        // learning corner
 
   // ---------- outer walls ----------
   const T = 0.3; // wall thickness
   const H = 3; // wall height
-  box(40 + 2 * T, H, T, COLORS.wall, 0, 0, BOUNDS.minZ - T / 2, { collide: true }); // north
+  const width = BOUNDS.maxX - BOUNDS.minX;
+  const midX = (BOUNDS.maxX + BOUNDS.minX) / 2;
+  box(width + 2 * T, H, T, COLORS.wall, midX, 0, BOUNDS.minZ - T / 2, { collide: true }); // north
   box(T, H, 28, COLORS.wall, BOUNDS.minX - T / 2, 0, 0, { collide: true }); // west
   box(T, H, 28, COLORS.wall, BOUNDS.maxX + T / 2, 0, 0, { collide: true }); // east
+  // The old east wall, now between the main office and the east wing, with a wide opening in the middle.
+  box(T, H, 9, COLORS.wall, MAIN_MAX_X + T / 2, 0, -9.5, { collide: true });
+  box(T, H, 9, COLORS.wall, MAIN_MAX_X + T / 2, 0, 9.5, { collide: true });
   // South wall is low so the camera can see over it. Gap in the middle is the entrance.
   box(18, 1, T, COLORS.wall, -11, 0, BOUNDS.maxZ + T / 2, { collide: true });
   box(18, 1, T, COLORS.wall, 11, 0, BOUNDS.maxZ + T / 2, { collide: true });
+  box(16, 1, T, COLORS.wall, 28, 0, BOUNDS.maxZ + T / 2, { collide: true }); // east wing
   box(4, 2.2, 0.1, COLORS.glass, 0, 0, BOUNDS.maxZ + T / 2, {
     collide: true, cast: false, extra: { transparent: true, opacity: 0.3 },
   }); // glass entrance door
   box(3, 0.02, 1.2, 0x6b4f3a, 0, 0, 13.2, { cast: false }); // doormat
   // Skirting trim along the inside of the tall walls
-  box(40, 0.12, 0.05, COLORS.wallTrim, 0, 0, BOUNDS.minZ + 0.03);
+  box(width, 0.12, 0.05, COLORS.wallTrim, midX, 0, BOUNDS.minZ + 0.03);
   box(0.05, 0.12, 28, COLORS.wallTrim, BOUNDS.minX + 0.03, 0, 0);
   box(0.05, 0.12, 28, COLORS.wallTrim, BOUNDS.maxX - 0.03, 0, 0);
 
@@ -169,6 +189,84 @@ export function buildOffice(scene) {
   box(2.4, 0.5, 0.2, 0x6c8296, 16.5, 0.45, 12.95);
   sign('WELCOME', 2.2, 0.5, 0x2c3e50, '#ffffff', 19.84, 2.2, 9.5, -Math.PI / 2);
 
+  // ---------- east wing: kitchen ----------
+  box(9, 0.9, 0.7, COLORS.counter, 26.5, 0, -13.5, { collide: true }); // counter
+  box(9, 0.05, 0.75, 0x8a8f96, 26.5, 0.9, -13.5); // worktop
+  box(0.55, 0.6, 0.45, 0x2b313a, 24, 0.95, -13.5); // coffee machine
+  box(0.2, 0.08, 0.2, 0xc0392b, 24, 1.3, -13.25); // its button
+  box(0.4, 0.3, 0.35, 0xeeeeee, 25.3, 0.95, -13.55); // kettle / microwave
+  box(0.9, 0.9, 0.35, 0xb7c2cd, 28.8, 0.95, -13.7); // wall cupboard
+  box(1, 2, 0.8, COLORS.fridge, 32, 0, -13.4, { collide: true }); // fridge
+  box(0.05, 0.6, 0.04, 0x9aa4ae, 31.6, 1.1, -12.98); // fridge handle
+  roundTable(28, -9.8, 0.75);
+  chair(28, -10.9, 0); chair(28, -8.7, Math.PI); chair(26.9, -9.8, Math.PI / 2); chair(29.1, -9.8, -Math.PI / 2);
+  box(0.4, 0.4, 0.3, 0xd33a3a, 34.8, 1.2, -13.8); // first aid box
+  box(0.25, 0.08, 0.31, 0xffffff, 34.8, 1.36, -13.64);
+  sign('KITCHEN', 1.8, 0.45, 0x5b3a1e, '#ffe2b8', 28, 2.3, -13.84, 0);
+  plant(35.2, -7.4);
+
+  // ---------- east wing: lounge (sofa, TV, game corner) ----------
+  box(0.9, 0.45, 3.2, COLORS.sofa, 23.2, 0, 0, { collide: true }); // sofa seat
+  box(0.25, 0.55, 3.2, 0x435d7a, 22.8, 0.45, 0); // sofa back
+  box(0.9, 0.6, 0.25, 0x435d7a, 23.2, 0, -1.6); // arms
+  box(0.9, 0.6, 0.25, 0x435d7a, 23.2, 0, 1.6);
+  box(1.0, 0.4, 1.6, COLORS.wood, 25.6, 0, 0, { collide: true }); // coffee table
+  box(0.5, 0.75, 1.0, 0x2b313a, 30.2, 0, 0, { collide: true }); // TV stand
+  box(0.08, 1.1, 2.0, 0x11161c, 30.2, 0.95, 0); // TV
+  box(0.02, 0.95, 1.85, 0x2f6feb, 30.15, 1.02, 0, { extra: { emissive: 0x2f6feb, emissiveIntensity: 0.35 } }); // TV screen
+  beanbag(26.6, -2.8, 0xe0a64b);
+  beanbag(26.6, 2.8, 0x5aa87a);
+  // game corner: an arcade cabinet for the mini-games
+  box(0.9, 1.7, 0.8, 0x3a2a6b, 33.6, 0, -2.6, { collide: true });
+  box(0.7, 0.5, 0.05, 0x7ee0ff, 33.6, 1.15, -2.18, { extra: { emissive: 0x7ee0ff, emissiveIntensity: 0.6 } });
+  box(0.7, 0.12, 0.3, 0x1f1640, 33.6, 0.9, -2.05);
+  sign('GAME CORNER', 1.6, 0.4, 0x3a2a6b, '#ffd166', 33.6, 2.05, -2.15, 0);
+  box(0.06, 2.4, 0.06, 0x5b6b7c, 26, 0, -4.66); // sign post
+  sign('LOUNGE', 1.4, 0.4, 0x2c3e50, '#ffffff', 26, 2.6, -4.6, 0);
+  plant(35.2, 4.6);
+
+  // ---------- east wing: meeting room (glass walls, table, projector screen) ----------
+  box(0.1, H, 3.2, COLORS.glass, 26.2, 0, 7.6, glass); // west glass, door gap at z 9.2..10.8
+  box(0.1, H, 3.2, COLORS.glass, 26.2, 0, 12.4, glass);
+  box(9.8, H, 0.1, COLORS.glass, 31.1, 0, 6, glass); // north glass
+  box(3.4, 0.75, 1.3, COLORS.desk, 31.4, 0, 10, { collide: true }); // table
+  for (const dx of [-1.1, 0, 1.1]) {
+    chair(31.4 + dx, 8.9, 0);
+    chair(31.4 + dx, 11.1, Math.PI);
+  }
+  box(0.06, 1.4, 2.6, 0xffffff, 35.8, 0.9, 10); // projector screen
+  box(0.4, 0.15, 0.3, 0x2b313a, 31.4, 0.8, 10); // projector on the table
+  box(0.4, 0.05, 0.3, 0x1f252d, 30.6, 0.8, 10.2); // conference phone
+  sign('MEETING ROOM', 2.2, 0.45, 0x1f2a36, '#ffffff', 31.1, 2.5, 5.94, Math.PI);
+
+  // ---------- east wing: learning corner (PC, bookshelf) ----------
+  box(1.8, 0.75, 0.8, COLORS.desk, 23.2, 0, 12.8, { collide: true });
+  monitor(23.2, 13.0, Math.PI);
+  chair(23.2, 11.9, 0);
+  box(0.45, 2, 2.4, COLORS.wood, 20.55, 0, 10.5, { collide: true }); // bookshelf
+  for (let row = 0; row < 4; row++) {
+    for (let i = 0; i < 5; i++) {
+      const colors = [0x2f6feb, 0xc0392b, 0x1f9d55, 0xb7791f, 0x6c5ce7];
+      box(0.3, 0.32, 0.36, colors[(i + row) % 5], 20.75, 0.12 + row * 0.47, 9.6 + i * 0.45);
+    }
+  }
+  sign('LEARNING CORNER', 2.2, 0.45, 0x5a4a8a, '#ffffff', 23.2, 2.4, 13.84, Math.PI);
+
+  // ---------- small real-office details ----------
+  wallClock(-6, -13.82);
+  for (const [fx, fz] of [[-3.2, 13.5], [20.8, -4.6], [35.5, 13.4]]) fireExtinguisher(fx, fz);
+  sign('EXIT', 0.8, 0.3, 0x1f9d55, '#ffffff', 0, 2.5, 13.84, Math.PI);
+  box(0.04, 1.0, 1.6, 0xc8a06b, -19.83, 1.2, 3.5); // IT notice board (cork)
+  sign('NOTICE BOARD', 1.4, 0.25, 0x14335a, '#ffffff', -19.8, 1.85, 3.5, Math.PI / 2);
+  box(0.12, 0.2, 0.06, 0x2b313a, 15.1, 1.1, -5.92); // badge reader by the server room door
+  box(0.06, 0.06, 0.02, 0x33d17a, 15.1, 1.15, -5.88, { extra: { emissive: 0x33d17a, emissiveIntensity: 0.8 } });
+  // new-starter laptop boxes waiting near the repair bench
+  box(0.6, 0.12, 0.45, 0xf4f4f4, -17.6, 0, 13.4); box(0.6, 0.12, 0.45, 0xf4f4f4, -17.6, 0.12, 13.4); box(0.6, 0.12, 0.45, 0xf4f4f4, -17.5, 0.24, 13.38);
+  // desk phones on every staff desk
+  for (const [px, pz] of [[-7.3, -7.95], [3.4, -7.95], [-7.3, -0.95], [3.4, -0.95], [0.6, -2.05], [-6.7, -9.05]]) {
+    box(0.22, 0.07, 0.18, 0x2b313a, px, 0.77, pz);
+  }
+
   // ---------- extras ----------
   box(2.6, 1.3, 0.05, 0xffffff, -2.5, 1.0, -13.95); // whiteboard
   box(2.7, 0.06, 0.12, 0x9aa4ae, -2.5, 0.95, -13.9); // whiteboard tray
@@ -232,6 +330,43 @@ export function buildOffice(scene) {
     }
     box(3.4, 0.45, 0.06, COLORS.divider, cx, 0.77, cz); // divider
     addCollider(cx, cz, 3.4, 1.8);
+  }
+
+  function roundTable(x, z, r) {
+    const top = new THREE.Mesh(new THREE.CylinderGeometry(r, r, 0.05, 20), mat(COLORS.wood));
+    top.position.set(x, 0.74, z);
+    const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.72, 8), mat(COLORS.deskLeg));
+    leg.position.set(x, 0.36, z);
+    top.castShadow = leg.castShadow = true;
+    root.add(top, leg);
+    addCollider(x, z, r * 1.6, r * 1.6);
+  }
+
+  function beanbag(x, z, color) {
+    const bag = new THREE.Mesh(new THREE.SphereGeometry(0.45, 12, 8), mat(color));
+    bag.scale.set(1, 0.6, 1);
+    bag.position.set(x, 0.27, z);
+    bag.castShadow = true;
+    root.add(bag);
+    addCollider(x, z, 0.8, 0.8);
+  }
+
+  function fireExtinguisher(x, z) {
+    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.5, 10), mat(0xd33a3a));
+    body.position.set(x, 0.3, z);
+    body.castShadow = true;
+    root.add(body);
+  }
+
+  function wallClock(x, z) {
+    const face = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.32, 0.05, 24), mat(0xffffff));
+    face.rotation.x = Math.PI / 2;
+    face.position.set(x, 2.3, z);
+    const rim = new THREE.Mesh(new THREE.TorusGeometry(0.32, 0.03, 6, 24), mat(0x1f2a37));
+    rim.position.set(x, 2.3, z + 0.02);
+    root.add(face, rim);
+    box(0.02, 0.22, 0.01, 0x1f2a37, x, 2.3, z + 0.04); // minute hand (points up)
+    box(0.15, 0.02, 0.01, 0x1f2a37, x + 0.07, 2.29, z + 0.04); // hour hand (points right)
   }
 
   function plant(x, z) {

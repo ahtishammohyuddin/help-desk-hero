@@ -22,12 +22,17 @@
 - [ ] Bigger, realistic office:
   - [x] Every person who reports a PC problem sits at a real desk with a PC (no one standing in open space);
         desk tickets only go to people who actually have a PC there
-  - [ ] Office staff move around (walk to the printer, kitchen, meetings)
-  - [ ] Lounge / chill area with a sofa and TV, where the player can play small mini-games
-  - [ ] Learning area: open the PC there to browse notes on every IT support topic, written simply,
-        plus links to free IT certifications and an IT support roadmap
-  - [ ] Small real-office details (sitting area, plants, kitchen, meeting room)
-  - [ ] Desk upgrades and technician customisation
+  - [x] Stage A: east wing built (kitchen, lounge with sofa and TV, game corner, meeting room, learning corner)
+        plus details: wall clock, fire extinguishers, exit sign, first aid box, notice board, server room badge
+        reader, new-starter laptop boxes, desk phones
+  - [ ] Stage B: things to use: coffee machine (short speed boost), learning corner PC (notes built from the
+        reviewed problems, plus free certification and roadmap links, checked before adding), notice board
+        (badges and streaks)
+  - [ ] Stage C: lounge mini-games at the game corner (with the mini-game sounds)
+  - [ ] Stage D: staff walk around (kitchen, printer, meeting room) when they have no open ticket
+  - [ ] Stage E: windows and light that follow the shift clock, server room badge door, desk phone tickets,
+        meeting room projector tickets, new-starter laptop setup at the bench
+  - [ ] Stage F: desk upgrades and technician customisation
 - [ ] Three graphics modes: Smooth, Balanced, Realistic (the current detailed look)
 - [x] Sound: footsteps while walking and very quiet calm background music (made in code), each with its own
       on/off switch in Settings. Mini-game sounds are ready and get used when the lounge games are built.

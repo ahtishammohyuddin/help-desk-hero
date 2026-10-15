@@ -124,10 +124,12 @@ function start() {
   const hemi = new THREE.HemisphereLight(0xffffff, 0xb9b2a6, 1.4);
   scene.add(hemi);
   const sun = new THREE.DirectionalLight(0xfff1dd, 2.2);
-  sun.position.set(14, 24, 10);
+  sun.position.set(22, 24, 10);
+  sun.target.position.set(8, 0, 0); // the middle of the whole office, east wing included
+  scene.add(sun.target);
   sun.castShadow = true;
   sun.shadow.mapSize.set(2048, 2048);
-  Object.assign(sun.shadow.camera, { left: -26, right: 26, top: 22, bottom: -22, near: 1, far: 70 });
+  Object.assign(sun.shadow.camera, { left: -36, right: 36, top: 24, bottom: -24, near: 1, far: 80 });
   sun.shadow.bias = -0.0005;
   scene.add(sun);
 

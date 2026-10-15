@@ -29,6 +29,7 @@ import { sound } from './sound.js';
 import { clockFor, coachRequest, recordTopic, SHIFT_SECONDS, summarizeShift, topicStatus } from './shift.js';
 import { maxLevelFor, PRIORITIES, RANKS, rankFor, streakMultiplier, TicketQueue, xpFor } from './tickets.js';
 import * as ui from './ui.js';
+import { music } from './music.js';
 import { hasSave, loadingStep, menuState, PLAYER_NAME_KEY, tipAt } from './menu.js';
 
 const TALK_RADIUS = 1.8; // how close you must be to talk to someone
@@ -135,6 +136,15 @@ function start() {
   const employees = createEmployees(scene, colliders, $('labels'));
   const byName = new Map(employees.map((e) => [e.name, e]));
   const player = createPlayer(scene, PLAYER_START);
+  player.onStep = () => sound.step();
+  // Browsers only allow audio after a click or key press, so the music starts on the first one.
+  const startMusic = () => {
+    music.start();
+    window.removeEventListener('pointerdown', startMusic);
+    window.removeEventListener('keydown', startMusic);
+  };
+  window.addEventListener('pointerdown', startMusic);
+  window.addEventListener('keydown', startMusic);
   const followCam = new FollowCamera(camera, renderer.domElement);
   const input = new Input();
   const minimap = new Minimap($('minimap-canvas'), BOUNDS, colliders);
@@ -1297,7 +1307,7 @@ function start() {
   // ---------- main menu ----------
   let menuView = 'main';
   let menuError = '';
-  const menuSettings = () => ({ muted: sound.muted, quality, events: eventsOn });
+  const menuSettings = () => ({ muted: sound.muted, footsteps: sound.footsteps, music: music.on, quality, events: eventsOn });
   function renderMenu() {
     ui.renderMenu(menuState(progress, readSetting(PLAYER_NAME_KEY), new Date(), { inShift: shiftStarted }), menuView, menuSettings(), { error: menuError });
   }
@@ -1392,6 +1402,10 @@ function start() {
       if (e.target.checked === sound.muted) toggleSound();
     } else if (setting === 'events') {
       setEvents(e.target.checked);
+    } else if (setting === 'footsteps') {
+      sound.setFootsteps(e.target.checked);
+    } else if (setting === 'music') {
+      music.set(e.target.checked);
     }
   });
   $('menu-btn').addEventListener('click', () => (menuOpen ? (shiftStarted && closeMenu()) : openMenu()));

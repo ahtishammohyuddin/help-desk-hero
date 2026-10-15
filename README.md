@@ -63,6 +63,8 @@ Game logic tests (optional, needs Node.js): `node --test game/tests/logic.test.m
 
 The game opens on a loading screen (logo, progress bar and game tips), then the main menu: Continue, Daily challenge, My progress, How to play, Settings (sound, graphics, random events) and New game. On the first visit it asks for the player's name. The name is stored only in the browser (`localStorage`), is used for greetings and as the default certificate name, and is never sent to the backend or the AI. If the game's files fail to load, the loading screen says so after 20 seconds and suggests Ctrl+F5.
 
+Sound is all made in code with the Web Audio API, so there are no audio files and nothing to license: sound effects, soft footsteps while walking, and very quiet background music (a slow loop of soft chords, `game/src/music.js`). Each has its own switch in Settings.
+
 ## Run the backend
 ```
 pip install -r requirements-dev.txt

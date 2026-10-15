@@ -60,3 +60,12 @@ test('turnToward takes the short way round and stops at the target', () => {
   // instead of spinning down through 0.
   assert.ok(close(turnToward(3.1, -3.1, 0.01), 3.11));
 });
+
+test('a footstep lands each time the stride passes the middle', async () => {
+  const { stepsBetween } = await import('../src/logic.js');
+  assert.equal(stepsBetween(0, 1), 0);
+  assert.equal(stepsBetween(3, 3.2), 1); // passes pi
+  assert.equal(stepsBetween(3.2, 6.2), 0);
+  assert.equal(stepsBetween(6.2, 6.4), 1); // passes 2 pi
+  assert.equal(stepsBetween(5, 5), 0);
+});

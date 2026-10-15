@@ -102,6 +102,10 @@ export function renderMenu(state, view, settings, { error = '' } = {}) {
       <div class="menu-settings">
         <label class="setting"><span><b>Sound effects</b><small>Clicks, ticket alerts and results</small></span>
           <input type="checkbox" class="switch" data-setting="sound" ${settings.muted ? '' : 'checked'}></label>
+        <label class="setting"><span><b>Footsteps</b><small>Soft steps while you walk</small></span>
+          <input type="checkbox" class="switch" data-setting="footsteps" ${settings.footsteps ? 'checked' : ''}></label>
+        <label class="setting"><span><b>Background music</b><small>Very quiet, calm music</small></span>
+          <input type="checkbox" class="switch" data-setting="music" ${settings.music ? 'checked' : ''}></label>
         <div class="setting"><span><b>Graphics</b><small>Smooth runs faster on laptops</small></span>
           <span class="seg"><button data-setting="smooth" class="${settings.quality === 'smooth' ? 'on' : ''}">Smooth</button><button data-setting="detailed" class="${settings.quality === 'detailed' ? 'on' : ''}">Detailed</button></span></div>
         <label class="setting"><span><b>Random events</b><small>Power flickers, phishing waves, VIP requests</small></span>

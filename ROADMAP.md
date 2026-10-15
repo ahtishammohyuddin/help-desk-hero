@@ -29,8 +29,8 @@
   - [ ] Small real-office details (sitting area, plants, kitchen, meeting room)
   - [ ] Desk upgrades and technician customisation
 - [ ] Three graphics modes: Smooth, Balanced, Realistic (the current detailed look)
-- [ ] Sound: footsteps while walking, sounds for the mini-games, and very quiet calm background music,
-      each with its own on/off switch in Settings (music made in code or free-licensed, nothing that costs money)
+- [x] Sound: footsteps while walking and very quiet calm background music (made in code), each with its own
+      on/off switch in Settings. Mini-game sounds are ready and get used when the lounge games are built.
 
 ## Phase 8
 - [ ] Free-text answers graded against reviewed answers

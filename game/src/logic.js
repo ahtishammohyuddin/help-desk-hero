@@ -67,3 +67,8 @@ export function turnToward(from, to, step) {
   if (Math.abs(diff) <= step) return to;
   return from + Math.sign(diff) * step;
 }
+
+/** How many footsteps land between two walk times (one each time the stride passes the middle). */
+export function stepsBetween(before, after) {
+  return Math.max(0, Math.floor(after / Math.PI) - Math.floor(before / Math.PI));
+}

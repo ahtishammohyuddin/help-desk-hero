@@ -1,7 +1,7 @@
 // The player: an IT technician you move with WASD or the arrow keys.
 
 import { animateWalk, makePerson } from './people.js';
-import { moveDirection, moveWithCollisions, turnToward } from './logic.js';
+import { moveDirection, moveWithCollisions, stepsBetween, turnToward } from './logic.js';
 
 const WALK_SPEED = 3.6; // units per second
 const RUN_SPEED = 6.0;
@@ -18,6 +18,7 @@ export function createPlayer(scene, start) {
 
   return {
     group,
+    onStep: null, // called once per footstep (for the footstep sound)
     get position() {
       return group.position;
     },
@@ -32,7 +33,10 @@ export function createPlayer(scene, start) {
         group.position.x = next.x;
         group.position.z = next.z;
         group.rotation.y = turnToward(group.rotation.y, Math.atan2(dir.x, dir.z), TURN_SPEED * dt);
+        const before = walkTime;
         walkTime += dt * (input.run ? 13 : 9);
+        // A foot lands each time the stride passes the middle (twice per full stride).
+        if (stepsBetween(before, walkTime) > 0) this.onStep?.();
       }
       // Ease the stride in when starting and out when stopping.
       const targetStride = moving ? (input.run ? 1 : 0.75) : 0;

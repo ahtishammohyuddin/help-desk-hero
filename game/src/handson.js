@@ -43,8 +43,12 @@ export const ITEMS = {
   dock_cable: 'Dock cable',
   usb_keyboard: 'Spare keyboard',
   usb_mouse: 'Spare mouse',
+  ram_ddr4: 'RAM stick (DDR4)',
+  ram_ddr5: 'RAM stick (DDR5)',
 };
 export const ITEM_NAMES = ITEMS;
+// Things the player can carry that are not on the cabinet shelves.
+export const CARRY_NAMES = { ...ITEMS, user_pc: 'PC for repair' };
 
 // Printer faults (all break printing). The printer is shared, so its station is at the printer.
 const PRINTER_FAULTS = {
@@ -74,8 +78,15 @@ export const SURVEY_SPOTS = {
   wifi_corner: { name: 'The corner', bars: 1, speed: 'very slow, keeps dropping' },
 };
 
-/** Which close-up a scenario uses: 'desk', 'printer', 'laptop' or 'survey'. */
+// Repair bench: the PC goes to the IT room bench for a hardware repair.
+const BENCH_FAULTS = {
+  ram_faulty: 'one RAM stick is faulty, so Windows crashes with blue screens',
+};
+export const RAM_SLOTS = ['A', 'B'];
+
+/** Which close-up a scenario uses: 'desk', 'printer', 'laptop', 'survey' or 'bench'. */
 export function stationFor(scenario) {
+  if (scenario.faults.some((f) => f in BENCH_FAULTS)) return 'bench';
   if (scenario.faults.some((f) => f in SURVEY_FAULTS)) return 'survey';
   if (scenario.faults.some((f) => f in LAPTOP_FAULTS)) return 'laptop';
   if (scenario.faults.some((f) => f in PRINTER_FAULTS)) return 'printer';
@@ -128,6 +139,20 @@ export function createSim(scenario, deskNumber) {
       }
     : null;
   const survey = station === 'survey' ? { readings: {}, reported: false } : null;
+  const bench = station === 'bench'
+    ? {
+        where: 'desk', // 'desk', 'carried' or 'bench'
+        on: true, // Windows is running
+        plugged: true,
+        diag: null, // last memory test at the desk: 'errors' or 'clean'
+        strap: false, // anti-static wrist strap on
+        drained: false, // power button held after unplugging
+        open: false, // side panel off
+        slots: { A: 'orig', B: 'orig' }, // 'orig', 'new' or 'empty'
+        bad: deskNumber % 2 === 1 ? 'A' : 'B', // which original stick is faulty
+        lastBoot: null, // the last test boot at the bench: { slots: ['A'], errors }
+      }
+    : null;
   return {
     goal: scenario.goal,
     required: [...(scenario.required ?? [])],
@@ -136,6 +161,7 @@ export function createSim(scenario, deskNumber) {
     printer,
     laptop,
     survey,
+    bench,
     carrying: null, // e.g. 'toner' after taking a cartridge from the parts cabinet
     testPage: null, // the last printer test page: 'good', 'faint', 'streaks', 'blank'
     desk,
@@ -316,6 +342,7 @@ export function printerAction(sim, action) {
  */
 export function takeItem(carrying, item) {
   if (!(item in ITEMS)) return { carrying, message: '', changed: false };
+  if (carrying === 'user_pc') return { carrying, message: 'Your hands are full with the PC. Put it down on the repair bench first.', changed: false };
   if (carrying === item) return { carrying, message: `You are already carrying the ${ITEMS[item].toLowerCase()}.`, changed: false };
   const swap = carrying ? ` You put the ${ITEMS[carrying].toLowerCase()} back on the shelf.` : '';
   return { carrying: item, message: `You take the ${ITEMS[item].toLowerCase()}.${swap}`, changed: true };
@@ -324,6 +351,7 @@ export function takeItem(carrying, item) {
 /** Put the carried item back in the cabinet. */
 export function putBack(carrying) {
   if (!carrying) return { carrying, message: '', changed: false };
+  if (!(carrying in ITEMS)) return { carrying, message: 'The PC does not go in the cabinet. Take it to the repair bench.', changed: false };
   return { carrying: null, message: `You put the ${ITEMS[carrying].toLowerCase()} back on the shelf.`, changed: true };
 }
 
@@ -335,6 +363,7 @@ export function takeToner(sim) {
 
 /** Places this ticket needs right now, for markers: 'printer', 'parts_cabinet'. */
 export function placesNeeded(sim) {
+  if (sim?.station === 'bench') return benchPlaces(sim);
   if (sim?.station === 'laptop') {
     const l = sim.laptop;
     return l.phoneCable === 'damaged' && sim.looked.phoneCable && sim.carrying !== 'phone_cable' ? ['parts_cabinet'] : [];
@@ -466,6 +495,140 @@ export function reportCoverage(sim) {
   };
 }
 
+// ---------- the repair bench ----------
+
+const installed = (b) => RAM_SLOTS.filter((s) => b.slots[s] !== 'empty');
+const badInstalled = (b) => b.slots[b.bad] === 'orig';
+
+/** What the PC is like now. */
+export function benchReadings(sim) {
+  const b = sim.bench;
+  const running = b.where === 'desk' && b.on && b.plugged;
+  const memoryOk = !badInstalled(b) && installed(b).length === RAM_SLOTS.length;
+  return {
+    running,
+    screen: !running ? 'off' : badInstalled(b) ? 'crashes' : 'desktop',
+    memoryOk,
+    needsRam: badInstalled(b) || installed(b).length < RAM_SLOTS.length,
+    works: { stable: running && memoryOk },
+  };
+}
+
+const changedBench = (sim, patch, message, extra = {}) => ({ sim: { ...sim, ...extra, bench: { ...sim.bench, ...patch } }, message, changed: true });
+const slotName = (slot) => `slot ${slot}`;
+
+/** Every repair action, at the desk or at the bench. Returns { sim, message, changed }. */
+export function benchAction(sim, action) {
+  const b = sim.bench;
+  const looked = (k) => ({ looked: { ...sim.looked, [k]: true } });
+  const atBench = b.where === 'bench';
+  switch (action) {
+    // --- at the person's desk ---
+    case 'screen':
+      if (b.where !== 'desk') return same(sim, 'The PC is not here: it is with you or on the repair bench.');
+      if (!b.on) return same({ ...sim, ...looked('screen') }, 'The PC is switched off.');
+      if (badInstalled(b)) {
+        return same({ ...sim, ...looked('screen') }, 'You look at the photo of the blue screen. The stop code says MEMORY_MANAGEMENT, which points to the memory (RAM).');
+      }
+      return same({ ...sim, ...looked('screen') }, 'Windows is running normally.');
+    case 'diag': {
+      if (b.where !== 'desk' || !b.on) return same(sim, 'The PC needs to be at the desk and switched on to run the memory test.');
+      const errors = badInstalled(b);
+      return changedBench(
+        sim,
+        { diag: errors ? 'errors' : 'clean' },
+        errors
+          ? 'You run Windows Memory Diagnostic (mdsched.exe). The PC restarts and tests its memory. After signing in, the result says it found memory errors. The RAM needs replacing.'
+          : 'You run Windows Memory Diagnostic again. The PC restarts and tests its memory: no errors found this time.',
+        looked('diag'),
+      );
+    }
+    case 'shutdown':
+      if (b.where !== 'desk') return same(sim, '');
+      if (!b.on) return same(sim, 'It is already shut down and unplugged.');
+      return changedBench(sim, { on: false, plugged: false }, 'You shut down Windows properly, then unplug the power cable from the back of the PC.');
+    case 'pc':
+      // Pick the PC up (at the desk or the bench), or put it down where you are.
+      if (b.where === 'carried') return same(sim, '');
+      if (b.on) return same(sim, 'Shut it down and unplug it before you move it.');
+      if (b.open) return same(sim, 'Put the side panel back on before you move the PC.');
+      if (sim.carrying) return same(sim, `Your hands are full. Put the ${(CARRY_NAMES[sim.carrying] ?? 'item').toLowerCase()} back first.`);
+      return changedBench(sim, { where: 'carried' }, b.where === 'desk'
+        ? 'You pick up the PC. Take it to the repair bench in the IT room.'
+        : 'You pick up the PC. Take it back to its desk.', { carrying: 'user_pc' });
+    case 'putDesk':
+      if (b.where !== 'carried' || sim.carrying !== 'user_pc') return same(sim, '');
+      return changedBench(sim, { where: 'desk', plugged: true, on: true, drained: false },
+        'You put the PC back under the desk, plug it in and switch it on. Windows starts.', { carrying: null });
+    // --- at the repair bench ---
+    case 'putBench':
+      if (b.where !== 'carried' || sim.carrying !== 'user_pc') return same(sim, '');
+      return changedBench(sim, { where: 'bench', drained: false }, 'You set the PC down on the anti-static mat.', { carrying: null });
+    case 'strap':
+      if (b.strap) return same(sim, 'You are already wearing the anti-static strap.');
+      return changedBench(sim, { strap: true }, 'You put on the anti-static wrist strap and clip it to the bench. Now static from your body cannot damage the parts.');
+    case 'button':
+      if (!atBench) return same(sim, '');
+      return changedBench(sim, { drained: true }, 'With the power cable out, you hold the power button for a few seconds to drain any leftover power.');
+    case 'panel':
+      if (!atBench) return same(sim, '');
+      if (b.open) return changedBench(sim, { open: false }, 'You slide the side panel back on and screw it shut.');
+      if (!b.drained) return same(sim, 'Hold the power button for a few seconds first, to drain any leftover power.');
+      return changedBench(sim, { open: true }, 'You undo the screws and slide off the side panel. Two RAM sticks sit in slots A and B.', looked('panel'));
+    case 'boot': {
+      if (!atBench) return same(sim, '');
+      const sticks = installed(b);
+      if (!sticks.length) return same(sim, 'With no memory in it, the PC just beeps and will not start. Put at least one stick in first.');
+      const errors = badInstalled(b);
+      const which = sticks.length === 1 ? `only the stick in ${slotName(sticks[0])}` : 'both sticks';
+      return changedBench(
+        sim,
+        { lastBoot: { slots: sticks, errors }, drained: true },
+        `You plug it into the bench power, start it with ${which} and run the memory test: ${errors ? 'memory errors found' : 'no errors'}. Then you shut it down, unplug it and drain the power again.`,
+      );
+    }
+    case 'A':
+    case 'B': {
+      if (!atBench || !b.open) return same(sim, '');
+      if (!b.strap) return same(sim, 'Put on the anti-static strap before you touch anything inside. Static from your hands can damage the parts.');
+      const slot = action;
+      const state = b.slots[slot];
+      if (state === 'orig') {
+        return changedBench(sim, { slots: { ...b.slots, [slot]: 'empty' } }, `You press the clips on ${slotName(slot)} and lift the stick out. It goes on the mat.`);
+      }
+      if (state === 'new') return same(sim, `The new stick in ${slotName(slot)} is in, with both clips closed.`);
+      if (sim.carrying === 'ram_ddr4') {
+        return changedBench(sim, { slots: { ...b.slots, [slot]: 'new' } }, `You line up the notch with the slot and press the new DDR4 stick into ${slotName(slot)} until both clips click.`, { carrying: null });
+      }
+      if (sim.carrying === 'ram_ddr5') {
+        return same(sim, 'The DDR5 stick will not go in: its notch is in a different place. This PC takes DDR4.');
+      }
+      if (sim.carrying) return same(sim, `The ${CARRY_NAMES[sim.carrying].toLowerCase()} does not go in a memory slot.`);
+      return changedBench(sim, { slots: { ...b.slots, [slot]: 'orig' } }, `You put the original stick back into ${slotName(slot)} until the clips click.`);
+    }
+    default:
+      return same(sim, '');
+  }
+}
+
+/** Which original stick a single-stick test boot showed to be faulty, if any. */
+export function badStickFound(sim) {
+  const boot = sim.bench?.lastBoot;
+  if (!boot || boot.slots.length !== 1) return null;
+  const [slot] = boot.slots;
+  if (boot.errors) return slot;
+  return RAM_SLOTS.find((s) => s !== slot);
+}
+
+function benchPlaces(sim) {
+  const b = sim.bench;
+  const r = benchReadings(sim);
+  if (b.where === 'carried') return r.memoryOk ? [] : ['repair_bench'];
+  if (b.where !== 'bench') return [];
+  if (b.open && r.needsRam && sim.carrying !== 'ram_ddr4') return ['parts_cabinet'];
+  return ['repair_bench'];
+}
+
 const GOAL_WORDS = {
   internet: ['the internet works again', 'there is still no internet'],
   display: ['the picture is back on the monitor', 'the monitor still shows no picture'],
@@ -479,7 +642,16 @@ const GOAL_WORDS = {
   dock: ['the monitors, keyboard and mouse all work through the dock', 'the monitors, keyboard and mouse are still dead'],
   cooling: ['the laptop stays cool and the fan is quiet', 'the laptop is still hot and the fan is loud'],
   wifi_report: ['the weak corner has been reported to the network team', 'the weak corner has not been reported yet'],
+  stable: ['the PC runs all morning with no more blue screens', null], // failures come from benchFailure()
 };
+
+function benchFailure(sim) {
+  const b = sim.bench;
+  if (b.where !== 'desk') return 'the PC is not back at the desk yet';
+  if (!b.on) return 'the PC is still switched off';
+  if (badInstalled(b)) return 'it crashes with a blue screen again';
+  return 'it only has half its memory now, so it is very slow. Fill both memory slots';
+}
 
 /**
  * Ask the person to try again. Returns { sim, ok, solved, message }.
@@ -487,6 +659,10 @@ const GOAL_WORDS = {
  * A failed test can give a clue about where to look next.
  */
 export function test(sim, name) {
+  if (sim.station === 'bench') {
+    const ok = benchReadings(sim).works.stable;
+    return { sim, ok, solved: ok, message: `${name} tries the PC: ${ok ? GOAL_WORDS.stable[0] : benchFailure(sim)}.` };
+  }
   if (sim.station === 'laptop') {
     const r = laptopReadings(sim);
     const ok = r.works[sim.goal];
@@ -535,6 +711,7 @@ export function needsServerRoom(sim) {
 
 /** Is the person's problem fixed (and every required action done)? The survey counts once measured. */
 export function isFixed(sim) {
+  if (sim.station === 'bench') return benchReadings(sim).works.stable;
   if (sim.station === 'printer') return printerReadings(sim).works;
   if (sim.station === 'laptop') return Boolean(laptopReadings(sim).works[sim.goal]);
   if (sim.station === 'survey') return surveyDone(sim);

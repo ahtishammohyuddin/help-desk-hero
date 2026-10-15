@@ -4,7 +4,7 @@ import { test } from 'node:test';
 import {
   createSim, laptopAction, laptopReadings, measure, moveToSpare, needsServerRoom, placesNeeded, printerAction, printerReadings, readings,
   reportCoverage, reportPort, reseat, spotsLeft, stationFor, surveyDone, takeToner,
-  test as tryIt,
+  test as tryIt, benchAction, benchReadings, badStickFound, CARRY_NAMES,
 } from '../src/handson.js';
 
 const sim = (faults, goal, required = [], desk = 4) => createSim({ faults, goal, required }, desk);
@@ -127,13 +127,14 @@ const VALIDATOR_FAULTS = {
   toner_seal_left: 'print', needs_cleaning: 'print',
   laptop_charger_loose: 'charging', phone_cable_damaged: 'phone_charging', monitor_wrong_input: 'second_screen',
   display_mode_pc_only: 'second_screen', dock_power_unplugged: 'dock', laptop_on_cushion: 'cooling',
-  laptop_vent_dusty: 'cooling', wifi_weak_corner: 'wifi_report',
+  laptop_vent_dusty: 'cooling', wifi_weak_corner: 'wifi_report', ram_faulty: 'stable',
 };
 
 test('every fault the validator allows really breaks its goal in the simulation', () => {
   for (const [fault, goal] of Object.entries(VALIDATOR_FAULTS)) {
     const s = createSim({ faults: [fault], goal }, 3);
-    const works = s.station === 'printer' ? printerReadings(s).works
+    const works = s.station === 'bench' ? benchReadings(s).works[goal]
+      : s.station === 'printer' ? printerReadings(s).works
       : s.station === 'laptop' ? laptopReadings(s).works[goal]
         : s.station === 'survey' ? s.survey.reported
           : readings(s).works[goal];
@@ -363,4 +364,112 @@ test('the mission card moves from find, to fix, to test', () => {
   let w = createSim({ faults: ['wifi_weak_corner'], goal: 'wifi_report' }, 5);
   for (const spot of ['wifi_front', 'wifi_middle', 'wifi_corner']) w = measure(w, spot).sim;
   assert.equal(missionStep(w), 3);
+});
+
+
+// ---------- repair bench ----------
+
+const bench = (desk = 3) => createSim({ faults: ['ram_faulty'], goal: 'stable' }, desk);
+const doAll = (s, ...actions) => actions.reduce((cur, a) => {
+  if (typeof a === 'function') return a(cur);
+  return benchAction(cur, a).sim;
+}, s);
+const holding = (item) => (s) => ({ ...s, carrying: item });
+
+test('bench: a RAM fault uses the bench station and crashes until fixed', () => {
+  const s = bench();
+  assert.equal(stationFor({ faults: ['ram_faulty'] }), 'bench');
+  assert.equal(s.station, 'bench');
+  assert.equal(benchReadings(s).screen, 'crashes');
+  assert.equal(missionStep(s), 1);
+  assert.match(tryIt(s, 'Usman').message, /blue screen again/);
+});
+
+test('bench: the stop code and the memory test point to RAM', () => {
+  let s = bench();
+  const look = benchAction(s, 'screen');
+  assert.match(look.message, /MEMORY_MANAGEMENT/);
+  s = look.sim;
+  assert.equal(missionStep(s), 2);
+  const diag = benchAction(s, 'diag');
+  assert.match(diag.message, /mdsched\.exe/);
+  assert.equal(diag.sim.bench.diag, 'errors');
+});
+
+test('bench: the PC must be shut down and unplugged before it is moved', () => {
+  let s = bench();
+  assert.match(benchAction(s, 'pc').message, /Shut it down/);
+  s = doAll(s, 'shutdown');
+  assert.equal(s.bench.plugged, false);
+  assert.match(benchAction(holding('toner')(s), 'pc').message, /hands are full/);
+  s = doAll(s, 'pc');
+  assert.equal(s.carrying, 'user_pc');
+  assert.equal(s.bench.where, 'carried');
+  assert.deepEqual(placesNeeded(s), ['repair_bench']);
+});
+
+test('bench: the cabinet will not swap the PC for a part', () => {
+  assert.match(takeItem('user_pc', 'ram_ddr4').message, /hands are full/);
+  assert.equal(takeItem('user_pc', 'ram_ddr4').carrying, 'user_pc');
+  assert.equal(putBack('user_pc').carrying, 'user_pc');
+  assert.ok(CARRY_NAMES.user_pc);
+  assert.ok(ITEMS.ram_ddr4 && ITEMS.ram_ddr5);
+});
+
+test('bench: drain power before opening, strap on before touching the RAM', () => {
+  let s = doAll(bench(), 'shutdown', 'pc', 'putBench');
+  assert.equal(s.carrying, null);
+  assert.equal(s.bench.where, 'bench');
+  assert.match(benchAction(s, 'panel').message, /Hold the power button/);
+  s = doAll(s, 'button', 'panel');
+  assert.equal(s.bench.open, true);
+  assert.match(benchAction(s, 'A').message, /anti-static strap/);
+  s = doAll(s, 'strap', 'A');
+  assert.equal(s.bench.slots.A, 'empty');
+});
+
+test('bench: test one stick at a time to find the bad one', () => {
+  // Desk 3 has the faulty stick in slot A; desk 4 in slot B.
+  let s = doAll(bench(3), 'shutdown', 'pc', 'putBench', 'button', 'panel', 'strap', 'B');
+  s = doAll(s, 'boot');
+  assert.deepEqual(s.bench.lastBoot, { slots: ['A'], errors: true });
+  assert.equal(badStickFound(s), 'A');
+  let t = doAll(bench(4), 'shutdown', 'pc', 'putBench', 'button', 'panel', 'strap', 'B', 'boot');
+  assert.equal(t.bench.lastBoot.errors, false);
+  assert.equal(badStickFound(t), 'B');
+  assert.match(benchAction(doAll(t, 'A'), 'boot').message, /beeps/);
+});
+
+test('bench: DDR5 will not fit, a matching DDR4 stick does', () => {
+  let s = doAll(bench(3), 'shutdown', 'pc', 'putBench', 'button', 'panel', 'strap', 'A');
+  assert.deepEqual(placesNeeded(s), ['parts_cabinet']);
+  const wrong = benchAction(holding('ram_ddr5')(s), 'A');
+  assert.match(wrong.message, /notch/);
+  assert.equal(wrong.sim.bench.slots.A, 'empty');
+  s = doAll(s, holding('ram_ddr4'), 'A');
+  assert.equal(s.bench.slots.A, 'new');
+  assert.equal(s.carrying, null);
+  assert.equal(benchReadings(s).memoryOk, true);
+});
+
+test('bench: close up, carry back, plug in and the problem is solved', () => {
+  let s = doAll(bench(3), 'shutdown', 'pc', 'putBench', 'button', 'panel', 'strap', 'A', holding('ram_ddr4'), 'A');
+  assert.match(benchAction(s, 'pc').message, /side panel back on/);
+  s = doAll(s, 'panel', 'pc');
+  assert.deepEqual(placesNeeded(s), []); // fixed: just take it back to the desk
+  assert.match(tryIt(s, 'Usman').message, /not back at the desk/);
+  s = doAll(s, 'putDesk');
+  assert.equal(s.bench.where, 'desk');
+  assert.equal(isFixed(s), true);
+  assert.equal(missionStep(s), 3);
+  assert.equal(tryIt(s, 'Usman').solved, true);
+  assert.equal(benchAction(s, 'diag').sim.bench.diag, 'clean');
+});
+
+test('bench: a missing stick or the bad stick put back is not a fix', () => {
+  let s = doAll(bench(3), 'shutdown', 'pc', 'putBench', 'button', 'panel', 'strap', 'A', 'panel', 'pc', 'putDesk');
+  assert.match(tryIt(s, 'Usman').message, /half its memory/);
+  let t = doAll(bench(3), 'shutdown', 'pc', 'putBench', 'button', 'panel', 'strap', 'A', 'A', 'panel', 'pc', 'putDesk');
+  assert.equal(t.bench.slots.A, 'orig');
+  assert.match(tryIt(t, 'Usman').message, /blue screen/);
 });

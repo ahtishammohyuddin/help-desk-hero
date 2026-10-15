@@ -141,6 +141,14 @@ export function buildOffice(scene) {
   box(0.5, 1.9, 0.9, COLORS.printerDark, -19.6, 0, 8, { collide: true });
   box(0.02, 1.7, 0.02, 0x9aa4ae, -19.34, 0.1, 8); // gap between the two doors
   sign('SPARE PARTS', 0.8, 0.22, 0xffc94a, '#1f2a37', -19.33, 1.6, 8, Math.PI / 2);
+  // Repair bench against the west wall: anti-static mat, a PC on it, a lamp and a tool tray.
+  box(0.9, 0.75, 1.9, 0x8a6f52, -19.45, 0, 12.6, { collide: true }); // bench
+  box(0.7, 0.01, 1.3, 0x2f8f5b, -19.4, 0.75, 12.5, { cast: false }); // green anti-static mat
+  box(0.42, 0.45, 0.2, 0x2b313a, -19.5, 0.76, 13.2); // a PC waiting for repair
+  box(0.3, 0.06, 0.4, 0xc0392b, -19.5, 0.76, 11.95); // red tool tray
+  box(0.05, 0.6, 0.05, 0x5b6b7c, -19.75, 0.76, 12.0); // lamp arm
+  box(0.25, 0.08, 0.18, 0xffd36b, -19.6, 1.36, 12.0, { extra: { emissive: 0xffd36b, emissiveIntensity: 0.4 } }); // lamp head
+  sign('REPAIR BENCH', 1.0, 0.24, 0x2f8f5b, '#ffffff', -19.84, 1.75, 12.6, Math.PI / 2);
   box(1.2, 0.8, 0.8, 0x7a8a9a, -12.2, 0, 13.2, { collide: true }); // returns trolley
   sign('IT HELP DESK', 3, 0.6, 0x14335a, '#ffffff', -19.84, 2.2, 10, Math.PI / 2);
 

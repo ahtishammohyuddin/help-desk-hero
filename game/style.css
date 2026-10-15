@@ -542,3 +542,7 @@ kbd {
 .esc-rows .missed .tag { background: var(--warn); }
 .esc-rows .bad .tag { background: var(--bad); }
 @media (max-width: 520px) { .teams { grid-template-columns: 1fr; } }
+
+/* ---------- repair bench ---------- */
+.station .bsod { font: 11px var(--font); fill: #ffffff; }
+.station .bsod-face { font: 700 34px var(--font); fill: #ffffff; }

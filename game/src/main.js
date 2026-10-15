@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import { api, API_BASE } from './api.js';
 import { FollowCamera } from './camera.js';
 import {
+  benchAction,
   createSim, laptopAction, measure, moveToSpare, needsServerRoom, placesNeeded, printerAction, putBack, reportCoverage, reportPort,
   reseat, spotsLeft, takeItem, test as testFix,
 } from './handson.js';
@@ -221,6 +222,12 @@ function start() {
       return left ? `Next: measure Wi-Fi (${3 - left} of 3 done)` : `Next: report to ${t.employee}`;
     }
     if (d?.sim?.station === 'laptop' && placesNeeded(d.sim).length && !d.result) return 'Next: Parts cabinet';
+    if (d?.sim?.station === 'bench' && !d.result) {
+      const need = placesNeeded(d.sim);
+      if (need.includes('parts_cabinet')) return 'Next: Parts cabinet (RAM)';
+      if (need.includes('repair_bench')) return 'Next: Repair bench';
+      if (d.sim.bench.where === 'carried') return `Next: take the PC back to Desk ${byName.get(t.employee).desk}`;
+    }
     if (d?.sim?.station === 'printer' && !d.result) {
       const need = placesNeeded(d.sim);
       return need.includes('parts_cabinet') ? 'Next: Parts cabinet' : need.length ? 'Next: Printer' : `Next: back to ${t.employee}`;
@@ -241,6 +248,14 @@ function start() {
       }
       if (d?.sim?.station === 'laptop' && !d.result) {
         return placesNeeded(d.sim).map(() => visit('cabinet', 'parts_cabinet', 'Open the parts cabinet'));
+      }
+      if (d?.sim?.station === 'bench' && !d.result) {
+        const need = placesNeeded(d.sim);
+        const benchVisit = visit('bench', 'repair_bench', `Use the repair bench for ${ticket.employee}'s PC`);
+        const list = need.map((place) => (place === 'repair_bench' ? benchVisit : visit('cabinet', 'parts_cabinet', 'Open the parts cabinet')));
+        // While the PC is on the bench, the bench can always be opened (marker only when it is the next stop).
+        if (d.sim.bench.where === 'bench' && !need.includes('repair_bench')) list.push({ ...benchVisit, quiet: true });
+        return list;
       }
       if (d?.sim?.station === 'printer' && !d.result) {
         // The cabinet itself is always open to use (below); here it only adds its marker.
@@ -633,7 +648,11 @@ function start() {
   function onDeskPart(part, mode) {
     const detail = activeTicket && details.get(activeTicket.number);
     if (!detail?.sim || detail.result || detail.view !== 'desk') return;
-    if (detail.sim.station === 'laptop') {
+    if (detail.sim.station === 'bench') {
+      const step = benchAction({ ...detail.sim, carrying: carried }, part);
+      simAction(detail, step);
+      if (step.message) setCarried(step.sim.carrying);
+    } else if (detail.sim.station === 'laptop') {
       const step = laptopAction({ ...detail.sim, carrying: carried }, part, mode);
       simAction(detail, step);
       if (step.message) setCarried(step.sim.carrying);
@@ -719,6 +738,7 @@ function start() {
     if (!detail) return closeSwitch();
     const person = byName.get(switchTicket.employee);
     if (stationKind === 'printer') ui.renderPrinterPanel(person, switchTicket, detail);
+    else if (stationKind === 'bench') ui.renderBenchPanel(person, switchTicket, detail);
     else ui.renderSwitchPanel(person, switchTicket, detail);
   }
   function closeSwitch() {
@@ -734,6 +754,11 @@ function start() {
     else if (action === 'printer') {
       // The printer may use what the player is carrying (a new toner cartridge).
       const step = printerAction({ ...detail.sim, carrying: carried }, arg);
+      simAction(detail, step);
+      if (step.message) setCarried(step.sim.carrying);
+    } else if (action === 'bench') {
+      // The bench uses what the player carries: the PC itself, or a RAM stick.
+      const step = benchAction({ ...detail.sim, carrying: carried }, arg);
       simAction(detail, step);
       if (step.message) setCarried(step.sim.carrying);
     }
@@ -1155,7 +1180,7 @@ function start() {
   // ---------- physical fixes ----------
   function startWork(target) {
     if (target.kind === 'cabinet') return openCabinet();
-    if (target.kind === 'switch' || target.kind === 'printer') return openSwitch(target.ticket, target.kind);
+    if (target.kind === 'switch' || target.kind === 'printer' || target.kind === 'bench') return openSwitch(target.ticket, target.kind);
     working = { ...target, t: 0 };
     player.face(target.place.markX, target.place.markZ);
     sound.click();
@@ -1199,7 +1224,7 @@ function start() {
   function setDeskView(view) {
     const detail = activeTicket && talkingTo && details.get(activeTicket.number);
     if (!detail?.sim || detail.result || detail.state !== 'ready') return;
-    if (view === 'desk' && !['desk', 'laptop'].includes(detail.sim.station)) return; // printer and Wi-Fi work elsewhere
+    if (view === 'desk' && !['desk', 'laptop', 'bench'].includes(detail.sim.station)) return; // printer and Wi-Fi work elsewhere
     detail.view = view;
     if (view === 'desk') detail.sim = { ...detail.sim, visited: true }; // the mission card moves on to "Fix it"
     refreshTicketPanel();
@@ -1264,6 +1289,8 @@ function start() {
       if (e.target.closest('[data-action="put-back"]')) return onCabinet('put-back');
       const spare = e.target.closest('[data-spare]');
       if (spare) return onSwitchAction('move', Number(spare.dataset.spare));
+      const benchPart = e.target.closest('[data-bench]');
+      if (benchPart) return onSwitchAction('bench', benchPart.dataset.bench);
       const printerPart = e.target.closest('[data-printer]');
       if (printerPart) return onSwitchAction('printer', printerPart.dataset.printer);
       const act = e.target.closest('[data-action]')?.dataset.action;

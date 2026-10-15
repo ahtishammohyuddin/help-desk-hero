@@ -71,10 +71,12 @@ HANDS_ON_FAULTS: dict[str, str] = {
     "laptop_vent_dusty": "cooling",  # dust in the vent
     # Wi-Fi survey: measure three spots, then report the weak corner
     "wifi_weak_corner": "wifi_report",
+    # repair bench: carry the PC to the IT room and replace the faulty RAM stick
+    "ram_faulty": "stable",
 }
 HANDS_ON_GOALS = (
     "internet", "display", "power", "keyboard", "mouse", "print",
-    "charging", "phone_charging", "second_screen", "dock", "cooling", "wifi_report",
+    "charging", "phone_charging", "second_screen", "dock", "cooling", "wifi_report", "stable",
 )
 HANDS_ON_REQUIRED = {"report_port": "switch_port_dead"}  # required action -> fault it needs
 # Teams a ticket can be escalated to (id -> name shown in the game).

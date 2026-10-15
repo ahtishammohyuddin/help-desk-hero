@@ -13,6 +13,7 @@ export const PLACES = {
   printer: { name: 'Printer', x: -16.2, z: -11.7, markX: -16.2, markZ: -13.2 },
   parts_cabinet: { name: 'Parts cabinet', x: -18.6, z: 8, markX: -19.6, markZ: 8 },
   server_room: { name: 'Server room', x: 14, z: -11.2, markX: 14, markZ: -12.8 },
+  repair_bench: { name: 'Repair bench', x: -18.1, z: 12.6, markX: -19.45, markZ: 12.6 },
   // Wi-Fi survey spots (hands-on Wi-Fi tickets)
   wifi_front: { name: 'Front of office', x: 2, z: 11, markX: 2, markZ: 11 },
   wifi_middle: { name: 'Middle of office', x: -2.5, z: 2.5, markX: -2.5, markZ: 2.5 },

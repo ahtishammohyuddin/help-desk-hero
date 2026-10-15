@@ -9,9 +9,10 @@ import { DISCLAIMER, NAME_MAX } from './cards.js';
 import { missionStep, needsServerRoom, placesNeeded, SURVEY_SPOTS, surveyDone } from './handson.js';
 import { jobStage, PLACES } from './jobs.js';
 import {
-  cabinetSvg, chipsHtml, deskSummary, deskSvg, displayModeHtml, laptopSummary, laptopSvg, printerSummary, printerSvg, switchSvg,
+  benchSummary, benchSvg, cabinetSvg, chipsHtml, deskSummary, deskSvg, displayModeHtml, laptopSummary, laptopSvg, pcDeskSummary, pcDeskSvg,
+  printerSummary, printerSvg, switchSvg,
 } from './stations.js';
-import { ITEMS } from './handson.js';
+import { benchReadings, CARRY_NAMES } from './handson.js';
 import { topicStatus } from './shift.js';
 import { PRIORITIES, RANKS, rankFor, streakMultiplier } from './tickets.js';
 
@@ -165,6 +166,8 @@ export function renderTicketPanel(person, ticket, detail) {
           : `<button class="btn" data-action="later">Go and measure ${key('E')}</button>`;
       } else if (step === 3) {
         main = testBtn(true);
+      } else if (station === 'bench' && detail.sim.bench.where === 'bench') {
+        main = `${testBtn(false)}<button class="btn" data-action="later">Go to the repair bench ${key('E')}</button>`;
       } else if (station === 'printer') {
         main = `${testBtn(false)}<button class="btn" data-action="later">Go to the printer ${key('E')}</button>`;
       } else {
@@ -209,10 +212,11 @@ function hintsAndRetry(detail) {
 function missionHtml(person, detail) {
   const sim = detail.sim;
   const step = missionStep(sim);
-  const where = sim.station === 'printer' ? 'Go to the printer'
+  const where = sim.station === 'bench' ? `Check Desk ${person.desk}'s PC`
+    : sim.station === 'printer' ? 'Go to the printer'
     : sim.station === 'survey' ? 'Measure Wi-Fi at 3 spots'
       : `Inspect Desk ${person.desk}`;
-  const fix = sim.station === 'survey' ? 'Note the weak spot' : 'Fix what you find';
+  const fix = sim.station === 'survey' ? 'Note the weak spot' : sim.station === 'bench' ? 'Repair it at the bench' : 'Fix what you find';
   const test = sim.station === 'survey' ? 'Report it' : `Ask ${person.name} to test`;
   const items = [['🔍', 'Find it', where], ['🔧', 'Fix it', fix], ['✅', 'Test it', test]];
   return `<ol class="mission">${items
@@ -226,6 +230,13 @@ function missionHtml(person, detail) {
 // Where to go next, when it is somewhere else in the office.
 function nextPlaceHtml(person, detail) {
   const sim = detail.sim;
+  if (sim.station === 'bench') {
+    const need = placesNeeded(sim);
+    if (need.includes('parts_cabinet')) return `<div class="next-place"><span aria-hidden="true">📍</span> Next: a matching RAM stick from the <b>parts cabinet</b>. Follow the blue marker.</div>`;
+    if (need.includes('repair_bench')) return `<div class="next-place"><span aria-hidden="true">📍</span> Next: the <b>repair bench</b> in the IT room. Follow the blue marker.</div>`;
+    if (sim.bench.where === 'carried') return `<div class="next-place"><span aria-hidden="true">📍</span> Next: take the PC back to <b>Desk ${person.desk}</b> and plug it in.</div>`;
+    return '';
+  }
   if (needsServerRoom(sim)) return `<div class="next-place"><span aria-hidden="true">📍</span> Next: the <b>server room</b>. Follow the blue marker.</div>`;
   if (placesNeeded(sim).includes('parts_cabinet')) return `<div class="next-place"><span aria-hidden="true">📍</span> Next: the <b>parts cabinet</b>. Follow the blue marker.</div>`;
   return '';
@@ -268,6 +279,15 @@ const HOVER_HINT = 'Point at anything that glows, then click it.';
 /** The close-up at the person's desk (PC desk or laptop desk). */
 function deskHtml(person, detail) {
   const laptop = detail.sim.station === 'laptop';
+  if (detail.sim.station === 'bench') {
+    return `
+    <div id="station-hint" class="station-hint">${HOVER_HINT}</div>
+    ${pcDeskSvg(detail.sim)}
+    ${chipsHtml(pcDeskSummary(detail.sim))}
+    ${nextPlaceHtml(person, detail)}
+    ${latestHtml(detail)}
+    ${hintsAndRetry(detail)}`;
+  }
   return `
     <div id="station-hint" class="station-hint">${HOVER_HINT}</div>
     ${laptop ? laptopSvg(detail.sim) : deskSvg(detail.sim)}
@@ -329,6 +349,32 @@ export function renderPrinterPanel(person, ticket, detail) {
   if (!wasOpen) sheet.scrollTop = 0;
 }
 
+/** The repair bench in the IT room, opened by walking there and pressing E. */
+export function renderBenchPanel(person, ticket, detail) {
+  const sim = detail.sim;
+  const sheet = $('ticket');
+  const wasOpen = !sheet.hidden;
+  const fixed = benchReadings(sim).memoryOk;
+  const done = fixed && !sim.bench.open && sim.bench.where === 'bench'
+    ? '<div class="next-place"><span aria-hidden="true">📍</span> The memory is fixed. Pick up the PC and take it back to the desk.</div>'
+    : '';
+  sheet.innerHTML = `
+    <header class="tp-head">
+      <span class="avatar big" style="--c:#2f8f5b" aria-hidden="true">R</span>
+      <div class="tp-who"><div class="tp-name">Repair bench</div><div class="small">For ${esc(person.name)}, Desk ${person.desk}, ticket ${ticket.number}</div></div>
+      <div class="tp-meta">${priorityBadge(ticket.priority)}<span id="tp-timer" class="timer"></span></div>
+    </header>
+    <div class="tp-body">
+      <div id="station-hint" class="station-hint">${HOVER_HINT} Work safely: strap on, power drained, then open the case.</div>
+      ${benchSvg(sim)}
+      ${chipsHtml(benchSummary(sim))}
+      ${placesNeeded(sim).includes('parts_cabinet') ? nextPlaceHtml(person, detail) : ''}${done}${latestHtml(detail)}
+    </div>
+    <footer class="tp-actions"><button class="btn ghost" data-action="close-station">Close ${key('E')}</button></footer>`;
+  sheet.hidden = false;
+  if (!wasOpen) sheet.scrollTop = 0;
+}
+
 /** The parts cabinet: pick what you need. log: recent messages. */
 export function renderCabinetPanel(carrying, log) {
   const sheet = $('ticket');
@@ -336,7 +382,7 @@ export function renderCabinetPanel(carrying, log) {
   sheet.innerHTML = `
     <header class="tp-head">
       <span class="avatar big" style="--c:#4a525c" aria-hidden="true">C</span>
-      <div class="tp-who"><div class="tp-name">Parts cabinet</div><div class="small">${carrying ? `You are carrying: ${esc(ITEMS[carrying])}` : 'Your hands are empty'}</div></div>
+      <div class="tp-who"><div class="tp-name">Parts cabinet</div><div class="small">${carrying ? `You are carrying: ${esc(CARRY_NAMES[carrying] ?? carrying)}` : 'Your hands are empty'}</div></div>
     </header>
     <div class="tp-body">
       <div id="station-hint" class="station-hint">Click the item you need. You carry one thing at a time.</div>
@@ -354,7 +400,7 @@ export function renderCabinetPanel(carrying, log) {
 /** The small "Carrying" chip on screen. */
 export function setCarrying(item) {
   $('carry').hidden = !item;
-  $('carry').innerHTML = item ? `Carrying: <b>${esc(ITEMS[item])}</b>` : '';
+  $('carry').innerHTML = item ? `Carrying: <b>${esc(CARRY_NAMES[item] ?? item)}</b>` : '';
 }
 
 function questionHtml(person, detail) {

@@ -3,6 +3,7 @@
 // The look comes from readings(sim), so lights always match the kit.
 
 import {
+  benchReadings,
   DISPLAY_MODES, ITEM_NAMES, ITEMS, LAPTOP_PARTS, laptopReadings, PARTS, printerReadings, readings, SPARE_PORTS, SWITCH_PORTS,
 } from './handson.js';
 
@@ -323,6 +324,9 @@ const ITEM_ICONS = {
   dock_cable: '<path d="M-26 6 C -10 -18, 10 18, 26 -6" stroke="#5b6b7c" stroke-width="4" fill="none"/><rect x="-34" y="2" width="11" height="7" rx="3" fill="#1f252d"/><rect x="23" y="-10" width="11" height="7" rx="3" fill="#1f252d"/>',
   usb_keyboard: '<rect x="-34" y="-10" width="68" height="20" rx="3" fill="#2b313a"/><rect x="-28" y="-5" width="56" height="4" fill="#4b5563"/><rect x="-22" y="2" width="44" height="4" fill="#4b5563"/>',
   usb_mouse: '<ellipse cx="0" cy="0" rx="11" ry="15" fill="#2b313a"/><path d="M0 -15 L0 -4" stroke="#4b5563" stroke-width="2"/>',
+  // RAM sticks: the notch sits in a different place on DDR4 and DDR5, so they only fit their own slots.
+  ram_ddr4: '<rect x="-34" y="-12" width="68" height="20" rx="2" fill="#1d7a4a"/><rect x="-30" y="-9" width="10" height="11" fill="#11161c"/><rect x="-16" y="-9" width="10" height="11" fill="#11161c"/><rect x="6" y="-9" width="10" height="11" fill="#11161c"/><rect x="20" y="-9" width="10" height="11" fill="#11161c"/><rect x="-34" y="8" width="68" height="5" fill="#d4a017"/><rect x="-2" y="7" width="4" height="7" fill="#f4f6f8"/>',
+  ram_ddr5: '<rect x="-34" y="-12" width="68" height="20" rx="2" fill="#5b3a8a"/><rect x="-30" y="-9" width="10" height="11" fill="#11161c"/><rect x="-16" y="-9" width="10" height="11" fill="#11161c"/><rect x="6" y="-9" width="10" height="11" fill="#11161c"/><rect x="20" y="-9" width="10" height="11" fill="#11161c"/><rect x="-34" y="8" width="68" height="5" fill="#d4a017"/><rect x="-12" y="7" width="4" height="7" fill="#f4f6f8"/>',
 };
 
 /** The open parts cabinet. carrying: the item in your hands, which is missing from its shelf. */
@@ -464,4 +468,124 @@ export function chipsHtml(items) {
   return `<div class="chips">${items
     .map(({ label, value, ok }) => `<span class="schip ${ok === true ? 'ok' : ok === false ? 'bad' : ''}"><span class="dot"></span>${esc(label)}: <b>${esc(value)}</b></span>`)
     .join('')}</div>`;
+}
+
+// ---------- the repair bench (and the PC at the person's desk) ----------
+
+/** A clickable part for the bench ticket. attr: 'data-part' at the desk, 'data-bench' at the bench. */
+function bPart(attr, action, label, inner, hit) {
+  return `<g class="part" ${attr}="${action}" tabindex="0" role="button" aria-label="${esc(label)}"><title>${esc(label)}</title>
+    <rect x="${hit[0]}" y="${hit[1]}" width="${hit[2]}" height="${hit[3]}" rx="6" class="hit"/>${inner}</g>`;
+}
+
+/** The person's desk for the blue-screen ticket: monitor, memory test, and the PC itself. */
+export function pcDeskSvg(sim) {
+  const b = sim.bench;
+  const r = benchReadings(sim);
+  const here = b.where === 'desk';
+  let monitor;
+  if (r.screen === 'crashes') {
+    monitor = `<rect x="150" y="44" width="250" height="140" fill="#1e5fbf"/>
+      <text x="170" y="86" class="bsod-face">:(</text>
+      ${fitText('Your PC ran into a problem and needs to restart.', 170, 114, 220, { size: 11, cls: 'bsod', anchor: 'start', maxLines: 2 })}
+      ${fitText('Stop code: MEMORY_MANAGEMENT', 170, 160, 220, { size: 11, cls: 'bsod', anchor: 'start', weight: 700 })}`;
+  } else if (r.screen === 'desktop') {
+    monitor = '<rect x="150" y="44" width="250" height="140" fill="#7fb8f0"/><rect x="210" y="76" width="130" height="76" fill="#fff" opacity="0.9"/><rect x="210" y="76" width="130" height="10" fill="#2f6feb"/>';
+  } else {
+    monitor = '<rect x="150" y="44" width="250" height="140" fill="#05080b"/>';
+  }
+  const diagResult = b.diag === 'errors' ? 'Memory test: errors found' : b.diag === 'clean' ? 'Memory test: no errors' : 'Memory test: not run yet';
+  const tower = here
+    ? bPart('data-part', b.on ? 'shutdown' : 'pc', b.on ? 'Shut down Windows and unplug the PC' : 'Pick up the PC to take it to the repair bench',
+      `<rect x="452" y="96" width="78" height="150" rx="6" fill="#2b313a"/><circle cx="491" cy="118" r="7" fill="${b.on ? '#33d17a' : '#4a525c'}"/>
+       <rect x="462" y="140" width="58" height="4" fill="#3b4552"/><rect x="462" y="150" width="58" height="4" fill="#3b4552"/>
+       ${b.plugged ? '<path d="M530 220 C 560 220, 560 262, 590 262" stroke="#2a2f36" stroke-width="4" fill="none"/>' : ''}`,
+      [444, 88, 94, 166])
+    : b.where === 'carried' && sim.carrying === 'user_pc'
+      ? bPart('data-part', 'putDesk', 'Put the PC back, plug it in and switch it on',
+        `<rect x="452" y="96" width="78" height="150" rx="6" fill="none" stroke="#2f6feb" stroke-width="2" stroke-dasharray="6 5"/>${fitText('Put the PC back here', 491, 176, 72, { size: 11, cls: 'tiny ink', weight: 700, maxLines: 3 })}`,
+        [444, 88, 94, 166])
+      : `<rect x="452" y="96" width="78" height="150" rx="6" fill="none" stroke="#9aa4ae" stroke-dasharray="6 5"/>${fitText('PC is at the repair bench', 491, 170, 72, { size: 11, cls: 'tiny', maxLines: 3 })}`;
+  return `<svg class="station" viewBox="0 0 600 300" role="img" aria-label="The PC at the person's desk">
+    <rect x="0" y="0" width="600" height="300" rx="12" fill="#e9edf2"/>
+    <rect x="0" y="250" width="600" height="50" fill="#d8c6a6"/>
+    ${bPart('data-part', 'screen', 'Look at the screen (and the photo of the blue screen)', `<rect x="138" y="32" width="274" height="164" rx="8" fill="#1f252d"/>${monitor}<rect x="262" y="196" width="26" height="30" fill="#1f252d"/><rect x="226" y="226" width="98" height="10" rx="4" fill="#1f252d"/>`, [130, 24, 290, 216])}
+    ${bPart('data-part', 'diag', 'Run Windows Memory Diagnostic', `<rect x="20" y="88" width="98" height="64" rx="8" fill="#ffffff" stroke="#b7c2cd"/><rect x="30" y="98" width="20" height="20" rx="3" fill="#2f6feb"/>${fitText('Memory test', 69, 136, 86, { size: 11, cls: 'tiny ink', weight: 700 })}`, [14, 82, 110, 76])}
+    ${fitText(diagResult, 275, 278, 260, { size: 12, cls: `tiny ${b.diag === 'errors' ? 'hot' : 'ink'}`, weight: 700 })}
+    ${tower}
+  </svg>`;
+}
+
+const STICK = (x, y, state) => {
+  if (state === 'empty') return `<rect x="${x}" y="${y}" width="150" height="10" rx="2" fill="#11161c"/><rect x="${x - 8}" y="${y - 6}" width="6" height="22" rx="1" fill="#e9edf2"/><rect x="${x + 152}" y="${y - 6}" width="6" height="22" rx="1" fill="#e9edf2"/>`;
+  const label = state === 'new' ? '<rect x="' + (x + 50) + '" y="' + (y - 14) + '" width="44" height="12" rx="2" fill="#2f6feb"/>' : '';
+  return `<rect x="${x}" y="${y}" width="150" height="10" rx="2" fill="#11161c"/>
+    <rect x="${x + 2}" y="${y - 22}" width="146" height="26" rx="2" fill="#1d7a4a"/>
+    ${[0, 1, 2, 3, 4, 5, 6, 7].map((i) => `<rect x="${x + 8 + i * 17}" y="${y - 18}" width="12" height="14" fill="#11161c"/>`).join('')}
+    <rect x="${x - 8}" y="${y - 6}" width="6" height="22" rx="1" fill="#cfd6de"/><rect x="${x + 152}" y="${y - 6}" width="6" height="22" rx="1" fill="#cfd6de"/>${label}
+    ${state === 'new' ? fitText('NEW', x + 72, y - 5, 40, { size: 9, cls: 'tiny light', weight: 700 }) : ''}`;
+};
+
+/** The repair bench in the IT room: mat, wrist strap, and the PC (opened or closed). */
+export function benchSvg(sim) {
+  const b = sim.bench;
+  const onBench = b.where === 'bench';
+  const carrying = b.where === 'carried' && sim.carrying === 'user_pc';
+  const strap = bPart('data-bench', 'strap', b.strap ? 'Anti-static strap (you are wearing it)' : 'Put on the anti-static wrist strap',
+    `<circle cx="64" cy="70" r="20" fill="none" stroke="${b.strap ? '#1f9d55' : '#2b313a'}" stroke-width="6"/>
+     <path d="M64 90 C 64 150, 30 150, 30 200" stroke="#c0392b" stroke-width="3" fill="none"/><rect x="22" y="198" width="16" height="12" rx="2" fill="#9aa4ae"/>
+     ${fitText(b.strap ? 'Strap on' : 'Wrist strap', 64, 30, 90, { size: 11, cls: `tiny ${b.strap ? 'ink' : ''}`, weight: 700 })}`,
+    [16, 22, 96, 196]);
+  let pc;
+  if (carrying) {
+    pc = bPart('data-bench', 'putBench', 'Put the PC down on the anti-static mat',
+      `<rect x="150" y="70" width="400" height="190" rx="10" fill="none" stroke="#2f6feb" stroke-width="2" stroke-dasharray="8 6"/>${fitText('Put the PC down here', 350, 170, 300, { size: 14, cls: 'tiny ink', weight: 700 })}`,
+      [146, 66, 408, 198]);
+  } else if (!onBench) {
+    pc = fitText(b.where === 'desk' ? 'No PC on the bench. Bring it from the desk (shut down and unplugged).' : '', 350, 170, 320, { size: 12, cls: 'tiny', maxLines: 2 });
+  } else if (!b.open) {
+    pc = `${bPart('data-bench', 'panel', 'Take off the side panel', `<rect x="170" y="80" width="300" height="170" rx="8" fill="#3b4552"/><rect x="186" y="96" width="268" height="138" rx="4" fill="#4a5563"/>${fitText('Side panel (closed)', 320, 170, 200, { size: 12, cls: 'tiny light', weight: 700 })}`, [164, 74, 312, 182])}
+      ${bPart('data-bench', 'button', 'Hold the power button to drain leftover power', `<rect x="482" y="80" width="56" height="64" rx="6" fill="#2b313a"/><circle cx="510" cy="110" r="10" fill="#4a525c" stroke="${b.drained ? '#33d17a' : '#8a97a5'}" stroke-width="2"/>`, [476, 74, 68, 72])}
+      ${bPart('data-bench', 'pc', 'Pick up the PC', `<rect x="482" y="150" width="56" height="100" rx="6" fill="#2b313a"/>${fitText('Pick up', 510, 205, 50, { size: 10, cls: 'tiny light', weight: 700 })}`, [476, 148, 68, 106])}
+      ${bPart('data-bench', 'boot', 'Test boot at the bench and run the memory test', `<rect x="560" y="200" width="34" height="50" rx="6" fill="#f4f4f4" stroke="#b7c2cd"/>${fitText('Test', 577, 230, 30, { size: 10, cls: 'tiny ink', weight: 700 })}`, [554, 194, 44, 62])}`;
+  } else {
+    const slot = (s, y) => bPart('data-bench', s, b.slots[s] === 'empty' ? `Memory slot ${s} (empty): put a stick in` : `Memory slot ${s}: take the stick out`,
+      `${STICK(250, y, b.slots[s])}${fitText(`Slot ${s}`, 222, y + 8, 40, { size: 11, cls: 'tiny light', weight: 700 })}`, [200, y - 30, 220, 46]);
+    pc = `<rect x="170" y="80" width="300" height="170" rx="8" fill="#2b313a"/><rect x="182" y="92" width="276" height="146" rx="4" fill="#1b4d3e"/>
+      <rect x="196" y="104" width="60" height="50" rx="4" fill="#9aa4ae"/>${fitText('CPU', 226, 134, 50, { size: 10, cls: 'tiny ink', weight: 700 })}
+      ${slot('A', 186)}${slot('B', 226)}
+      ${bPart('data-bench', 'panel', 'Put the side panel back on', '<rect x="482" y="80" width="56" height="60" rx="6" fill="#4a5563"/>', [476, 74, 68, 72])}
+      ${fitText('Side panel', 510, 156, 70, { size: 10, cls: 'tiny' })}
+      ${bPart('data-bench', 'boot', 'Test boot at the bench and run the memory test', `<rect x="560" y="200" width="34" height="50" rx="6" fill="#f4f4f4" stroke="#b7c2cd"/>${fitText('Test', 577, 230, 30, { size: 10, cls: 'tiny ink', weight: 700 })}`, [554, 194, 44, 62])}`;
+  }
+  return `<svg class="station" viewBox="0 0 600 290" role="img" aria-label="The repair bench">
+    <rect x="0" y="0" width="600" height="290" rx="12" fill="#e9edf2"/>
+    <rect x="0" y="262" width="600" height="28" fill="#8a6f52"/>
+    <rect x="130" y="60" width="430" height="206" rx="8" fill="#2f8f5b"/>
+    ${strap}${pc}
+  </svg>`;
+}
+
+export function pcDeskSummary(sim) {
+  const b = sim.bench;
+  const r = benchReadings(sim);
+  return [
+    { label: 'Screen', value: r.screen === 'crashes' ? 'Blue screens' : r.screen === 'desktop' ? 'Working' : 'Off', ok: r.screen === 'off' ? null : r.screen === 'desktop' },
+    { label: 'Memory test', value: b.diag === 'errors' ? 'Errors' : b.diag === 'clean' ? 'No errors' : 'Not run', ok: b.diag ? b.diag === 'clean' : null },
+    { label: 'PC', value: b.where === 'desk' ? (b.on ? 'At the desk, on' : 'Shut down, unplugged') : b.where === 'carried' ? 'With you' : 'At the repair bench', ok: null },
+  ];
+}
+
+export function benchSummary(sim) {
+  const b = sim.bench;
+  const slotText = (s) => ({ orig: 'original', new: 'new', empty: 'empty' })[b.slots[s]];
+  const boot = b.lastBoot
+    ? `${b.lastBoot.slots.length === 1 ? `Slot ${b.lastBoot.slots[0]} only` : 'Both sticks'}: ${b.lastBoot.errors ? 'errors' : 'no errors'}`
+    : 'Not run';
+  return [
+    { label: 'Strap', value: b.strap ? 'On' : 'Off', ok: b.strap },
+    { label: 'Power drained', value: b.drained ? 'Yes' : 'No', ok: b.drained },
+    { label: 'RAM', value: `A ${slotText('A')}, B ${slotText('B')}`, ok: null },
+    { label: 'Bench test', value: boot, ok: b.lastBoot ? !b.lastBoot.errors : null },
+  ];
 }

@@ -33,5 +33,11 @@
     "What connects the PC to the screen?"
   ],
   "real_world_tip": "Check the monitor's own power light and button before touching the PC. It is the fastest check and often the whole fix.",
+  "hands_on": {
+    "faults": [
+      "monitor_power_loose"
+    ],
+    "goal": "display"
+  },
   "reviewed": true
 }

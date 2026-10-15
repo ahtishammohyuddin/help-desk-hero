@@ -153,6 +153,7 @@ export class TicketQueue {
       secondsLeft: PRIORITIES[priority].sla,
       employee: owner.name,
       hintsUsed: 0,
+      handsOn: Boolean(problem.hands_on), // solved by investigating in the office
     };
     this.open.push(ticket);
     return ticket;

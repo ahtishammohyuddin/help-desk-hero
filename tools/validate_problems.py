@@ -7,6 +7,7 @@ Checks every problem JSON file against the schema and the bank-wide rules:
   - file name matches the id
   - no duplicate ids or titles across the bank
   - optional physical_steps: 1-3 steps, each with a known place and an action
+  - optional hands_on: known faults that all break the goal, and valid required actions
 
 Usage (from the repo root):
     python -m tools.validate_problems            # validates ./problems
@@ -40,6 +41,22 @@ LEVELS = (1, 2, 3, 4, 5)
 # Places in the office a physical fix can send the player to (see game/src/office.js).
 PLACES = ("printer", "parts_cabinet", "server_room")
 MAX_PHYSICAL_STEPS = 3
+
+# Hands-on scenarios: what is broken (fault -> the symptom it causes), what must work again (goal),
+# and extra actions the player must do before the ticket closes. The game simulates these.
+HANDS_ON_FAULTS: dict[str, str] = {
+    "network_cable_loose": "internet",  # network cable half out at the PC
+    "wall_cable_loose": "internet",  # network cable loose at the wall port
+    "switch_port_dead": "internet",  # this desk's port on the server room switch has no link
+    "video_cable_loose": "display",  # monitor on, but its video cable is loose at the PC
+    "monitor_power_loose": "display",  # monitor power cable loose, so the monitor is off
+    "power_strip_off": "power",  # the power strip switch is off
+    "pc_power_loose": "power",  # PC power cable loose at the back of the PC
+    "keyboard_unplugged": "keyboard",
+    "mouse_unplugged": "mouse",
+}
+HANDS_ON_GOALS = ("internet", "display", "power", "keyboard", "mouse")
+HANDS_ON_REQUIRED = {"report_port": "switch_port_dead"}  # required action -> fault it needs
 GENDERS = ("female", "male")
 MIN_OPTIONS = 3
 MAX_OPTIONS = 4
@@ -179,10 +196,47 @@ def validate_problem(problem: object) -> list[str]:
                 if not _is_nonempty_str(step.get("action")):
                     errors.append(f"physical step {i}: action must be a non-empty string")
 
+    # --- optional hands-on scenario ---
+    hands_on = problem.get("hands_on")
+    if hands_on is not None:
+        errors.extend(_validate_hands_on(hands_on))
+        if problem.get("physical_steps") is not None:
+            errors.append("use either hands_on or physical_steps, not both")
+
     # --- reviewed ---
     if not isinstance(problem["reviewed"], bool):
         errors.append("reviewed must be true or false")
 
+    return errors
+
+
+def _validate_hands_on(hands_on: object) -> list[str]:
+    if not isinstance(hands_on, dict):
+        return ["hands_on must be an object"]
+    errors: list[str] = []
+    goal = hands_on.get("goal")
+    if goal not in HANDS_ON_GOALS:
+        errors.append(f"hands_on.goal must be one of {', '.join(HANDS_ON_GOALS)}")
+    faults = hands_on.get("faults")
+    if not isinstance(faults, list) or not faults:
+        errors.append("hands_on.faults must be a non-empty list")
+        faults = []
+    for fault in faults:
+        if fault not in HANDS_ON_FAULTS:
+            errors.append(f"hands_on: unknown fault {fault!r}")
+        elif goal in HANDS_ON_GOALS and HANDS_ON_FAULTS[fault] != goal:
+            errors.append(f"hands_on: fault {fault!r} breaks {HANDS_ON_FAULTS[fault]}, not the goal {goal!r}")
+    if len(set(f for f in faults if isinstance(f, str))) != len(faults):
+        errors.append("hands_on.faults has a repeat")
+    required = hands_on.get("required", [])
+    if not isinstance(required, list):
+        errors.append("hands_on.required, when present, must be a list")
+        required = []
+    for action in required:
+        if action not in HANDS_ON_REQUIRED:
+            errors.append(f"hands_on: unknown required action {action!r}")
+        elif HANDS_ON_REQUIRED[action] not in faults:
+            errors.append(f"hands_on: {action!r} needs the fault {HANDS_ON_REQUIRED[action]!r}")
     return errors
 
 

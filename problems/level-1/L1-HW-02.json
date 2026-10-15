@@ -38,5 +38,11 @@
     "What does the mouse need to work: a cable, a receiver or batteries?"
   ],
   "real_world_tip": "Press the mouse's small connect button or re-seat the wireless receiver. Many wireless mouse problems are just a lost connection.",
+  "hands_on": {
+    "faults": [
+      "mouse_unplugged"
+    ],
+    "goal": "mouse"
+  },
   "reviewed": true
 }

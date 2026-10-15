@@ -25,6 +25,7 @@ class ProblemSummary(BaseModel):
     title: str
     character_name: str  # lets the game send the ticket to the matching employee
     gender: str
+    hands_on: bool = False  # solved by investigating in the office instead of picking an option
 
 
 class Character(BaseModel):
@@ -48,6 +49,7 @@ class ProblemPublic(BaseModel):
     user_description: str
     options: list[PublicOption]
     hint_count: int
+    hands_on: bool = False
 
 
 class AnswerRequest(BaseModel):
@@ -107,6 +109,25 @@ class CheckResult(BaseModel):
     real_world_tip: str | None = None
     # Only sent when the answer is right: listing them earlier would give the answer away.
     physical_steps: list[PhysicalStep] | None = None
+
+
+class HandsOn(BaseModel):
+    """A hands-on scenario. The game simulates the office kit from this.
+
+    It says what is broken (the player finds it by looking), but never the explanations
+    or the tip: those come from /check or /hands-on/finish, as for normal tickets.
+    Decoys are the problem's wrong options, offered as other things to try.
+    """
+
+    problem_id: str
+    faults: list[str]
+    goal: str
+    required: list[str]
+    decoys: list[PublicOption]
+
+
+class FinishRequest(BaseModel):
+    attempt: int = Field(1, ge=1, le=MAX_ATTEMPTS)  # 2 if the player tried one wrong thing first
 
 
 class HintResponse(BaseModel):

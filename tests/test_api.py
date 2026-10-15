@@ -92,7 +92,7 @@ def test_list_rejects_bad_level(client):
 
 def test_list_summary_has_no_answers(client):
     first = client.get("/problems").json()[0]
-    assert set(first) == {"id", "level", "category", "title", "character_name", "gender"}
+    assert set(first) == {"id", "level", "category", "title", "character_name", "gender", "hands_on"}
     assert first["character_name"] == "Ahmed" and first["gender"] == "male"
 
 
@@ -279,3 +279,44 @@ def test_physical_steps_only_come_with_a_right_answer(physical_client):
 def test_problems_without_steps_send_none(client):
     body = client.post("/problems/L1-HW-03/check", json={"option_id": 0, "attempt": 1}).json()
     assert body["physical_steps"] is None
+
+
+# ---------- hands-on scenarios ----------
+
+HANDS_ON = {"faults": ["video_cable_loose"], "goal": "display"}
+
+
+@pytest.fixture
+def hands_client(tmp_path):
+    write(tmp_path, make(reviewed=True, hands_on=HANDS_ON))
+    write(tmp_path, make(id="L1-HW-04", title="Mouse frozen", reviewed=True))
+    return TestClient(create_app(tmp_path, ai_client=None))
+
+
+def test_hands_on_flag_in_list_and_problem(hands_client):
+    flags = {p["id"]: p["hands_on"] for p in hands_client.get("/problems").json()}
+    assert flags == {"L1-HW-03": True, "L1-HW-04": False}
+    assert hands_client.get("/problems/L1-HW-03").json()["hands_on"] is True
+
+
+def test_hands_on_scenario_has_decoys_but_no_explanations(hands_client):
+    response = hands_client.get("/problems/L1-HW-03/hands-on")
+    body = response.json()
+    assert body["faults"] == ["video_cable_loose"] and body["goal"] == "display" and body["required"] == []
+    # Decoys are the wrong options only, without their explanations.
+    assert sorted(d["id"] for d in body["decoys"]) == [1, 2]
+    assert "Check the monitor power and cable" not in response.text  # the correct option text
+    assert "why" not in response.text and "real_world_tip" not in response.text
+
+
+def test_hands_on_finish_reveals_the_explanations(hands_client):
+    body = hands_client.post("/problems/L1-HW-03/hands-on/finish", json={"attempt": 2}).json()
+    assert body["is_correct"] is True and body["final"] is True and body["attempt"] == 2
+    assert body["correct_option_id"] == 0
+    assert len(body["explanations"]) == 3
+
+
+def test_hands_on_endpoints_404_without_a_scenario(hands_client):
+    assert hands_client.get("/problems/L1-HW-04/hands-on").status_code == 404
+    assert hands_client.post("/problems/L1-HW-04/hands-on/finish", json={"attempt": 1}).status_code == 404
+    assert hands_client.post("/problems/L1-HW-03/hands-on/finish", json={"attempt": 3}).status_code == 422

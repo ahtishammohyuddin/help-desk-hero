@@ -4,7 +4,9 @@
 
 import { ACHIEVEMENTS } from './achievements.js';
 import { DISCLAIMER, NAME_MAX } from './cards.js';
+import { needsServerRoom } from './handson.js';
 import { jobStage, PLACES } from './jobs.js';
+import { deskSummary, deskSvg, switchSvg } from './stations.js';
 import { topicStatus } from './shift.js';
 import { PRIORITIES, RANKS, rankFor, streakMultiplier } from './tickets.js';
 
@@ -115,7 +117,7 @@ export function renderTicketPanel(person, ticket, detail) {
   const head = `
     <header class="tp-head">
       ${avatar(person, 'big')}
-      <div class="tp-who"><div class="tp-name">${esc(person.name)}</div><div class="small">${esc(person.department)}, ticket ${ticket.number}</div></div>
+      <div class="tp-who"><div class="tp-name">${esc(person.name)}</div><div class="small">${esc(person.department)}, Desk ${person.desk}, ticket ${ticket.number}</div></div>
       <div class="tp-meta">${priorityBadge(ticket.priority)}<span id="tp-timer" class="timer"></span></div>
     </header>`;
 
@@ -135,6 +137,18 @@ export function renderTicketPanel(person, ticket, detail) {
     const canAsk = !detail.chatOpen && asked < MAX_QUESTIONS;
     actions = `${canAsk ? `<button class="btn ghost" data-action="ask">Ask the senior tech ${key('Q')}</button>` : ''}
       <button class="btn" data-action="close">${pending ? 'On my way' : 'Close ticket'} ${key('E')}</button>`;
+  } else if (detail.sim) {
+    const hintsLeft = detail.problem.hint_count - detail.hints.length;
+    const hintBtn = hintsLeft > 0 ? `<button class="btn ghost" data-action="hint">Get a hint, costs 25% XP ${key('H')}</button>` : '';
+    if (detail.view === 'desk') {
+      body = deskHtml(person, detail);
+      actions = `${hintBtn}<button class="btn ghost" data-action="talk-view">Back to ${esc(person.name)} ${key('B')}</button>
+        <button class="btn" data-action="test" ${detail.answering ? 'disabled' : ''}>Ask ${esc(person.name)} to test ${key('T')}</button>`;
+    } else {
+      body = handsOnTalkHtml(person, detail);
+      actions = `${hintBtn}<button class="btn ghost" data-action="later">Come back later ${key('E')}</button>
+        <button class="btn" data-action="inspect">Inspect Desk ${person.desk} ${key('I')}</button>`;
+    }
   } else {
     body = questionHtml(person, detail);
     const p = detail.problem;
@@ -150,6 +164,78 @@ export function renderTicketPanel(person, ticket, detail) {
   // Newest chat message in view; otherwise start at the top when the window first opens.
   if (detail.result && detail.chatOpen) sheet.scrollTop = sheet.scrollHeight;
   else if (!wasOpen) sheet.scrollTop = 0;
+}
+
+// ---------- hands-on tickets ----------
+
+function logHtml(detail) {
+  if (!detail.log.length) return '';
+  return `<ul class="sim-log" aria-live="polite">${detail.log.slice(-3).map((m, i, a) => `<li class="${i === a.length - 1 ? 'new' : ''}">${esc(m)}</li>`).join('')}</ul>`;
+}
+
+function hintsAndRetry(detail) {
+  const lastWrong = detail.wrong[detail.wrong.length - 1];
+  const retry = lastWrong
+    ? `<div class="notice warn"><b>That didn't fix it.</b> ${esc(lastWrong.why)}<br>One more wrong fix and the ticket fails. Look at the kit instead.</div>`
+    : '';
+  return retry + detail.hints.map((h) => `<div class="hint"><b>Hint:</b> ${esc(h)}</div>`).join('');
+}
+
+function handsOnTalkHtml(person, detail) {
+  const ruledOut = new Set(detail.wrong.map((w) => w.id));
+  const decoys = detail.handsOn.decoys
+    .map((o, i) => {
+      const out = ruledOut.has(o.id);
+      return `<button class="opt small-opt${out ? ' out' : ''}" data-decoy="${o.id}" ${detail.answering || out ? 'disabled' : ''}>
+        <span class="num">${i + 1}</span><span>${esc(o.text)}</span></button>`;
+    })
+    .join('');
+  return `
+    <div class="bubble">${esc(detail.description)}</div>
+    ${hintsAndRetry(detail)}
+    ${logHtml(detail)}
+    <div class="handson-intro"><b>This one is hands-on.</b> Inspect ${esc(person.name)}'s desk and find what is wrong. Checking things is free.</div>
+    <h3 class="ask">Or try one of these instead</h3>
+    <div class="opts">${decoys}</div>
+    <p class="small">A wrong fix costs XP, like a wrong answer.</p>`;
+}
+
+function deskHtml(person, detail) {
+  const server = needsServerRoom(detail.sim)
+    ? `<div class="notice blue-note"><b>Next:</b> go to the server room (follow the blue marker) and check Desk ${person.desk}'s port on the switch.</div>`
+    : '';
+  return `
+    <p class="small">Click a cable to check it and push it in firmly. Click the power strip switch to flip it. Then ask ${esc(person.name)} to test.</p>
+    ${deskSvg(detail.sim)}
+    <ul class="readings">${deskSummary(detail.sim).map((t) => `<li>${esc(t)}</li>`).join('')}</ul>
+    ${server}${hintsAndRetry(detail)}${logHtml(detail)}`;
+}
+
+/** The server room switch, opened by walking there and pressing E. */
+export function renderSwitchPanel(person, ticket, detail) {
+  const sim = detail.sim;
+  const canReport = sim.port.movedTo !== null && sim.required.includes('report_port') && !sim.done.report_port;
+  const sheet = $('ticket');
+  const wasOpen = !sheet.hidden;
+  sheet.innerHTML = `
+    <header class="tp-head">
+      <span class="avatar big" style="--c:#2a3038" aria-hidden="true">S</span>
+      <div class="tp-who"><div class="tp-name">Server room switch</div><div class="small">For ${esc(person.name)}, Desk ${person.desk}, ticket ${ticket.number}</div></div>
+      <div class="tp-meta">${priorityBadge(ticket.priority)}<span id="tp-timer" class="timer"></span></div>
+    </header>
+    <div class="tp-body">
+      <p class="small">Each port has a light. A working connection blinks green. Desk ${person.desk} uses port ${sim.port.number}${sim.port.movedTo ? `, now moved to port ${sim.port.movedTo}` : ''}.
+        ${sim.port.movedTo === null ? 'Click a spare port to move its cable there.' : ''}</p>
+      ${switchSvg(sim)}
+      ${logHtml(detail)}
+      ${sim.port.movedTo !== null && !canReport ? `<div class="notice blue-note">Now go back to ${esc(person.name)} and ask them to test.</div>` : ''}
+    </div>
+    <footer class="tp-actions">
+      ${canReport ? `<button class="btn" data-action="report">Log the faulty port for the network team ${key('L')}</button>` : ''}
+      <button class="btn ghost" data-action="close-station">Close ${key('E')}</button>
+    </footer>`;
+  sheet.hidden = false;
+  if (!wasOpen) sheet.scrollTop = 0;
 }
 
 function questionHtml(person, detail) {

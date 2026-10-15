@@ -38,5 +38,11 @@
     "What is the very first thing a PC needs before it can start?"
   ],
   "real_world_tip": "Always check the power strip first. Cleaners and desk moves often switch it off or knock plugs loose.",
+  "hands_on": {
+    "faults": [
+      "power_strip_off"
+    ],
+    "goal": "power"
+  },
   "reviewed": true
 }

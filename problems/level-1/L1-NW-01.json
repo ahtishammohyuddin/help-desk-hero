@@ -38,5 +38,14 @@
     "How does this PC connect to the network?"
   ],
   "real_world_tip": "Asking 'Is anyone else affected?' is the fastest way to decide whether the problem is the PC or the network.",
+  "hands_on": {
+    "faults": [
+      "switch_port_dead"
+    ],
+    "goal": "internet",
+    "required": [
+      "report_port"
+    ]
+  },
   "reviewed": true
 }

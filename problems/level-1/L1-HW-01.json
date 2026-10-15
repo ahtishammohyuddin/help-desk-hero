@@ -38,5 +38,11 @@
     "How does the keyboard connect to the PC?"
   ],
   "real_world_tip": "Swap in a spare keyboard from the cupboard. If it works, you know the old keyboard is the fault and the user can keep working while you sort it out.",
+  "hands_on": {
+    "faults": [
+      "keyboard_unplugged"
+    ],
+    "goal": "keyboard"
+  },
   "reviewed": true
 }

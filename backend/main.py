@@ -37,6 +37,8 @@ from backend.schemas import (
     CheckRequest,
     CheckResult,
     Explanation,
+    FinishRequest,
+    HandsOn,
     Health,
     HintResponse,
     PhysicalStep,
@@ -121,7 +123,12 @@ def create_app(problems_dir: Path | None = None, ai_client: object = FROM_ENV) -
         category: str | None = None,
     ) -> list[dict]:
         return [
-            {**p, "character_name": p["character"]["name"], "gender": p["character"]["gender"]}
+            {
+                **p,
+                "character_name": p["character"]["name"],
+                "gender": p["character"]["gender"],
+                "hands_on": "hands_on" in p,
+            }
             for p in store_of(request).list(level=level, category=category)
         ]
 
@@ -141,6 +148,7 @@ def create_app(problems_dir: Path | None = None, ai_client: object = FROM_ENV) -
             user_description=problem["user_description"],
             options=[PublicOption(id=i, text=o["text"]) for i, o in indexed],
             hint_count=len(problem["hints"]),
+            hands_on="hands_on" in problem,
         )
 
     @app.post("/problems/{problem_id}/answer", response_model=AnswerResult)
@@ -196,6 +204,46 @@ def create_app(problems_dir: Path | None = None, ai_client: object = FROM_ENV) -
         elif body.next_hint <= len(problem["hints"]):
             result.hint = problem["hints"][body.next_hint - 1]
         return result
+
+    @app.get("/problems/{problem_id}/hands-on", response_model=HandsOn)
+    def get_hands_on(request: Request, problem_id: str) -> HandsOn:
+        problem = find_or_404(request, problem_id)
+        scenario = problem.get("hands_on")
+        if scenario is None:
+            raise HTTPException(status_code=404, detail="This problem has no hands-on scenario")
+        decoys = [PublicOption(id=i, text=o["text"]) for i, o in enumerate(problem["options"]) if not o["correct"]]
+        random.shuffle(decoys)
+        return HandsOn(
+            problem_id=problem["id"],
+            faults=scenario["faults"],
+            goal=scenario["goal"],
+            required=scenario.get("required", []),
+            decoys=decoys,
+        )
+
+    @app.post("/problems/{problem_id}/hands-on/finish", response_model=CheckResult)
+    def finish_hands_on(request: Request, problem_id: str, body: FinishRequest) -> CheckResult:
+        """The player fixed it in the office. Wrong things they tried go through /check as normal."""
+        problem = find_or_404(request, problem_id)
+        if "hands_on" not in problem:
+            raise HTTPException(status_code=404, detail="This problem has no hands-on scenario")
+        options = problem["options"]
+        correct_id = next(i for i, o in enumerate(options) if o["correct"])
+        return CheckResult(
+            problem_id=problem["id"],
+            attempt=body.attempt,
+            chosen_option_id=correct_id,
+            is_correct=True,
+            final=True,
+            attempts_left=0,
+            chosen_why=options[correct_id]["why"],
+            correct_option_id=correct_id,
+            explanations=[
+                Explanation(option_id=i, text=o["text"], correct=o["correct"], why=o["why"])
+                for i, o in enumerate(options)
+            ],
+            real_world_tip=problem.get("real_world_tip"),
+        )
 
     @app.get("/problems/{problem_id}/hints/{number}", response_model=HintResponse)
     def get_hint(

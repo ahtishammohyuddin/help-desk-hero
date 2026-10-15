@@ -38,5 +38,11 @@
     "Monitors often have several input ports. How does it know which one to show?"
   ],
   "real_world_tip": "Press the Input or Source button on the monitor and cycle through the options. This fixes a surprising number of No Signal tickets.",
+  "hands_on": {
+    "faults": [
+      "video_cable_loose"
+    ],
+    "goal": "display"
+  },
   "reviewed": true
 }

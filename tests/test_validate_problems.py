@@ -75,6 +75,23 @@ def test_physical_steps_are_optional_and_checked():
     assert has_error(validate_problem(make(physical_steps=["printer"])), "must be an object")
 
 
+def test_hands_on_is_optional_and_checked():
+    ok = {"faults": ["switch_port_dead"], "goal": "internet", "required": ["report_port"]}
+    assert validate_problem(make(hands_on=ok)) == []
+    assert validate_problem(make(hands_on={"faults": ["keyboard_unplugged"], "goal": "keyboard"})) == []
+    bad = lambda h: validate_problem(make(hands_on=h))
+    assert has_error(bad("x"), "must be an object")
+    assert has_error(bad({"faults": ["keyboard_unplugged"], "goal": "coffee"}), "goal must be one of")
+    assert has_error(bad({"faults": [], "goal": "internet"}), "non-empty list")
+    assert has_error(bad({"faults": ["gremlins"], "goal": "internet"}), "unknown fault")
+    assert has_error(bad({"faults": ["keyboard_unplugged"], "goal": "internet"}), "not the goal")
+    assert has_error(bad({"faults": ["network_cable_loose", "network_cable_loose"], "goal": "internet"}), "repeat")
+    assert has_error(bad({"faults": ["network_cable_loose"], "goal": "internet", "required": ["report_port"]}), "needs the fault")
+    assert has_error(bad({"faults": ["network_cable_loose"], "goal": "internet", "required": ["dance"]}), "unknown required action")
+    both = make(hands_on=ok, physical_steps=[{"place": "printer", "action": "x"}])
+    assert has_error(validate_problem(both), "not both")
+
+
 def test_non_object_rejected():
     assert validate_problem([1, 2]) == ["problem must be a JSON object"]
 

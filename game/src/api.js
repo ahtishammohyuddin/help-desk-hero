@@ -42,6 +42,8 @@ export const api = {
   answer: (id, optionId) => request(`/problems/${enc(id)}/answer`, { method: 'POST', body: { option_id: optionId } }),
   check: (id, optionId, attempt, nextHint) =>
     request(`/problems/${enc(id)}/check`, { method: 'POST', body: { option_id: optionId, attempt, next_hint: nextHint } }),
+  handsOn: (id) => request(`/problems/${enc(id)}/hands-on`),
+  finishHandsOn: (id, attempt) => request(`/problems/${enc(id)}/hands-on/finish`, { method: 'POST', body: { attempt } }),
   hint: (id, n) => request(`/problems/${enc(id)}/hints/${n}`),
   ask: (id, question, history = []) =>
     request(`/problems/${enc(id)}/ask`, { method: 'POST', body: { question, history }, timeout: 20000 }),

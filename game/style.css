@@ -381,3 +381,26 @@ kbd {
 .job-label { color: var(--blue); font-weight: 700; }
 .work-bar { width: 220px; height: 6px; margin-top: 6px; border-radius: 99px; background: var(--wash); overflow: hidden; }
 .work-bar div { height: 100%; background: var(--blue); }
+
+/* ---------- hands-on tickets ---------- */
+.station { display: block; width: 100%; height: auto; margin: 8px 0; border-radius: 12px; user-select: none; }
+.station .lbl { font: 700 13px var(--font); fill: var(--ink); }
+.station .lbl.light, .station .tiny.light { fill: #c9d3dd; }
+.station .tiny { font: 11px var(--font); fill: var(--muted); }
+.station .tiny.strong { font-weight: 700; fill: #ffb02e; }
+.station .nosignal { font: 700 12px var(--font); fill: #c9d3dd; }
+.station .part { cursor: pointer; outline: none; }
+.station .part .hit { fill: transparent; stroke: transparent; stroke-width: 2; }
+.station .part:hover .hit, .station .part:focus-visible .hit { fill: rgba(47, 111, 235, 0.14); stroke: var(--blue); }
+.station .blink { animation: led-blink 0.9s steps(2) infinite; }
+.station .glow { filter: drop-shadow(0 0 4px #ff6b6b); }
+@keyframes led-blink { 50% { opacity: 0.25; } }
+.readings { margin: 0 0 10px; padding: 0; list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 2px 14px; font-size: 13px; color: var(--muted); }
+.sim-log { margin: 0 0 12px; padding: 0; list-style: none; }
+.sim-log li { padding: 8px 12px; margin-bottom: 6px; border-radius: 10px; background: var(--wash); font-size: 14px; line-height: 1.45; color: var(--muted); }
+.sim-log li.new { background: #fff8db; color: var(--ink); }
+.handson-intro { margin: 0 0 12px; padding: 12px 14px; border-radius: 12px; background: var(--blue-soft); font-size: 15px; line-height: 1.5; }
+.small-opt { padding: 9px 12px; font-size: 15px; }
+.notice.blue-note { background: var(--blue-soft); color: var(--ink); }
+.desk-no { font-size: 11px; color: var(--muted); font-weight: 700; }
+.station .cable { pointer-events: none; }

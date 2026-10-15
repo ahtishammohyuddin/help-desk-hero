@@ -4,6 +4,7 @@
 import * as THREE from 'three';
 import { api, API_BASE } from './api.js';
 import { FollowCamera } from './camera.js';
+import { createSim, moveToSpare, needsServerRoom, reportPort, reseat, test as testFix } from './handson.js';
 import { createEmployees } from './employees.js';
 import { Input } from './input.js';
 import { advance, createJob, finish, jobLabel, jobStage, PLACES, placeInReach, placesWaiting, WORK_SECONDS } from './jobs.js';
@@ -202,10 +203,24 @@ function start() {
   const progress = loadProgress();
   const queue = new TicketQueue();
   const details = new Map(); // ticket number -> what we fetched for it
-  const queueLabel = (t) => jobLabel(details.get(t.number)?.job, t.employee);
-  // Open tickets that are waiting for a physical fix: [{ ticket, job }]
+  const queueLabel = (t) => {
+    const d = details.get(t.number);
+    if (needsServerRoom(d?.sim)) return 'Next: Server room';
+    if (d?.sim && d.sim.port.movedTo !== null && !d.result) return `Next: back to ${t.employee}`;
+    return jobLabel(d?.job, t.employee);
+  };
+  // Open tickets that need the player somewhere: [{ ticket, job, kind }]
+  // Physical fixes have real jobs; a hands-on network ticket may need the server room switch.
   const activeJobs = () =>
-    queue.open.map((ticket) => ({ ticket, job: details.get(ticket.number)?.job })).filter((e) => jobStage(e.job) !== 'finished');
+    queue.open.flatMap((ticket) => {
+      const d = details.get(ticket.number);
+      if (jobStage(d?.job) !== 'finished') return [{ ticket, job: d.job }];
+      if (needsServerRoom(d?.sim)) {
+        const action = `Check Desk ${byName.get(ticket.employee).desk}'s port on the switch`;
+        return [{ ticket, kind: 'switch', job: { steps: [{ place: 'server_room', action }], index: 0, finished: false } }];
+      }
+      return [];
+    });
   let working = null; // { ticket, step, place, t }: the player is doing a step at a place
   let nearPlace = null; // a place in reach with a step waiting
   let backendReady = false;
@@ -299,12 +314,26 @@ function start() {
       chat: [], // senior tech conversation: { role: 'junior' | 'senior', text, source }
       chatOpen: false,
       asking: false,
+      // hands-on tickets only:
+      handsOn: null, // scenario from the server (what is broken, decoys)
+      sim: null, // the simulated desk and switch
+      view: 'talk', // 'talk' or 'desk'
+      log: [], // what happened when the player checked things
     };
     details.set(ticket.number, detail);
-    Promise.all([api.getProblem(ticket.problemId), api.rephrase(ticket.problemId).catch(() => null)])
-      .then(([problem, reworded]) => {
+    const person = byName.get(ticket.employee);
+    Promise.all([
+      api.getProblem(ticket.problemId),
+      api.rephrase(ticket.problemId).catch(() => null),
+      ticket.handsOn ? api.handsOn(ticket.problemId) : null,
+    ])
+      .then(([problem, reworded, scenario]) => {
         detail.problem = problem;
         detail.description = reworded?.user_description || problem.user_description; // fallback text
+        if (scenario) {
+          detail.handsOn = scenario;
+          detail.sim = createSim(scenario, person.desk);
+        }
         detail.state = 'ready';
       })
       .catch(() => {
@@ -398,10 +427,20 @@ function start() {
 
   async function chooseOption(index) {
     if (!activeTicket) return;
+    const detail = details.get(activeTicket.number);
+    if (detail?.sim) {
+      if (detail.view === 'talk' && detail.handsOn.decoys[index]) chooseOptionById(detail.handsOn.decoys[index].id);
+      return;
+    }
+    if (detail?.problem?.options[index]) chooseOptionById(detail.problem.options[index].id);
+  }
+
+  async function chooseOptionById(optionId) {
+    if (!activeTicket) return;
     const ticket = activeTicket;
     const detail = details.get(ticket.number);
     if (detail.state !== 'ready' || detail.result || detail.answering) return;
-    const option = detail.problem.options[index];
+    const option = { id: optionId };
     if (!option || detail.wrong.some((w) => w.id === option.id)) return; // already ruled out
 
     detail.answering = true;
@@ -435,6 +474,72 @@ function start() {
       detail.answering = false;
       refreshTicketPanel();
     }
+  }
+
+  // ---------- hands-on tickets ----------
+  function simAction(detail, step) {
+    if (!step.message) return;
+    detail.sim = step.sim;
+    detail.log.push(step.message);
+    if (step.changed) sound.click();
+  }
+
+  function onDeskPart(part) {
+    const detail = activeTicket && details.get(activeTicket.number);
+    if (!detail?.sim || detail.result || detail.view !== 'desk') return;
+    simAction(detail, reseat(detail.sim, part));
+    refreshTicketPanel();
+  }
+
+  async function runTest() {
+    if (!activeTicket || !talkingTo) return;
+    const ticket = activeTicket;
+    const detail = details.get(ticket.number);
+    if (!detail?.sim || detail.result || detail.answering) return;
+    const outcome = testFix(detail.sim, talkingTo.name);
+    detail.sim = outcome.sim;
+    detail.log.push(outcome.message);
+    if (!outcome.solved) {
+      if (outcome.ok) sound.click();
+      else sound.wrong();
+      refreshTicketPanel();
+      return;
+    }
+    detail.answering = true;
+    refreshTicketPanel();
+    try {
+      const result = await api.finishHandsOn(ticket.problemId, detail.attempt);
+      finishTicket(ticket, detail, result);
+    } catch {
+      detail.log.push('Could not reach the server to close the ticket. Ask them to test again.');
+    } finally {
+      detail.answering = false;
+      refreshTicketPanel();
+    }
+  }
+
+  // The switch in the server room, opened by walking there and pressing E.
+  let switchTicket = null;
+  function openSwitch(ticket) {
+    switchTicket = ticket;
+    renderSwitch();
+  }
+  function renderSwitch() {
+    const detail = switchTicket && details.get(switchTicket.number);
+    if (!detail) return closeSwitch();
+    ui.renderSwitchPanel(byName.get(switchTicket.employee), switchTicket, detail);
+  }
+  function closeSwitch() {
+    switchTicket = null;
+    ui.hideTicketPanel();
+  }
+  function onSwitchAction(action, port) {
+    const detail = switchTicket && details.get(switchTicket.number);
+    if (!detail?.sim) return;
+    if (action === 'move') simAction(detail, moveToSpare(detail.sim, port));
+    else if (action === 'report') simAction(detail, reportPort(detail.sim));
+    renderSwitch();
+    ui.renderQueue(queue.open, byName, queueLabel);
   }
 
   async function takeHint() {
@@ -491,6 +596,11 @@ function start() {
     if (question.length >= 2) askSenior(question);
   });
   $('ticket').addEventListener('keydown', (e) => {
+    if ((e.key === 'Enter' || e.key === ' ') && e.target.closest?.('.part')) {
+      e.preventDefault();
+      e.target.closest('.part').dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      return;
+    }
     if (e.target.id === 'ask-input' && e.key === 'Escape') e.target.blur(); // back to game keys
   });
 
@@ -668,7 +778,8 @@ function start() {
   });
 
   input.onPress('KeyE', () => {
-    if (talkingTo) closeConversation();
+    if (switchTicket) closeSwitch();
+    else if (talkingTo) closeConversation();
     else if (working || overlayOpen()) return;
     else if (nearPlace) startWork(nearPlace);
     else if (nearby) openConversation(nearby);
@@ -676,6 +787,7 @@ function start() {
 
   // ---------- physical fixes ----------
   function startWork(target) {
+    if (target.kind === 'switch') return openSwitch(target.ticket);
     working = { ...target, t: 0 };
     player.face(target.place.markX, target.place.markZ);
     sound.click();
@@ -698,12 +810,23 @@ function start() {
     working = null;
   }
   input.onPress('Escape', () => {
-    if (shareOpen) closeShare();
+    if (switchTicket && !overlayOpen()) closeSwitch();
+    else if (shareOpen) closeShare();
     else if (progressOpen) closeProgress();
     else if (helpOpen) closeHelp();
     else if (!reportOpen) closeConversation();
   });
   input.onPress('KeyH', takeHint);
+  input.onPress('KeyI', () => setDeskView('desk'));
+  input.onPress('KeyB', () => setDeskView('talk'));
+  input.onPress('KeyT', runTest);
+  input.onPress('KeyL', () => switchTicket && onSwitchAction('report'));
+  function setDeskView(view) {
+    const detail = activeTicket && talkingTo && details.get(activeTicket.number);
+    if (!detail?.sim || detail.result || detail.state !== 'ready') return;
+    detail.view = view;
+    refreshTicketPanel();
+  }
   input.onPress('KeyQ', openChat);
   input.onPress('KeyR', retryTicket);
   input.onPress('KeyM', toggleSound);
@@ -758,9 +881,24 @@ function start() {
     input.onPress(`Numpad${i}`, () => chooseOption(i - 1));
   }
   $('ticket').addEventListener('click', (e) => {
+    if (switchTicket) {
+      const spare = e.target.closest('[data-spare]');
+      if (spare) return onSwitchAction('move', Number(spare.dataset.spare));
+      const act = e.target.closest('[data-action]')?.dataset.action;
+      if (act === 'report') onSwitchAction('report');
+      else if (act === 'close-station') closeSwitch();
+      return;
+    }
+    const part = e.target.closest('[data-part]');
+    if (part) return onDeskPart(part.dataset.part);
+    const decoy = e.target.closest('[data-decoy]');
+    if (decoy) return chooseOptionById(Number(decoy.dataset.decoy));
     const option = e.target.closest('.opt');
     if (option) return chooseOption(Number(option.dataset.index));
     const action = e.target.closest('[data-action]')?.dataset.action;
+    if (action === 'inspect') return setDeskView('desk');
+    if (action === 'talk-view') return setDeskView('talk');
+    if (action === 'test') return runTest();
     if (action === 'hint') takeHint();
     else if (action === 'later' || action === 'close') closeConversation();
     else if (action === 'ask') openChat();
@@ -802,7 +940,8 @@ function start() {
     const dt = Math.min(rawDt, 0.05); // cap so a slow frame can't teleport the player
     const time = clock.elapsedTime;
 
-    player.update(dt, input.state, followCam.yaw, colliders, talkingTo !== null || overlayOpen() || working !== null);
+    player.update(dt, input.state, followCam.yaw, colliders, talkingTo !== null || overlayOpen() || working !== null || switchTicket !== null);
+    if (switchTicket && !queue.open.includes(switchTicket)) closeSwitch();
     followCam.focusTarget = activeTicket ? 1 : 0;
     followCam.update(dt, player.position);
 
@@ -835,11 +974,13 @@ function start() {
     } else if (working) {
       updateWork(dt);
     }
-    nearPlace = talkingTo || working ? null : placeInReach(player.position, jobs);
+    nearPlace = talkingTo || working || switchTicket ? null : placeInReach(player.position, jobs);
 
     // Who is close enough to talk to?
-    nearby = talkingTo || working || nearPlace ? null : nearestWithin(player.position, employees, TALK_RADIUS);
-    if (working) {
+    nearby = talkingTo || working || nearPlace || switchTicket ? null : nearestWithin(player.position, employees, TALK_RADIUS);
+    if (switchTicket) {
+      $('prompt').hidden = true;
+    } else if (working) {
       // the prompt shows the progress bar (updateWork)
     } else if (nearPlace) {
       $('prompt').innerHTML = `Press <kbd>E</kbd> to ${ui.esc(nearPlace.step.action.charAt(0).toLowerCase() + nearPlace.step.action.slice(1))}`;
@@ -863,6 +1004,7 @@ function start() {
       }
     }
     if (talkingTo && nearestWithin(player.position, [talkingTo], TALK_RADIUS + 0.5) === null) closeConversation();
+    if (switchTicket) ui.updateTicketTimer(switchTicket, false);
     if (activeTicket) {
       const d = details.get(activeTicket.number);
       ui.updateTicketTimer(activeTicket, Boolean(d?.result) && jobStage(d.job) === 'finished');
@@ -886,7 +1028,7 @@ function start() {
           const bar = ticket
             ? `<div class="lbar"><div style="width:${Math.max(0, (ticket.secondsLeft / ticket.sla) * 100)}%;background:${PRIORITIES[ticket.priority].color}"></div></div>`
             : '';
-          person.label.innerHTML = `<div class="row">${ui.esc(person.name)}${ticket ? ui.priorityBadge(ticket.priority) : ''}</div>${bar}`;
+          person.label.innerHTML = `<div class="row">${ui.esc(person.name)} <span class="desk-no">Desk ${person.desk}</span>${ticket ? ui.priorityBadge(ticket.priority) : ''}</div>${bar}`;
         }
       }
       if (person.marker.visible) {

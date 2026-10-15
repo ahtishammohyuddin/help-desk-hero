@@ -25,10 +25,11 @@
   - [x] Stage A: east wing built (kitchen, lounge with sofa and TV, game corner, meeting room, learning corner)
         plus details: wall clock, fire extinguishers, exit sign, first aid box, notice board, server room badge
         reader, new-starter laptop boxes, desk phones
-  - [ ] Stage B: things to use: coffee machine (short speed boost), learning corner PC (notes built from the
-        reviewed problems, plus free certification and roadmap links, checked before adding), notice board
-        (badges and streaks)
-  - [ ] Stage C: lounge mini-games at the game corner (with the mini-game sounds)
+  - [x] Stage B: things to use: coffee machine (short speed boost), learning corner PC (notes built from the
+        reviewed problems), notice board (badges and streaks). Free course and roadmap links are written in
+        `game/src/resources.js` and stay hidden until reviewed (RESOURCES_REVIEWED = true)
+  - [x] Stage C: game corner arcade with 3 mini-games (Ticket rush, Kit match, Quick typer), sounds and best
+        scores on this device; no XP, the shift pauses while playing
   - [ ] Stage D: staff walk around (kitchen, printer, meeting room) when they have no open ticket
   - [ ] Stage E: windows and light that follow the shift clock, server room badge door, desk phone tickets,
         meeting room projector tickets, new-starter laptop setup at the bench

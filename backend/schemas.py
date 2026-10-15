@@ -226,6 +226,19 @@ class CoachRequest(BaseModel):
     missed: list[str] = Field(default_factory=list, max_length=20)  # problems answered wrong or on the second try
 
 
+class Notes(BaseModel):
+    """Study notes for one reviewed problem, shown in the learning corner after the player has done it."""
+
+    problem_id: str
+    title: str
+    category: str
+    level: int
+    symptom: str
+    right_fix: str
+    why: str
+    tip: str | None = None
+
+
 class DailyChallenge(BaseModel):
     """Today's challenge: the same problems for everyone on that date, without answers."""
 

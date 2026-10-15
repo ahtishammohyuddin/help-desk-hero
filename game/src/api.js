@@ -47,6 +47,7 @@ export const api = {
   escalate: (id, body) => request(`/problems/${enc(id)}/escalate`, { method: 'POST', body }),
   daily: (day) => request(`/daily/${enc(day)}`),
   coach: (stats) => request('/coach', { method: 'POST', body: stats, timeout: 20000 }),
+  notes: (id) => request(`/problems/${enc(id)}/notes`),
   hint: (id, n) => request(`/problems/${enc(id)}/hints/${n}`),
   ask: (id, question, history = []) =>
     request(`/problems/${enc(id)}/ask`, { method: 'POST', body: { question, history }, timeout: 20000 }),

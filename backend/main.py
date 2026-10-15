@@ -54,6 +54,7 @@ from backend.schemas import (
     CoachResponse,
     CoachTip,
     DailyChallenge,
+    Notes,
     EscalateRequest,
     EscalationDetail,
     EscalationForm,
@@ -323,6 +324,22 @@ def create_app(problems_dir: Path | None = None, ai_client: object = FROM_ENV) -
                 for i, o in enumerate(options)
             ],
             real_world_tip=problem.get("real_world_tip"),
+        )
+
+    @app.get("/problems/{problem_id}/notes", response_model=Notes)
+    def get_notes(request: Request, problem_id: str) -> Notes:
+        """Study notes from the reviewed file: the right fix, why, and the tip. No AI involved."""
+        problem = find_or_404(request, problem_id)
+        right = next(o for o in problem["options"] if o["correct"])
+        return Notes(
+            problem_id=problem["id"],
+            title=problem["title"],
+            category=problem["category"],
+            level=problem["level"],
+            symptom=problem["symptom"],
+            right_fix=right["text"],
+            why=right["why"],
+            tip=problem.get("real_world_tip"),
         )
 
     @app.get("/problems/{problem_id}/hints/{number}", response_model=HintResponse)

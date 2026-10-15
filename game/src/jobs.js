@@ -14,6 +14,11 @@ export const PLACES = {
   parts_cabinet: { name: 'Parts cabinet', x: -18.6, z: 8, markX: -19.6, markZ: 8 },
   server_room: { name: 'Server room', x: 14, z: -11.2, markX: 14, markZ: -12.8 },
   repair_bench: { name: 'Repair bench', x: -18.1, z: 12.6, markX: -19.45, markZ: 12.6 },
+  // things to use in the office (always available, no ticket needed)
+  coffee_machine: { name: 'Coffee machine', x: 24, z: -12.4, markX: 24, markZ: -13.5 },
+  learning_pc: { name: 'Learning corner PC', x: 23.2, z: 11.2, markX: 23.2, markZ: 13 },
+  notice_board: { name: 'Notice board', x: -18.8, z: 3.5, markX: -19.8, markZ: 3.5 },
+  game_corner: { name: 'Game corner', x: 33.6, z: -1.3, markX: 33.6, markZ: -2.6 },
   // Wi-Fi survey spots (hands-on Wi-Fi tickets)
   wifi_front: { name: 'Front of office', x: 2, z: 11, markX: 2, markZ: 11 },
   wifi_middle: { name: 'Middle of office', x: -2.5, z: 2.5, markX: -2.5, markZ: 2.5 },

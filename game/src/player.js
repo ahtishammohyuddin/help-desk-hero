@@ -19,6 +19,7 @@ export function createPlayer(scene, start) {
   return {
     group,
     onStep: null, // called once per footstep (for the footstep sound)
+    speedMult: 1, // above 1 while the coffee boost lasts
     get position() {
       return group.position;
     },
@@ -28,7 +29,7 @@ export function createPlayer(scene, start) {
       const moving = dir.x !== 0 || dir.z !== 0;
 
       if (moving) {
-        const speed = input.run ? RUN_SPEED : WALK_SPEED;
+        const speed = (input.run ? RUN_SPEED : WALK_SPEED) * this.speedMult;
         const next = moveWithCollisions(group.position, dir.x * speed * dt, dir.z * speed * dt, RADIUS, colliders);
         group.position.x = next.x;
         group.position.z = next.z;

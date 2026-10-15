@@ -3,6 +3,7 @@
 // Text from the server is always escaped before display.
 
 import { canSend, TEAM_ICONS } from './escalation.js';
+import { COURSES, PATH, RESOURCES_REVIEWED, ROADMAPS } from './resources.js';
 import { ACHIEVEMENTS } from './achievements.js';
 import { countdown, EVENTS } from './events.js';
 import { DISCLAIMER, NAME_MAX } from './cards.js';
@@ -941,4 +942,160 @@ export function setEvents(running) {
 export function setClock(label, late) {
   $('clock').textContent = label;
   $('clock').classList.toggle('late', late);
+}
+
+// ---------- learning corner ----------
+
+/**
+ * topics: from libraryTopics(); selected: category name; notes: Map id -> notes or 'loading' / 'error'.
+ * tab: 'notes' or 'links'.
+ */
+export function renderLibrary(topics, selected, notes, tab = 'notes') {
+  const done = topics.reduce((n, t) => n + t.unlocked.length, 0);
+  const total = topics.reduce((n, t) => n + t.total, 0);
+  let body;
+  if (tab === 'links') {
+    body = RESOURCES_REVIEWED
+      ? `<h3>Free courses</h3><div class="res-list">${COURSES.map((c) => `<a href="${esc(c.url)}" target="_blank" rel="noopener"><b>${esc(c.name)}</b><small>${esc(c.note)}</small></a>`).join('')}</div>
+         <h3>A simple path into IT support</h3><ol class="res-path">${PATH.map((step) => `<li>${esc(step)}</li>`).join('')}</ol>
+         <h3>Roadmaps</h3><div class="res-list">${ROADMAPS.map((c) => `<a href="${esc(c.url)}" target="_blank" rel="noopener"><b>${esc(c.name)}</b><small>${esc(c.note)}</small></a>`).join('')}</div>
+         <p class="small">Links open in a new tab. Check each site for current details before you sign up.</p>`
+      : '<p class="lib-empty">Free course and roadmap links are being checked. They will appear here soon.</p>';
+  } else {
+    const topic = topics.find((t) => t.category === selected) ?? topics[0];
+    const list = !topic
+      ? '<p class="lib-empty">No topics yet.</p>'
+      : topic.unlocked.length === 0
+        ? `<p class="lib-empty">No notes for ${esc(topic.category)} yet. Solve a ticket on this topic (right or wrong) and its notes unlock here.</p>`
+        : topic.unlocked.map((p) => {
+          const n = notes.get(p.id);
+          const inner = !n || n === 'loading'
+            ? '<p class="small">Loading<span class="dots"></span></p>'
+            : n === 'error'
+              ? '<p class="small">Could not load these notes. Check the backend is running.</p>'
+              : `<div><b>The problem:</b> ${esc(n.symptom)}</div>
+                 <div><b>The right fix:</b> ${esc(n.right_fix)}</div>
+                 <div><b>Why:</b> ${esc(n.why)}</div>
+                 ${n.tip ? `<div class="tip"><b>From real help desks:</b> ${esc(n.tip)}</div>` : ''}`;
+          return `<details class="lib-item" data-note="${esc(p.id)}"><summary>${esc(p.title)} <small>Level ${p.level}</small></summary><div class="lib-body">${inner}</div></details>`;
+        }).join('');
+    body = `<div class="lib">
+      <div class="lib-topics">${topics.map((t) => `<button data-topic="${esc(t.category)}" class="${topic && t.category === topic.category ? 'on' : ''}">${esc(t.category)} <small>${t.unlocked.length}/${t.total}</small></button>`).join('')}</div>
+      <div class="lib-list">${list}</div></div>`;
+  }
+  $('library-card').innerHTML = `
+    <h1 id="library-title">📚 Learning corner</h1>
+    <p class="lead">Notes on every ticket you have worked on, written by the senior team. ${done} of ${total} unlocked.</p>
+    <div class="lib-tabs"><button data-libtab="notes" class="${tab === 'notes' ? 'on' : ''}">My notes</button><button data-libtab="links" class="${tab === 'links' ? 'on' : ''}">Free courses and roadmap</button></div>
+    ${body}
+    <div class="menu-list" style="margin-top:16px"><button class="btn ghost" data-action="close-library">Close ${key('Esc')}</button></div>`;
+  $('library').hidden = false;
+}
+
+export function hideLibrary() {
+  $('library').hidden = true;
+}
+
+// ---------- notice board ----------
+
+/** data: { name, rankName, xp, solved, bestStreak, dailyStreak, shifts, badges: [{ icon, name }] } */
+export function renderBoard(data) {
+  const pins = [
+    [data.rankName, `Rank, ${data.xp} XP`],
+    [data.solved, 'Tickets solved'],
+    [data.bestStreak, 'Best streak (right first time)'],
+    [data.dailyStreak, 'Daily challenge streak'],
+    [data.shifts, 'Shifts worked'],
+    [data.badges.length, 'Badges earned'],
+  ];
+  $('board-card').innerHTML = `
+    <h1 id="board-title">📌 IT team notice board</h1>
+    <p class="lead">${data.name ? `${esc(data.name)}'s` : 'Your'} wall of fame.</p>
+    <div class="board-pins">${pins.map(([v, l]) => `<div class="board-pin"><b>${esc(String(v))}</b><small>${esc(l)}</small></div>`).join('')}</div>
+    ${data.badges.length ? `<h3>Badges</h3><div class="board-badges">${data.badges.map((b) => `<span class="badge-chip"><span aria-hidden="true">${b.icon}</span> ${esc(b.name)}</span>`).join('')}</div>` : '<p class="lib-empty">No badges pinned yet. Solve tickets to earn your first one.</p>'}
+    <div class="menu-list"><button class="btn ghost" data-action="close-board">Close ${key('Esc')}</button></div>`;
+  $('board').hidden = false;
+}
+
+export function hideBoard() {
+  $('board').hidden = true;
+}
+
+let lastBoost = -1;
+export function setBoost(seconds) {
+  if (seconds === lastBoost) return; // called every frame: only touch the page when it changes
+  lastBoost = seconds;
+  $('boost').hidden = seconds <= 0;
+  if (seconds > 0) $('boost').innerHTML = `☕ Coffee boost: <b>${seconds}s</b>`;
+}
+
+// ---------- lounge arcade ----------
+
+const ARCADE_GAMES = [
+  { id: 'rush', icon: '🎫', name: 'Ticket rush', about: 'Click the tickets before they disappear. 30 seconds.', best: (b) => (b.rush ? `Best: ${b.rush} tickets` : 'No score yet') },
+  { id: 'match', icon: '🧩', name: 'Kit match', about: 'Find the pairs of office kit in as few moves as you can.', best: (b) => (b.match ? `Best: ${b.match} moves` : 'No score yet') },
+  { id: 'typer', icon: '⌨️', name: 'Quick typer', about: 'Type a help desk line as fast and accurately as you can.', best: (b) => (b.typer ? `Best: ${b.typer} words per minute` : 'No score yet') },
+];
+
+/** view: 'select' | 'rush' | 'match' | 'typer' | 'result'. data depends on the view. */
+export function renderArcade(view, data, best) {
+  let body;
+  if (view === 'rush') {
+    const s = data;
+    body = `<div class="arc-bar"><span>⏱ ${Math.ceil(s.timeLeft)}s</span><span>🎫 ${s.score}</span><span>❌ ${s.missed}</span></div>
+      <div class="rush-grid">${s.cells.map((c, i) => `<button class="rush-cell${c ? ' on' : ''}" data-rush="${i}" aria-label="${c ? 'Ticket' : 'Empty'}">${c ? '🎫' : ''}</button>`).join('')}</div>`;
+  } else if (view === 'match') {
+    const s = data;
+    body = `<div class="arc-bar"><span>Moves: ${s.moves}</span><span>Pairs: ${s.deck.filter((c) => c.matched).length / 2} of ${s.deck.length / 2}</span></div>
+      <div class="match-grid">${s.deck.map((c, i) => {
+        const shown = c.matched || s.open.includes(i);
+        return `<button class="match-card${shown ? ' shown' : ''}${c.matched ? ' done' : ''}" data-card="${i}" aria-label="${shown ? 'Card' : 'Hidden card'}">${shown ? c.face : '?'}</button>`;
+      }).join('')}</div>`;
+  } else if (view === 'typer') {
+    const { line, typed, score } = data;
+    const chars = [...line].map((ch, i) => {
+      const cls = i < typed.length ? (typed[i] === ch ? 'ok' : 'bad') : i === typed.length ? 'now' : '';
+      return `<span class="${cls}">${esc(ch)}</span>`;
+    }).join('');
+    body = `<div class="arc-bar"><span>${score.wpm} words per minute</span><span>${score.accuracy}% accurate</span></div>
+      <div class="typer-line">${chars}</div>
+      <input id="typer-input" class="typer-input" autocomplete="off" spellcheck="false" maxlength="${line.length}" value="${esc(typed)}" aria-label="Type the line here" placeholder="Start typing...">`;
+  } else if (view === 'result') {
+    body = `<div class="arc-result"><div class="arc-big">${esc(data.headline)}</div><p>${esc(data.detail)}</p>${data.newBest ? '<p class="arc-best">🏆 New best score!</p>' : ''}</div>
+      <div class="menu-list"><button class="btn" data-arcade="${esc(data.game)}">Play again</button><button class="btn ghost" data-arcade="select">Other games</button></div>`;
+  } else {
+    body = `<div class="arc-games">${ARCADE_GAMES.map((g) => `<button class="arc-game" data-arcade="${g.id}"><span class="arc-icon">${g.icon}</span><b>${esc(g.name)}</b><small>${esc(g.about)}</small><em>${esc(g.best(best))}</em></button>`).join('')}</div>`;
+  }
+  $('arcade-card').innerHTML = `
+    <h1 id="arcade-title">🕹️ Game corner</h1>
+    <p class="lead">${view === 'select' ? 'Take a short break. Your shift is paused while you play.' : esc(ARCADE_GAMES.find((g) => g.id === (data?.game ?? view))?.name ?? '')}</p>
+    ${body}
+    <div class="menu-list" style="margin-top:14px"><button class="btn ghost" data-action="close-arcade">Back to work ${key('Esc')}</button></div>`;
+  $('arcade').hidden = false;
+  if (view === 'typer') {
+    const box = $('typer-input');
+    box.focus();
+    box.setSelectionRange(box.value.length, box.value.length);
+  }
+}
+
+/** Update the ticket rush board in place, so a click is never lost to a redraw. */
+export function updateRush(s) {
+  const cells = document.querySelectorAll('#arcade .rush-cell');
+  const bar = document.querySelector('#arcade .arc-bar');
+  if (cells.length !== s.cells.length || !bar) return false;
+  cells.forEach((el, i) => {
+    const on = Boolean(s.cells[i]);
+    if (el.classList.contains('on') !== on) {
+      el.classList.toggle('on', on);
+      el.textContent = on ? '🎫' : '';
+      el.setAttribute('aria-label', on ? 'Ticket' : 'Empty');
+    }
+  });
+  bar.innerHTML = `<span>⏱ ${Math.ceil(s.timeLeft)}s</span><span>🎫 ${s.score}</span><span>❌ ${s.missed}</span>`;
+  return true;
+}
+
+export function hideArcade() {
+  $('arcade').hidden = true;
 }

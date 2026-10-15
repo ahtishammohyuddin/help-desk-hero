@@ -30,6 +30,10 @@ import { clockFor, coachRequest, recordTopic, SHIFT_SECONDS, summarizeShift, top
 import { maxLevelFor, PRIORITIES, RANKS, rankFor, streakMultiplier, TicketQueue, xpFor } from './tickets.js';
 import * as ui from './ui.js';
 import { music } from './music.js';
+import {
+  closeMismatch, emptyBest, flipCard, hitRush, isBest, newMatch, newRush, pickLine, tickRush, typingScore,
+} from './minigames.js';
+import { addSeen, coffeeLeft, drinkCoffee, emptyCoffee, libraryTopics, speedFor } from './perks.js';
 import { hasSave, loadingStep, menuState, PLAYER_NAME_KEY, tipAt } from './menu.js';
 
 const TALK_RADIUS = 1.8; // how close you must be to talk to someone
@@ -49,6 +53,7 @@ function loadProgress() {
         xp: saved.xp, solved: saved.solved || 0, attempts: saved.attempts || 0, firstTry: saved.firstTry || 0,
         streak: saved.streak || 0, bestStreak: saved.bestStreak || 0,
         topics: saved.topics || {}, shifts: saved.shifts || 0, achievements: saved.achievements || {},
+        seen: Array.isArray(saved.seen) ? saved.seen : [],
       };
     }
   } catch {
@@ -57,7 +62,7 @@ function loadProgress() {
   return emptyProgress();
 }
 function emptyProgress() {
-  return { xp: 0, solved: 0, attempts: 0, firstTry: 0, streak: 0, bestStreak: 0, topics: {}, shifts: 0, achievements: {} };
+  return { xp: 0, solved: 0, attempts: 0, firstTry: 0, streak: 0, bestStreak: 0, topics: {}, shifts: 0, achievements: {}, seen: [] };
 }
 function readSetting(key) {
   try {
@@ -290,7 +295,15 @@ function start() {
     });
   // The parts cabinet can always be opened. It only gets a marker when a ticket needs it.
   const CABINET = { ticket: null, kind: 'cabinet', quiet: true, job: { steps: [{ place: 'parts_cabinet', action: 'Open the parts cabinet' }], index: 0, finished: false } };
-  const allPlaces = () => [...activeJobs(), CABINET];
+  // Things to use in the office: always in reach, no marker.
+  const useAt = (kind, place, action) => ({ ticket: null, kind, quiet: true, job: { steps: [{ place, action }], index: 0, finished: false } });
+  const OFFICE_ITEMS = [
+    useAt('coffee', 'coffee_machine', 'Make a coffee'),
+    useAt('library', 'learning_pc', 'Open the learning corner'),
+    useAt('board', 'notice_board', 'Read the notice board'),
+    useAt('arcade', 'game_corner', 'Play a game at the game corner'),
+  ];
+  const allPlaces = () => [...activeJobs(), CABINET, ...OFFICE_ITEMS];
   let working = null; // { ticket, step, place, t }: the player is doing a step at a place
   let nearPlace = null; // a place in reach with a step waiting
   let backendReady = false;
@@ -302,8 +315,11 @@ function start() {
   let dailyOpen = false;
   let lastReport = null; // the most recent shift report, for the share card
   let menuOpen = false;
+  let libraryOpen = false;
+  let boardOpen = false;
+  let arcadeOpen = false;
   let returnToMenu = false; // a screen opened from the menu goes back to the menu when closed
-  const overlayOpen = () => menuOpen || helpOpen || reportOpen || progressOpen || shareOpen || dailyOpen; // pauses the shift and the player
+  const overlayOpen = () => menuOpen || libraryOpen || boardOpen || arcadeOpen || helpOpen || reportOpen || progressOpen || shareOpen || dailyOpen; // pauses the shift and the player
 
   // Badges already earned before badges existed (or on another version) are given quietly.
   const backfill = newlyEarned(progress, { type: 'load' });
@@ -532,6 +548,7 @@ function start() {
     if (result.is_correct && result.attempt === 1) progress.firstTry += 1;
     const outcome = !result.is_correct ? 'failed' : result.attempt === 1 ? 'first' : 'second';
     progress.topics = recordTopic(progress.topics, ticket.category, outcome);
+    progress.seen = addSeen(progress.seen, ticket.problemId); // unlocks its notes in the learning corner
     shift.records.push({
       problemId: ticket.problemId,
       category: ticket.category,
@@ -998,6 +1015,7 @@ function start() {
       daily.seconds += thinking;
       const right = result.explanations.find((e) => e.correct);
       daily.marks.push(result.is_correct);
+      progress.seen = addSeen(progress.seen, problem.id);
       daily.feedback = { correct: result.is_correct, chosenWhy: result.chosen_why, rightText: right.text, rightWhy: right.why };
       if (result.is_correct) sound.correct();
       else sound.wrong();
@@ -1203,6 +1221,10 @@ function start() {
   // ---------- physical fixes ----------
   function startWork(target) {
     if (target.kind === 'cabinet') return openCabinet();
+    if (target.kind === 'coffee') return makeCoffee();
+    if (target.kind === 'library') return openLibrary();
+    if (target.kind === 'board') return openBoard();
+    if (target.kind === 'arcade') return openArcade();
     if (target.kind === 'switch' || target.kind === 'printer' || target.kind === 'bench') return openSwitch(target.ticket, target.kind);
     working = { ...target, t: 0 };
     player.face(target.place.markX, target.place.markZ);
@@ -1241,6 +1263,9 @@ function start() {
       return;
     }
     if (stationKind && !overlayOpen()) closeSwitch();
+    else if (arcadeOpen) closeArcade();
+    else if (libraryOpen) closeLibrary();
+    else if (boardOpen) closeBoard();
     else if (shareOpen) closeShare();
     else if (dailyOpen) closeDaily();
     else if (progressOpen) closeProgress();
@@ -1306,6 +1331,203 @@ function start() {
     ui.toast(`${name ? `Let's go, ${ui.esc(name)}! ` : ''}Your shift has started. Requests will appear on the right.`);
   }
 
+  // ---------- things to use in the office ----------
+  let coffee = emptyCoffee();
+  const now = () => performance.now() / 1000;
+  function makeCoffee() {
+    const r = drinkCoffee(coffee, now());
+    coffee = r.state;
+    if (r.ok) sound.correct();
+    else sound.click();
+    ui.toast(ui.esc(r.message));
+  }
+
+  let libraryTab = 'notes';
+  let libraryTopic = null;
+  const notesCache = new Map(); // problem id -> notes, 'loading' or 'error'
+  function renderLibrary() {
+    ui.renderLibrary(libraryTopics(queue.pool, progress.seen ?? []), libraryTopic, notesCache, libraryTab);
+  }
+  function openLibrary() {
+    libraryOpen = true;
+    if (talkingTo) closeConversation();
+    sound.click();
+    renderLibrary();
+  }
+  function closeLibrary() {
+    libraryOpen = false;
+    ui.hideLibrary();
+  }
+  async function loadNotes(id) {
+    if (notesCache.has(id) && notesCache.get(id) !== 'error') return;
+    notesCache.set(id, 'loading');
+    try {
+      notesCache.set(id, await api.notes(id));
+    } catch {
+      notesCache.set(id, 'error');
+    }
+    if (!libraryOpen) return;
+    // Redraw, keeping open sections open.
+    const open = [...document.querySelectorAll('#library details[open]')].map((d) => d.dataset.note);
+    renderLibrary();
+    for (const key of open) document.querySelector(`#library details[data-note="${CSS.escape(key)}"]`)?.setAttribute('open', '');
+  }
+  $('library').addEventListener('click', (e) => {
+    const topic = e.target.closest('[data-topic]')?.dataset.topic;
+    if (topic) {
+      libraryTopic = topic;
+      return renderLibrary();
+    }
+    const tab = e.target.closest('[data-libtab]')?.dataset.libtab;
+    if (tab) {
+      libraryTab = tab;
+      return renderLibrary();
+    }
+    if (e.target.closest('[data-action="close-library"]')) closeLibrary();
+  });
+  $('library').addEventListener('toggle', (e) => {
+    const box = e.target.closest?.('details[data-note]');
+    if (box?.open) loadNotes(box.dataset.note);
+  }, true);
+
+  function openBoard() {
+    boardOpen = true;
+    if (talkingTo) closeConversation();
+    sound.click();
+    const earned = ACHIEVEMENTS.filter((a) => progress.achievements[a.id]);
+    ui.renderBoard({
+      name: menuState(progress, readSetting(PLAYER_NAME_KEY)).name,
+      rankName: rankFor(progress.xp).name,
+      xp: progress.xp,
+      solved: progress.solved,
+      bestStreak: progress.bestStreak,
+      dailyStreak: currentStreak(dailyRecord, dateKey()),
+      shifts: progress.shifts,
+      badges: earned,
+    });
+  }
+  function closeBoard() {
+    boardOpen = false;
+    ui.hideBoard();
+  }
+  $('board').addEventListener('click', (e) => {
+    if (e.target.closest('[data-action="close-board"]')) closeBoard();
+  });
+
+  // ---------- lounge arcade (no XP: just a break, with best scores on this device) ----------
+  const ARCADE_KEY = 'hdh-arcade';
+  let arcadeBest = (() => {
+    try {
+      return { ...emptyBest(), ...JSON.parse(readSetting(ARCADE_KEY) || '{}') };
+    } catch {
+      return emptyBest();
+    }
+  })();
+  let arcade = { view: 'select', data: null };
+  let rushTimer = null;
+  function drawArcade() {
+    ui.renderArcade(arcade.view, arcade.data, arcadeBest);
+  }
+  function openArcade() {
+    arcadeOpen = true;
+    if (talkingTo) closeConversation();
+    arcade = { view: 'select', data: null };
+    sound.click();
+    drawArcade();
+  }
+  function closeArcade() {
+    stopRush();
+    arcadeOpen = false;
+    ui.hideArcade();
+  }
+  function stopRush() {
+    if (rushTimer) clearInterval(rushTimer);
+    rushTimer = null;
+  }
+  function finishGame(game, value, headline, detail) {
+    const newBest = isBest(arcadeBest, game, value);
+    if (newBest) {
+      arcadeBest = { ...arcadeBest, [game]: value };
+      writeSetting(ARCADE_KEY, JSON.stringify(arcadeBest));
+    }
+    sound.gameWin();
+    arcade = { view: 'result', data: { game, headline, detail, newBest } };
+    drawArcade();
+  }
+  function startGame(game) {
+    stopRush();
+    sound.gameStart();
+    if (game === 'rush') {
+      arcade = { view: 'rush', data: { ...newRush(), game } };
+      let last = performance.now();
+      rushTimer = setInterval(() => {
+        const t = performance.now();
+        const before = arcade.data;
+        const next = { ...tickRush(before, (t - last) / 1000), game };
+        last = t;
+        if (next.missed > before.missed) sound.gameMiss();
+        arcade.data = next;
+        if (next.over) {
+          stopRush();
+          return finishGame('rush', next.score, `${next.score} tickets`, `You missed ${next.missed}. Can you beat it?`);
+        }
+        if (!ui.updateRush(next)) drawArcade();
+      }, 80);
+    } else if (game === 'match') {
+      arcade = { view: 'match', data: { ...newMatch(), game } };
+    } else if (game === 'typer') {
+      arcade = { view: 'typer', data: { game, line: pickLine(), typed: '', started: 0, score: { wpm: 0, accuracy: 0, done: false } } };
+    }
+    drawArcade();
+  }
+  $('arcade').addEventListener('click', (e) => {
+    const pick = e.target.closest('[data-arcade]')?.dataset.arcade;
+    if (pick === 'select') {
+      arcade = { view: 'select', data: null };
+      return drawArcade();
+    }
+    if (pick) return startGame(pick);
+    if (e.target.closest('[data-action="close-arcade"]')) return closeArcade();
+    const card = e.target.closest('[data-card]');
+    if (card && arcade.view === 'match') {
+      const r = flipCard(arcade.data, Number(card.dataset.card));
+      if (r.result === 'ignored') return;
+      arcade.data = { ...r.state, game: 'match' };
+      if (r.result === 'match') sound.gamePoint();
+      else if (r.result === 'miss') {
+        sound.gameMiss();
+        const shown = arcade.data;
+        setTimeout(() => {
+          if (arcade.data === shown) {
+            arcade.data = { ...closeMismatch(shown), game: 'match' };
+            drawArcade();
+          }
+        }, 800);
+      } else sound.click();
+      if (arcade.data.over) return finishGame('match', arcade.data.moves, `${arcade.data.moves} moves`, 'All the kit matched. Fewer moves is better.');
+      drawArcade();
+    }
+  });
+  // Ticket rush reacts on press, not release, so fast clicks always count.
+  $('arcade').addEventListener('pointerdown', (e) => {
+    const cell = e.target.closest('[data-rush]');
+    if (!cell || arcade.view !== 'rush') return;
+    const r = hitRush(arcade.data, Number(cell.dataset.rush));
+    arcade.data = { ...r.state, game: 'rush' };
+    if (r.hit) sound.gamePoint();
+    ui.updateRush(arcade.data);
+  });
+  $('arcade').addEventListener('input', (e) => {
+    if (e.target.id !== 'typer-input' || arcade.view !== 'typer') return;
+    const d = arcade.data;
+    const started = d.started || performance.now();
+    const typed = e.target.value;
+    const score = typingScore(d.line, typed, (performance.now() - started) / 1000);
+    arcade.data = { ...d, typed, started, score };
+    if (score.done) return finishGame('typer', score.wpm, `${score.wpm} words per minute`, `${score.accuracy}% accurate.`);
+    drawArcade();
+  });
+
   // ---------- main menu ----------
   let menuView = 'main';
   let menuError = '';
@@ -1317,7 +1539,7 @@ function start() {
     if (reportOpen) return; // the end-of-shift report comes first
     if (talkingTo) closeConversation();
     if (stationKind) closeSwitch();
-    for (const [open, close] of [[helpOpen, () => { helpOpen = false; ui.hideHelp(); }], [progressOpen, closeProgress], [dailyOpen, closeDaily], [shareOpen, closeShare]]) {
+    for (const [open, close] of [[helpOpen, () => { helpOpen = false; ui.hideHelp(); }], [progressOpen, closeProgress], [dailyOpen, closeDaily], [shareOpen, closeShare], [libraryOpen, closeLibrary], [boardOpen, closeBoard], [arcadeOpen, closeArcade]]) {
       if (open) close();
     }
     returnToMenu = false;
@@ -1496,6 +1718,8 @@ function start() {
     const dt = Math.min(rawDt, 0.05); // cap so a slow frame can't teleport the player
     const time = clock.elapsedTime;
 
+    player.speedMult = speedFor(coffee, now());
+    ui.setBoost(coffeeLeft(coffee, now()));
     player.update(dt, input.state, followCam.yaw, colliders, talkingTo !== null || overlayOpen() || working !== null || stationKind !== null);
     if (switchTicket && !queue.open.includes(switchTicket)) closeSwitch();
     followCam.focusTarget = activeTicket ? 1 : 0;

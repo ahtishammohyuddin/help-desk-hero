@@ -80,6 +80,7 @@ Open http://127.0.0.1:8000/docs for the interactive API page.
 | `POST /problems/{id}/answer` | Check an answer, returns explanations for every option |
 | `POST /problems/{id}/check` | One try (used by the game). A wrong first try returns only why that choice is wrong plus a hint; the correct answer is revealed only on the final try |
 | `POST /problems/{id}/escalate` | Check an escalation (team and details) against the reviewed answer |
+| `GET /problems/{id}/notes` | Study notes from the reviewed file (right fix, why, tip) for the learning corner |
 | `GET /problems/{id}/hints/{n}` | Hint number n (1 is the gentlest) |
 | `POST /problems/{id}/rephrase` | Fresh AI wording of the employee's complaint |
 | `POST /problems/{id}/ask` | "Ask the senior tech" follow-up question |

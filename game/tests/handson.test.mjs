@@ -5,6 +5,7 @@ import {
   createSim, laptopAction, laptopReadings, measure, moveToSpare, needsServerRoom, placesNeeded, printerAction, printerReadings, readings,
   reportCoverage, reportPort, reseat, spotsLeft, stationFor, surveyDone, takeToner,
   test as tryIt, benchAction, benchReadings, badStickFound, CARRY_NAMES,
+  projectorAction, projectorReadings, reseatSwitchPort, tvAction, tvReadings,
 } from '../src/handson.js';
 
 const sim = (faults, goal, required = [], desk = 4) => createSim({ faults, goal, required }, desk);
@@ -120,7 +121,7 @@ test('actions never change the original simulation', () => {
 
 // Must match HANDS_ON_FAULTS in tools/validate_problems.py (the validator decides what content may use).
 const VALIDATOR_FAULTS = {
-  network_cable_loose: 'internet', wall_cable_loose: 'internet', switch_port_dead: 'internet',
+  network_cable_loose: 'internet', wall_cable_loose: 'internet', switch_port_dead: 'internet', switch_cable_loose: 'internet',
   video_cable_loose: 'display', monitor_power_loose: 'display', power_strip_off: 'power',
   pc_power_loose: 'power', keyboard_unplugged: 'keyboard', mouse_unplugged: 'mouse',
   printer_off: 'print', printer_network_loose: 'print', paper_jam: 'print', toner_low: 'print',
@@ -128,12 +129,16 @@ const VALIDATOR_FAULTS = {
   laptop_charger_loose: 'charging', phone_cable_damaged: 'phone_charging', monitor_wrong_input: 'second_screen',
   display_mode_pc_only: 'second_screen', dock_power_unplugged: 'dock', laptop_on_cushion: 'cooling',
   laptop_vent_dusty: 'cooling', wifi_weak_corner: 'wifi_report', ram_faulty: 'stable',
+  projector_wrong_input: 'projector', projector_hdmi_loose: 'projector', projector_pc_only: 'projector',
+  tv_cable_loose: 'tv_online', tv_wifi_dropped: 'tv_online',
 };
 
 test('every fault the validator allows really breaks its goal in the simulation', () => {
   for (const [fault, goal] of Object.entries(VALIDATOR_FAULTS)) {
     const s = createSim({ faults: [fault], goal }, 3);
     const works = s.station === 'bench' ? benchReadings(s).works[goal]
+      : s.station === 'projector' ? projectorReadings(s).works[goal]
+      : s.station === 'tv' ? tvReadings(s).works[goal]
       : s.station === 'printer' ? printerReadings(s).works
       : s.station === 'laptop' ? laptopReadings(s).works[goal]
         : s.station === 'survey' ? s.survey.reported
@@ -472,4 +477,89 @@ test('bench: a missing stick or the bad stick put back is not a fix', () => {
   let t = doAll(bench(3), 'shutdown', 'pc', 'putBench', 'button', 'panel', 'strap', 'A', 'A', 'panel', 'pc', 'putDesk');
   assert.equal(t.bench.slots.A, 'orig');
   assert.match(tryIt(t, 'Usman').message, /blue screen/);
+});
+
+// ---------- switch cable loose ----------
+
+test('switch cable loose: the desk end is fine, the server room shows a half-out plug to push back in', () => {
+  let s = createSim({ faults: ['switch_cable_loose'], goal: 'internet' }, 4);
+  assert.equal(readings(s).link, false);
+  s = reseat(s, 'netPc').sim;
+  s = reseat(s, 'netWall').sim;
+  const first = tryIt(s, 'Farah');
+  assert.match(first.message, /switch in the server room/);
+  s = first.sim;
+  assert.equal(needsServerRoom(s), true);
+  assert.equal(moveToSpare(s, 11).changed, true); // moving still possible in logic, but the drawing offers reseat first
+  const step = reseatSwitchPort(s);
+  assert.equal(step.changed, true);
+  assert.match(step.message, /Its light comes on/);
+  s = step.sim;
+  assert.equal(needsServerRoom(s), false);
+  assert.equal(readings(s).deskPortLit, true);
+  assert.equal(tryIt(s, 'Farah').solved, true);
+  assert.equal(reseatSwitchPort(s).changed, false);
+});
+
+// ---------- meeting room projector ----------
+
+const proj = (faults) => createSim({ faults, goal: 'projector' }, 2);
+const pact = (s, ...steps) => steps.reduce((cur, [a, arg]) => projectorAction(cur, a, arg).sim, s);
+
+test('projector: wrong input shows "No signal on HDMI 2" until switched to HDMI 1', () => {
+  let s = proj(['projector_wrong_input']);
+  assert.equal(stationFor({ faults: ['projector_wrong_input'] }), 'projector');
+  assert.equal(projectorReadings(s).screen, 'No signal on HDMI 2');
+  assert.deepEqual(placesNeeded(s), ['meeting_projector']);
+  assert.equal(tryIt(s, 'Sana').solved, false);
+  s = pact(s, ['input']);
+  assert.equal(projectorReadings(s).screen, 'slides');
+  assert.deepEqual(placesNeeded(s), []);
+  assert.equal(tryIt(s, 'Sana').solved, true);
+});
+
+test('projector: a loose HDMI cable and PC-only mode both have to be fixed', () => {
+  let s = proj(['projector_hdmi_loose', 'projector_pc_only']);
+  s = pact(s, ['hdmi']);
+  assert.equal(projectorReadings(s).signal, false);
+  s = pact(s, ['mode', 'second_only']);
+  assert.equal(projectorReadings(s).signal, true);
+  assert.match(tryIt(s, 'Sana').message, /laptop screen is off/);
+  s = pact(s, ['mode', 'duplicate']);
+  assert.equal(tryIt(s, 'Sana').solved, true);
+  // Extend works too.
+  assert.equal(tryIt(pact(s, ['mode', 'extend']), 'Sana').solved, true);
+});
+
+test('projector: switching it off breaks it again', () => {
+  const s = pact(proj(['projector_wrong_input']), ['input'], ['power']);
+  assert.equal(projectorReadings(s).works.projector, false);
+});
+
+// ---------- lounge TV ----------
+
+const tv = (faults) => createSim({ faults, goal: 'tv_online' }, 7);
+const tact = (s, ...steps) => steps.reduce((cur, [a, arg]) => tvAction(cur, a, arg).sim, s);
+
+test('TV cable loose: reseating the cable at the back brings it online', () => {
+  let s = tv(['tv_cable_loose']);
+  assert.equal(s.station, 'tv');
+  assert.equal(tvReadings(s).online, false);
+  assert.equal(tvAction(s, 'video').sim.tv.video, 'error');
+  s = tact(s, ['cable']);
+  assert.equal(tvReadings(s).online, true);
+  assert.equal(tryIt(s, 'Saima').solved, true);
+});
+
+test('TV Wi-Fi: the staff network is refused, the devices network works', () => {
+  let s = tv(['tv_wifi_dropped']);
+  assert.equal(tvAction(s, 'cable').changed, false);
+  const staff = tvAction(s, 'network', 'Office-Staff');
+  assert.equal(staff.changed, false);
+  assert.match(staff.message, /only for staff/);
+  assert.equal(tvReadings(staff.sim).online, false);
+  s = tact(s, ['settings'], ['network', 'Office-Devices']);
+  assert.equal(tvReadings(s).online, true);
+  assert.deepEqual(placesNeeded(s), []);
+  assert.equal(tryIt(s, 'Saima').solved, true);
 });

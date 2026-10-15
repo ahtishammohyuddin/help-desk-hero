@@ -48,6 +48,7 @@ HANDS_ON_FAULTS: dict[str, str] = {
     "network_cable_loose": "internet",  # network cable half out at the PC
     "wall_cable_loose": "internet",  # network cable loose at the wall port
     "switch_port_dead": "internet",  # this desk's port on the server room switch has no link
+    "switch_cable_loose": "internet",  # this desk's cable is half out of its port on the server room switch
     "video_cable_loose": "display",  # monitor on, but its video cable is loose at the PC
     "monitor_power_loose": "display",  # monitor power cable loose, so the monitor is off
     "power_strip_off": "power",  # the power strip switch is off
@@ -73,10 +74,18 @@ HANDS_ON_FAULTS: dict[str, str] = {
     "wifi_weak_corner": "wifi_report",
     # repair bench: carry the PC to the IT room and replace the faulty RAM stick
     "ram_faulty": "stable",
+    # meeting room projector: laptop on the table, HDMI cable to the projector
+    "projector_wrong_input": "projector",  # projector set to HDMI 2, the cable is in HDMI 1
+    "projector_hdmi_loose": "projector",  # HDMI cable loose at the laptop
+    "projector_pc_only": "projector",  # Windows key + P set to PC screen only
+    # lounge TV
+    "tv_cable_loose": "tv_online",  # wired TV, network cable loose at the back
+    "tv_wifi_dropped": "tv_online",  # Wi-Fi TV, dropped off the devices network
 }
 HANDS_ON_GOALS = (
     "internet", "display", "power", "keyboard", "mouse", "print",
     "charging", "phone_charging", "second_screen", "dock", "cooling", "wifi_report", "stable",
+    "projector", "tv_online",
 )
 HANDS_ON_REQUIRED = {"report_port": "switch_port_dead"}  # required action -> fault it needs
 # Teams a ticket can be escalated to (id -> name shown in the game).

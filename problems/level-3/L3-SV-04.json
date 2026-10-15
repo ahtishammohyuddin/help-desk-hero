@@ -1,0 +1,74 @@
+{
+  "id": "L3-SV-04",
+  "level": 3,
+  "category": "Servers, backups, Active Directory",
+  "title": "Amber warning light on a server disk",
+  "character": {
+    "name": "Usman",
+    "department": "Operations",
+    "personality": "practical, impatient",
+    "gender": "male"
+  },
+  "symptom": "One of the disks at the front of a server shows an amber light while the others are green",
+  "user_description": "When we were in the server room I saw one of the little drive lights on the file server was orange, not green like the rest. Everything still works. Should we just pull it out and push it back in?",
+  "options": [
+    {
+      "text": "Pull the disk out and push it back in to reset it",
+      "correct": false,
+      "why": "Removing a disk from a running server can make a failing array worse and risks data loss. Only the server team should touch it."
+    },
+    {
+      "text": "Swap it for any spare disk from the parts cabinet",
+      "correct": false,
+      "why": "A replacement must be the right model and size for that server, and the server team must check the storage first. A wrong disk can make things worse."
+    },
+    {
+      "text": "Ignore it, the server still works",
+      "correct": false,
+      "why": "Servers often keep working after one disk fails because of RAID, but a second failure could lose data. It needs fixing soon."
+    },
+    {
+      "text": "Do not touch the disk; note the server name, which bay has the amber light, and escalate to the server team so they can check the storage and replace the disk",
+      "correct": true,
+      "why": "An amber disk light usually means a fault or a warning that the disk may fail. The server team can check the storage controller and replace the disk safely."
+    }
+  ],
+  "hints": [
+    "Why might the server still work with one bad disk?",
+    "Is it safe to pull a disk from a running server?",
+    "What will the server team need to know?"
+  ],
+  "real_world_tip": "Disk light colours can differ between server makers, so check the maker's guide. Many servers use RAID, so one disk can fail without losing data, but it should be replaced quickly.",
+  "escalation": {
+    "team": "server",
+    "team_why": "Disks inside servers and their RAID storage are looked after by the server team. They have the tools to check the disk and the right replacement part.",
+    "details": [
+      {
+        "text": "The server's name or label",
+        "send": true,
+        "why": "Tells them exactly which machine to check."
+      },
+      {
+        "text": "Which disk bay shows the amber light",
+        "send": true,
+        "why": "Tells them which disk to check and replace."
+      },
+      {
+        "text": "Whether the light is steady or blinking",
+        "send": true,
+        "why": "Different patterns can mean different things."
+      },
+      {
+        "text": "When you first noticed it",
+        "send": true,
+        "why": "Helps them see how long the server has been running with a problem."
+      },
+      {
+        "text": "A list of everyone who uses the file server",
+        "send": false,
+        "why": "Not needed to fix the disk. The server team can see the server's users themselves if they need to."
+      }
+    ]
+  },
+  "reviewed": true
+}

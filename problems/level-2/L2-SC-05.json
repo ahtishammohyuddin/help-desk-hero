@@ -1,0 +1,69 @@
+{
+  "id": "L2-SC-05",
+  "level": 2,
+  "category": "Security and phishing",
+  "title": "Someone follows you through the server room door",
+  "character": {
+    "name": "Nida",
+    "department": "Admin",
+    "personality": "careful, friendly",
+    "gender": "female"
+  },
+  "symptom": "A person you do not recognise walks in behind you as you badge into the server room",
+  "user_description": "Just a heads up: a man in a jacket was waiting by the server room door and walked in right behind you when you used your badge. He said he's here to fix the internet. I didn't see him sign in at reception.",
+  "options": [
+    {
+      "text": "Hold the door for him, he is probably a contractor",
+      "correct": false,
+      "why": "Following someone through a secure door without using your own badge is called tailgating. Anyone can claim to be a contractor."
+    },
+    {
+      "text": "Give him the door code so he does not have to wait for you next time",
+      "correct": false,
+      "why": "Never share door codes. It gives server room access to someone who has not been checked."
+    },
+    {
+      "text": "Ignore it, security is not your job",
+      "correct": false,
+      "why": "Everyone helps keep secure rooms secure. A stranger in the server room could steal or damage equipment and data."
+    },
+    {
+      "text": "Politely stop him and ask for his visitor badge or who he is visiting; do not let him stay without authorisation, take him to reception, and report it to the security team",
+      "correct": true,
+      "why": "Being polite but firm keeps the room safe. Reception can check if the visit is real, and security needs to know about tailgating."
+    }
+  ],
+  "hints": [
+    "What is tailgating?",
+    "How can you check if a visitor is expected?",
+    "Who should know about this?"
+  ],
+  "real_world_tip": "Real contractors expect to sign in and be escorted. Asking to see a visitor badge is normal and polite, not rude.",
+  "escalation": {
+    "team": "security",
+    "team_why": "The security team handles access to secure rooms. They can check door logs and camera footage and remind staff about tailgating.",
+    "details": [
+      {
+        "text": "The time and which door it happened at",
+        "send": true,
+        "why": "Lets them check the door logs and cameras."
+      },
+      {
+        "text": "A description of the person and what he said",
+        "send": true,
+        "why": "Helps them identify him and check whether the visit was real."
+      },
+      {
+        "text": "What you did (for example took him to reception)",
+        "send": true,
+        "why": "Shows whether he is still in the building and who has seen him."
+      },
+      {
+        "text": "Your own badge number and PIN",
+        "send": false,
+        "why": "Never share your badge PIN. The security team can look up your badge without it."
+      }
+    ]
+  },
+  "reviewed": true
+}

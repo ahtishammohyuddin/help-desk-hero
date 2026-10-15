@@ -47,6 +47,8 @@ Hands-on tickets: a problem can have a `hands_on` scenario instead, for example 
 
 Repair bench (`ram_faulty`, goal `stable`): for the blue-screen ticket the player checks the stop code, runs Windows Memory Diagnostic at the desk, shuts down and unplugs the PC, and carries it to the repair bench in the IT room. There they put on the anti-static strap, drain leftover power, open the side panel, test one RAM stick at a time to find the faulty one, and fit a matching DDR4 stick from the parts cabinet (DDR5 will not fit). Then they carry the PC back, plug it in and test again.
 
+Meeting room and lounge: the projector ticket (`projector_wrong_input`, `projector_hdmi_loose`, `projector_pc_only`, goal `projector`) has the player check the HDMI cable at both ends, pick the projector input the cable is in, and set Windows key + P on the laptop. The lounge TV ticket (`tv_cable_loose`, `tv_wifi_dropped`, goal `tv_online`) has them reseat the TV's cable or reconnect it to the devices network, not the staff network. While these tickets are open, the projector shows No signal and the TV shows No internet connection in the office. A desk can also lose its network because its cable is half out of the server room switch (`switch_cable_loose`): the player pushes it back in.
+
 Escalation (Level 3 and up): a problem can have an `escalation` with the right `team` (`network`, `security`, `server` or `vendor`), a `team_why`, and 3-6 `details`, each marked `send: true` or `false` with a `why`. After the right answer, the player picks the team and ticks what to include in the handover, for example the time it started and an example IP address, but never a user's password. The server checks the form against the reviewed file (`POST /problems/{id}/escalate`); a wrong team or wrong details halves the ticket's XP and shows why.
 
 After each shift a "senior tech" coach writes a short note. The backend works out the facts from the shift numbers (no AI), picks real-world tips only from reviewed problems the player missed, and asks the AI to word a two-to-four sentence note from those facts and tips alone. The game sends no names or personal data, only numbers, topic names and problem ids. Without AI, the note is written from the numbers.
@@ -64,6 +66,14 @@ Game logic tests (optional, needs Node.js): `node --test game/tests/logic.test.m
 The game opens on a loading screen (logo, progress bar and game tips), then the main menu: Continue, Daily challenge, My progress, How to play, Settings (sound, graphics, random events) and New game. On the first visit it asks for the player's name. The name is stored only in the browser (`localStorage`), is used for greetings and as the default certificate name, and is never sent to the backend or the AI. If the game's files fail to load, the loading screen says so after 20 seconds and suggests Ctrl+F5.
 
 Sound is all made in code with the Web Audio API, so there are no audio files and nothing to license: sound effects, soft footsteps while walking, and very quiet background music (a slow loop of soft chords, `game/src/music.js`). Each has its own switch in Settings.
+
+## The office
+
+The office has the main open-plan area, the server room, the IT corner (help desk, parts cabinet, repair bench, notice board), and an east wing with a kitchen (coffee machine boost), a lounge with a TV, a game corner arcade (5 mini-games, no XP), a meeting room, a learning corner (notes unlocked from the problems you have worked on), a manager's office and phone booths.
+
+Staff take breaks when they do not need help: they get a coffee, watch the lounge TV, play at the arcade, or hold meetings with slides on the projector. Routes are planned on a grid with A* search (`game/src/nav.js`); who goes where is decided in `game/src/life.js`. Anyone with an open ticket walks back to their desk.
+
+Graphics: Smooth (no shadows, fewer pixels), Balanced and Realistic. The 3D office is not redrawn while a full-screen card (menu, arcade, notes) is open.
 
 ## Run the backend
 ```

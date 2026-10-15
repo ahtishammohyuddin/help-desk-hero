@@ -1,0 +1,74 @@
+{
+  "id": "L2-SV-02",
+  "level": 2,
+  "category": "Servers, backups, Active Directory",
+  "title": "UPS alarm beeping in the server room",
+  "character": {
+    "name": "Imran",
+    "department": "Operations",
+    "personality": "worried, curious",
+    "gender": "male"
+  },
+  "symptom": "The UPS in the server room is beeping and showing a warning on its screen",
+  "user_description": "I walked past the server room and there's a loud beeping coming from the big battery box at the bottom of the rack. The lights in the corridor flickered a minute ago. Should we switch the servers off?",
+  "options": [
+    {
+      "text": "Switch the servers off yourself to save the battery",
+      "correct": false,
+      "why": "Pulling the plug or holding power buttons can corrupt data. Shutting down servers is the server team's decision, and many UPS units can shut servers down safely on their own."
+    },
+    {
+      "text": "Press the mute button and walk away",
+      "correct": false,
+      "why": "Muting hides the warning but the problem is still there. If the battery runs out, the servers lose power with no warning."
+    },
+    {
+      "text": "Unplug the servers from the UPS and plug them straight into the wall",
+      "correct": false,
+      "why": "This drops every server's power for a moment and removes their protection from power cuts and surges."
+    },
+    {
+      "text": "Read what the UPS screen says (for example on battery, low battery or overload), check whether the building has lost power, and escalate to the server team straight away with those details",
+      "correct": true,
+      "why": "A beeping UPS usually means it is running on battery or has a fault. The server team needs to know fast so they can decide whether to shut servers down safely."
+    }
+  ],
+  "hints": [
+    "What is a UPS for?",
+    "What does the UPS screen say?",
+    "Who decides when servers are shut down?"
+  ],
+  "real_world_tip": "UPS means Uninterruptible Power Supply: a battery that keeps servers running for a short time when the power fails. Note what the display says before you report it.",
+  "escalation": {
+    "team": "server",
+    "team_why": "The server team looks after the servers and their power. They decide whether to shut servers down safely and get the UPS or power checked.",
+    "details": [
+      {
+        "text": "What the UPS screen or warning lights say",
+        "send": true,
+        "why": "Shows whether it is on battery, low on battery, overloaded or reporting a battery fault."
+      },
+      {
+        "text": "Whether the building or the room has lost power",
+        "send": true,
+        "why": "Tells them if this is a power cut or a fault with the UPS itself."
+      },
+      {
+        "text": "The battery time or percentage left, if shown",
+        "send": true,
+        "why": "Tells them how long they have before the servers lose power."
+      },
+      {
+        "text": "When the beeping started",
+        "send": true,
+        "why": "Helps them match it to a power cut or other event."
+      },
+      {
+        "text": "Your own computer's password so they can log in remotely",
+        "send": false,
+        "why": "Never share your password. The server team uses their own admin accounts."
+      }
+    ]
+  },
+  "reviewed": true
+}

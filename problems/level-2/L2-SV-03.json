@@ -1,0 +1,74 @@
+{
+  "id": "L2-SV-03",
+  "level": 2,
+  "category": "Servers, backups, Active Directory",
+  "title": "Server room is too hot",
+  "character": {
+    "name": "Ahmed",
+    "department": "Finance",
+    "personality": "friendly, chatty",
+    "gender": "male"
+  },
+  "symptom": "The server room feels very warm and the air conditioning unit is not blowing cold air",
+  "user_description": "I went into the server room with you earlier and it was like an oven in there. The air conditioner on the wall was quiet. Is that normal?",
+  "options": [
+    {
+      "text": "Prop the server room door open and put a desk fan inside",
+      "correct": false,
+      "why": "An open server room door lets anyone walk in, and a desk fan is not a fix. The cooling needs to be repaired properly."
+    },
+    {
+      "text": "Switch some servers off so the room cools down",
+      "correct": false,
+      "why": "Turning servers off yourself can corrupt data and stop services people need. That decision belongs to the server team."
+    },
+    {
+      "text": "Check the room temperature display and the air conditioning unit, then escalate to the server team straight away so they can protect the servers and get the cooling fixed",
+      "correct": true,
+      "why": "Servers can overheat and shut down or get damaged. The server team can watch temperatures, plan a safe shutdown if needed, and get facilities to repair the cooling."
+    },
+    {
+      "text": "Leave it until tomorrow, the servers have their own fans",
+      "correct": false,
+      "why": "Server fans only move the room's air. If the room is hot, the servers keep getting hotter and may crash or be damaged."
+    }
+  ],
+  "hints": [
+    "What happens to servers when they get too hot?",
+    "Is the cooling working?",
+    "Who looks after the servers?"
+  ],
+  "real_world_tip": "Many server rooms have a temperature display or sensor that sends alerts. Write down the reading and whether the cooling unit shows any error.",
+  "escalation": {
+    "team": "server",
+    "team_why": "The server team watches server temperatures, can shut servers down safely if needed, and contacts facilities to repair the cooling.",
+    "details": [
+      {
+        "text": "The temperature shown in the room, if there is a display",
+        "send": true,
+        "why": "Tells them how serious it is right now."
+      },
+      {
+        "text": "Whether the air conditioning unit is running or shows an error",
+        "send": true,
+        "why": "Points to the cause, so facilities can be called quickly."
+      },
+      {
+        "text": "When it was noticed",
+        "send": true,
+        "why": "Helps them work out how long the servers have been running hot."
+      },
+      {
+        "text": "Any alarms or warning lights on the servers",
+        "send": true,
+        "why": "Shows whether servers are already overheating."
+      },
+      {
+        "text": "The server room door code, so they can get in faster",
+        "send": false,
+        "why": "Never send door codes in a ticket or message. The server team already has its own access."
+      }
+    ]
+  },
+  "reviewed": true
+}

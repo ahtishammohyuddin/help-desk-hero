@@ -28,15 +28,24 @@
   - [x] Stage B: things to use: coffee machine (short speed boost), learning corner PC (notes built from the
         reviewed problems), notice board (badges and streaks). Free course and roadmap links are written in
         `game/src/resources.js` and stay hidden until reviewed (RESOURCES_REVIEWED = true)
-  - [x] Stage C: game corner arcade with 3 mini-games (Ticket rush, Kit match, Quick typer), sounds and best
-        scores on this device; no XP, the shift pauses while playing
-  - [ ] Stage D: staff walk around (kitchen, printer, meeting room) when they have no open ticket
+  - [x] Stage C: game corner arcade with 5 mini-games (Packet dash, Server stack, Switch lights, Kit match,
+        Quick typer), smooth canvas games, sounds and best scores on this device; no XP, the shift pauses
+  - [x] Stage D: staff walk around when they have no open ticket: kitchen, lounge (sit and watch videos on the TV),
+        game corner (play), meeting room (meetings with slides on the projector); A* routes, back to the desk for tickets
+  - [x] Manager's office (executive desk, leather chair, bookshelf, leather sofa, rug, window) with Haroon at Desk 8,
+        plus phone booths and lockers
+  - [x] New hands-on tickets: meeting room projector shows no signal (cable, input, Windows key + P), lounge TV
+        with no internet (cable or devices network), network cable loose at the server room switch; the projector and
+        TV show the fault in the office while the ticket is open (written, awaiting review)
+  - [x] Server room tickets: UPS alarm, room too hot, amber disk light, server not responding, tailgating
+        (escalation to the server or security team; written, awaiting review)
+  - [x] Free course and roadmap links approved and shown in the learning corner
   - [ ] Stage E: windows and light that follow the shift clock, server room badge door, desk phone tickets,
-        meeting room projector tickets, new-starter laptop setup at the bench
+        new-starter laptop setup at the bench
   - [ ] Stage F: desk upgrades and technician customisation
-- [ ] Three graphics modes: Smooth, Balanced, Realistic (the current detailed look)
-- [x] Sound: footsteps while walking and very quiet calm background music (made in code), each with its own
-      on/off switch in Settings. Mini-game sounds are ready and get used when the lounge games are built.
+- [x] Three graphics modes: Smooth, Balanced, Realistic; the office is not redrawn behind full-screen cards
+- [x] Sound: realistic soft footsteps, background music made in code with 4 styles (Calm chords, Ambient,
+      Soft piano, Lo-fi beat) and 3 volumes, separate switches, and a ♪ button that mutes everything
 
 ## Phase 8
 - [ ] Free-text answers graded against reviewed answers

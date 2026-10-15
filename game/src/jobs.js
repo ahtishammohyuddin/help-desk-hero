@@ -14,6 +14,8 @@ export const PLACES = {
   parts_cabinet: { name: 'Parts cabinet', x: -18.6, z: 8, markX: -19.6, markZ: 8 },
   server_room: { name: 'Server room', x: 14, z: -11.2, markX: 14, markZ: -12.8 },
   repair_bench: { name: 'Repair bench', x: -18.1, z: 12.6, markX: -19.45, markZ: 12.6 },
+  meeting_projector: { name: 'Meeting room projector', x: 33.9, z: 10, markX: 31.4, markZ: 10 },
+  lounge_tv: { name: 'Lounge TV', x: 29.2, z: 0, markX: 30.2, markZ: 0 },
   // things to use in the office (always available, no ticket needed)
   coffee_machine: { name: 'Coffee machine', x: 24, z: -12.4, markX: 24, markZ: -13.5 },
   learning_pc: { name: 'Learning corner PC', x: 23.2, z: 11.2, markX: 23.2, markZ: 13 },

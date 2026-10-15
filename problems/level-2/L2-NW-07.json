@@ -1,0 +1,49 @@
+{
+  "id": "L2-NW-07",
+  "level": 2,
+  "category": "Networking and Wi-Fi",
+  "title": "Network cable came out at the server room switch",
+  "character": {
+    "name": "Imran",
+    "department": "Operations",
+    "personality": "worried, curious",
+    "gender": "male"
+  },
+  "symptom": "One PC has no network; its cable is fine at the desk end",
+  "user_description": "My PC says no internet. I checked the cable at my desk and it's in. Someone was moving boxes in the server room this morning, could that be it?",
+  "options": [
+    {
+      "text": "Reinstall the network driver on the PC",
+      "correct": false,
+      "why": "The driver is fine. If the link light is off with the cable firmly in at the desk, the problem is further along the cable."
+    },
+    {
+      "text": "Restart the whole network switch",
+      "correct": false,
+      "why": "Restarting the switch cuts off everyone in the office for a fault on one port."
+    },
+    {
+      "text": "Move every desk's cable to new ports on the switch",
+      "correct": false,
+      "why": "Only one desk is affected. Moving every cable causes confusion and new problems."
+    },
+    {
+      "text": "Check the cable at the PC and the wall, then check this desk's port on the server room switch, push the loose cable back in until it clicks, and check its light comes on",
+      "correct": true,
+      "why": "When the desk end is fine, the other end may be loose. A cable knocked half out of the switch has no link until it is pushed back in."
+    }
+  ],
+  "hints": [
+    "Is the network light on the PC on?",
+    "Where does the other end of the cable go?",
+    "What does a dark port light on the switch mean?"
+  ],
+  "real_world_tip": "Network plugs have a small clip that clicks when the plug is fully in. A plug can look connected but still be loose.",
+  "hands_on": {
+    "faults": [
+      "switch_cable_loose"
+    ],
+    "goal": "internet"
+  },
+  "reviewed": true
+}

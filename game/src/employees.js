@@ -21,6 +21,8 @@ export const EMPLOYEES = [
     line: 'All quiet at my desk today. Shout if you need a hand carrying anything.' },
   { name: 'Nida', desk: 6, gender: 'female', department: 'Accounts', x: -6.15, z: -9.8, facing: SOUTH, shirt: 0x3fa3a3, hair: 0x2a1a12,
     line: 'I print a lot of invoices. If that printer goes offline, you will hear from me.' },
+  { name: 'Haroon', desk: 8, gender: 'male', department: 'Management', x: 44.2, z: -8, facing: -Math.PI / 2, shirt: 0x1f2a37, hair: 0x2a2a2a,
+    line: 'Ah, the IT hero. Keep the office running and we will all be happy.' },
   { name: 'Saima', desk: 7, gender: 'female', department: 'Reception', x: 11.4, z: 8.6, facing: SOUTH, shirt: 0xb84a4a, hair: 0x1d1310,
     line: 'Welcome! Let me know if you need anything. I can never find where files save.' },
 ];
@@ -39,7 +41,8 @@ export function createEmployees(scene, colliders, labelLayer) {
     group.add(marker);
 
     // People are solid: the player walks around them, not through them.
-    colliders.push({ minX: data.x - 0.3, maxX: data.x + 0.3, minZ: data.z - 0.3, maxZ: data.z + 0.3 });
+    const collider = { minX: data.x - 0.3, maxX: data.x + 0.3, minZ: data.z - 0.3, maxZ: data.z + 0.3 };
+    colliders.push(collider);
 
     const label = document.createElement('div');
     label.className = 'label';
@@ -47,6 +50,6 @@ export function createEmployees(scene, colliders, labelLayer) {
     label.hidden = true;
     labelLayer.appendChild(label);
 
-    return { ...data, group, marker, label };
+    return { ...data, group, marker, label, collider };
   });
 }

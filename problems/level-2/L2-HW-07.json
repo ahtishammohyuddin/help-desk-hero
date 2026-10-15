@@ -1,0 +1,50 @@
+{
+  "id": "L2-HW-07",
+  "level": 2,
+  "category": "Hardware",
+  "title": "Meeting room projector shows no signal",
+  "character": {
+    "name": "Sana",
+    "department": "Marketing",
+    "personality": "rushed, presenting soon",
+    "gender": "female"
+  },
+  "symptom": "The meeting room projector is on but shows No signal when the laptop is connected",
+  "user_description": "My client meeting starts in ten minutes and the projector just says No signal. The laptop is plugged in with the cable on the table. Please help!",
+  "options": [
+    {
+      "text": "Order a new projector",
+      "correct": false,
+      "why": "The projector turns on and shows a message, so it works. The problem is the cable, the input or the laptop setting."
+    },
+    {
+      "text": "Restart the laptop again and again until it works",
+      "correct": false,
+      "why": "Restarting does not fix a loose cable or the wrong input, and wastes the time before the meeting."
+    },
+    {
+      "text": "Tell her to present on the laptop screen instead",
+      "correct": false,
+      "why": "That does not fix the problem, and the next meeting will have it too."
+    },
+    {
+      "text": "Check the HDMI cable is firmly in at both ends, set the projector to the input the cable is plugged into, and check the laptop's Windows key + P setting (Duplicate or Extend)",
+      "correct": true,
+      "why": "No signal means the projector is not getting a picture on the input it is set to. These three checks fix most meeting room display problems."
+    }
+  ],
+  "hints": [
+    "The projector works: what does No signal mean?",
+    "Which input is the cable plugged into?",
+    "What does Windows key + P do?"
+  ],
+  "real_world_tip": "Projectors and TVs have several inputs, like HDMI 1 and HDMI 2. Check the label next to the port the cable is in, then pick that input.",
+  "hands_on": {
+    "faults": [
+      "projector_hdmi_loose",
+      "projector_wrong_input"
+    ],
+    "goal": "projector"
+  },
+  "reviewed": true
+}

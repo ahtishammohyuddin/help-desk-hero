@@ -78,6 +78,24 @@ export const SURVEY_SPOTS = {
   wifi_corner: { name: 'The corner', bars: 1, speed: 'very slow, keeps dropping' },
 };
 
+// Meeting room projector: the laptop on the table is cabled to the projector with HDMI.
+const PROJECTOR_FAULTS = {
+  projector_wrong_input: 'the projector is set to the wrong input',
+  projector_hdmi_loose: 'the HDMI cable is loose at the laptop',
+  projector_pc_only: 'the laptop is set to show on its own screen only',
+};
+export const PROJECTOR_INPUTS = ['HDMI 1', 'HDMI 2']; // the cable is in HDMI 1
+// Lounge TV: a smart TV that streams videos, wired or on Wi-Fi.
+const TV_FAULTS = {
+  tv_cable_loose: "the TV's network cable is loose",
+  tv_wifi_dropped: 'the TV has dropped off the Wi-Fi',
+};
+export const TV_NETWORKS = {
+  'Office-Staff': { ok: false, note: 'The staff network is only for staff laptops and phones. TVs and other smart devices go on the devices or guest network.' },
+  'Office-Devices': { ok: true, note: 'The network for printers, TVs and other office devices.' },
+  'Office-Guest': { ok: true, note: 'The network for visitors and simple devices.' },
+};
+
 // Repair bench: the PC goes to the IT room bench for a hardware repair.
 const BENCH_FAULTS = {
   ram_faulty: 'one RAM stick is faulty, so Windows crashes with blue screens',
@@ -87,6 +105,8 @@ export const RAM_SLOTS = ['A', 'B'];
 /** Which close-up a scenario uses: 'desk', 'printer', 'laptop', 'survey' or 'bench'. */
 export function stationFor(scenario) {
   if (scenario.faults.some((f) => f in BENCH_FAULTS)) return 'bench';
+  if (scenario.faults.some((f) => f in PROJECTOR_FAULTS)) return 'projector';
+  if (scenario.faults.some((f) => f in TV_FAULTS)) return 'tv';
   if (scenario.faults.some((f) => f in SURVEY_FAULTS)) return 'survey';
   if (scenario.faults.some((f) => f in LAPTOP_FAULTS)) return 'laptop';
   if (scenario.faults.some((f) => f in PRINTER_FAULTS)) return 'printer';
@@ -103,8 +123,10 @@ export function createSim(scenario, deskNumber) {
     netPc: 'in', netWall: 'in', keyboard: 'in', mouse: 'in',
   };
   let portDead = false;
+  let portLoose = false;
   for (const fault of scenario.faults) {
     if (fault === 'switch_port_dead') portDead = true;
+    else if (fault === 'switch_cable_loose') portLoose = true;
     else if (FAULT_PARTS[fault]) {
       const [part, broken] = FAULT_PARTS[fault];
       desk[part] = broken;
@@ -153,8 +175,21 @@ export function createSim(scenario, deskNumber) {
         lastBoot: null, // the last test boot at the bench: { slots: ['A'], errors }
       }
     : null;
+  const projector = station === 'projector'
+    ? {
+        power: 'on',
+        input: has('projector_wrong_input') ? 'HDMI 2' : 'HDMI 1',
+        hdmi: has('projector_hdmi_loose') ? 'loose' : 'in',
+        mode: has('projector_pc_only') ? 'pc_only' : 'duplicate',
+      }
+    : null;
+  const tv = station === 'tv'
+    ? { wired: has('tv_cable_loose'), cable: has('tv_cable_loose') ? 'loose' : 'in', network: has('tv_wifi_dropped') ? null : 'Office-Devices', video: null }
+    : null;
   return {
     goal: scenario.goal,
+    projector,
+    tv,
     required: [...(scenario.required ?? [])],
     deskNumber,
     station,
@@ -165,7 +200,7 @@ export function createSim(scenario, deskNumber) {
     carrying: null, // e.g. 'toner' after taking a cartridge from the parts cabinet
     testPage: null, // the last printer test page: 'good', 'faint', 'streaks', 'blank'
     desk,
-    port: { number: deskNumber, dead: portDead, movedTo: null },
+    port: { number: deskNumber, dead: portDead, loose: portLoose, movedTo: null },
     done: {}, // required actions done, e.g. { report_port: true }
     looked: {}, // parts the player has checked
     serverClue: false, // set once the desk is ruled out for a network fault
@@ -179,7 +214,7 @@ export function readings(sim) {
   const pcOn = stripOn && d.pcPower === 'in';
   const monitorOn = stripOn && d.monitorPower === 'in';
   const screen = !monitorOn ? 'off' : pcOn && d.videoCable === 'in' ? 'picture' : 'no-signal';
-  const portOk = sim.port.movedTo !== null || !sim.port.dead;
+  const portOk = sim.port.movedTo !== null || (!sim.port.dead && !sim.port.loose);
   const cableOk = d.netPc === 'in' && d.netWall === 'in';
   const link = pcOn && cableOk && portOk;
   return {
@@ -189,7 +224,7 @@ export function readings(sim) {
     screen,
     link, // the light next to the network port on the PC
     // Switch lights: the desk's own port, and the spare port if the cable was moved there.
-    deskPortLit: pcOn && cableOk && sim.port.movedTo === null && !sim.port.dead,
+    deskPortLit: pcOn && cableOk && sim.port.movedTo === null && !sim.port.dead && !sim.port.loose,
     sparePortLit: pcOn && cableOk && sim.port.movedTo !== null,
     works: {
       power: pcOn,
@@ -235,6 +270,20 @@ export function moveToSpare(sim, port) {
   return {
     sim: next,
     message: `You move Desk ${sim.deskNumber}'s cable from port ${sim.port.number} to spare port ${port}.${lit ? ' Its light comes on.' : ''}`,
+    changed: true,
+  };
+}
+
+/** Push this desk's cable firmly back into its port on the switch. */
+export function reseatSwitchPort(sim) {
+  if (!sim.port.loose || sim.port.movedTo !== null) {
+    return { sim, message: `Desk ${sim.deskNumber}'s cable is firmly in port ${sim.port.number}.`, changed: false };
+  }
+  const next = { ...sim, port: { ...sim.port, loose: false } };
+  const lit = readings(next).deskPortLit;
+  return {
+    sim: next,
+    message: `Desk ${sim.deskNumber}'s cable was half out of port ${sim.port.number} on the switch. You push it in until it clicks.${lit ? ' Its light comes on.' : ''}`,
     changed: true,
   };
 }
@@ -364,6 +413,8 @@ export function takeToner(sim) {
 /** Places this ticket needs right now, for markers: 'printer', 'parts_cabinet'. */
 export function placesNeeded(sim) {
   if (sim?.station === 'bench') return benchPlaces(sim);
+  if (sim?.station === 'projector') return projectorReadings(sim).works.projector ? [] : ['meeting_projector'];
+  if (sim?.station === 'tv') return tvReadings(sim).online ? [] : ['lounge_tv'];
   if (sim?.station === 'laptop') {
     const l = sim.laptop;
     return l.phoneCable === 'damaged' && sim.looked.phoneCable && sim.carrying !== 'phone_cable' ? ['parts_cabinet'] : [];
@@ -629,6 +680,74 @@ function benchPlaces(sim) {
   return ['repair_bench'];
 }
 
+// ---------- the meeting room projector ----------
+
+export function projectorReadings(sim) {
+  const p = sim.projector;
+  const on = p.power === 'on';
+  const signal = p.input === 'HDMI 1' && p.hdmi === 'in' && p.mode !== 'pc_only';
+  const screen = !on ? '' : signal ? 'slides' : `No signal on ${p.input}`;
+  return { on, signal, screen, laptopScreen: p.mode !== 'second_only', works: { projector: on && signal && p.mode !== 'second_only' } };
+}
+
+export function projectorAction(sim, action, arg) {
+  const p = sim.projector;
+  const looked = (k) => ({ looked: { ...sim.looked, [k]: true } });
+  const changed = (patch, message, extra = {}) => ({ sim: { ...sim, ...extra, projector: { ...p, ...patch } }, message, changed: true });
+  switch (action) {
+    case 'power':
+      return changed({ power: p.power === 'on' ? 'off' : 'on' }, p.power === 'on' ? 'You switch the projector off.' : 'You switch the projector on. It warms up.');
+    case 'input': {
+      const next = p.input === 'HDMI 1' ? 'HDMI 2' : 'HDMI 1';
+      return changed({ input: next }, `You press the Input button on the projector. It switches to ${next}. (The cable from the table goes into HDMI 1.)`, looked('input'));
+    }
+    case 'hdmi':
+      if (p.hdmi === 'in') return same({ ...sim, ...looked('hdmi') }, 'You check the HDMI cable at both ends. It is firmly in.');
+      return changed({ hdmi: 'in' }, 'The HDMI cable was loose at the laptop. You push it in firmly.', looked('hdmi'));
+    case 'mode':
+      if (!(arg in DISPLAY_MODES) || p.mode === arg) return same(sim, '');
+      return changed({ mode: arg }, `On the laptop you press Windows key + P and choose "${DISPLAY_MODES[arg]}".`, looked('mode'));
+    default:
+      return same(sim, '');
+  }
+}
+
+// ---------- the lounge TV ----------
+
+export function tvReadings(sim) {
+  const t = sim.tv;
+  const online = t.wired ? t.cable === 'in' : Boolean(t.network && TV_NETWORKS[t.network]?.ok);
+  return { online, status: online ? `Connected${t.wired ? ' (cable)' : ` to ${t.network}`}` : 'No internet connection', works: { tv_online: online } };
+}
+
+export function tvAction(sim, action, arg) {
+  const t = sim.tv;
+  const looked = (k) => ({ looked: { ...sim.looked, [k]: true } });
+  const changed = (patch, message, extra = {}) => ({ sim: { ...sim, ...extra, tv: { ...t, ...patch } }, message, changed: true });
+  switch (action) {
+    case 'cable':
+      if (!t.wired) return same({ ...sim, ...looked('cable') }, 'No network cable is plugged into this TV. It uses Wi-Fi.');
+      if (t.cable === 'in') return same({ ...sim, ...looked('cable') }, "The TV's network cable is firmly in.");
+      return changed({ cable: 'in' }, "The TV's network cable was loose at the back. You push it in until it clicks.", looked('cable'));
+    case 'settings':
+      return same({ ...sim, ...looked('settings') }, t.wired
+        ? 'Network settings: connection type Wired.'
+        : `Network settings: Wi-Fi, ${t.network ? `connected to ${t.network}` : 'not connected to any network'}.`);
+    case 'network': {
+      if (t.wired || !(arg in TV_NETWORKS)) return same(sim, '');
+      const net = TV_NETWORKS[arg];
+      if (!net.ok) return same({ ...sim, ...looked('settings') }, `You do not connect the TV to ${arg}. ${net.note}`);
+      return changed({ network: arg }, `You connect the TV to ${arg}. ${net.note}`, looked('settings'));
+    }
+    case 'video': {
+      const ok = tvReadings(sim).online;
+      return changed({ video: ok ? 'playing' : 'error' }, ok ? 'A test video starts playing smoothly.' : 'The video app says: "No internet connection".');
+    }
+    default:
+      return same(sim, '');
+  }
+}
+
 const GOAL_WORDS = {
   internet: ['the internet works again', 'there is still no internet'],
   display: ['the picture is back on the monitor', 'the monitor still shows no picture'],
@@ -643,6 +762,8 @@ const GOAL_WORDS = {
   cooling: ['the laptop stays cool and the fan is quiet', 'the laptop is still hot and the fan is loud'],
   wifi_report: ['the weak corner has been reported to the network team', 'the weak corner has not been reported yet'],
   stable: ['the PC runs all morning with no more blue screens', null], // failures come from benchFailure()
+  projector: ['the slides show on the projector screen', 'the projector screen still shows no picture'],
+  tv_online: ['videos play on the lounge TV again', 'the TV still says no internet connection'],
 };
 
 function benchFailure(sim) {
@@ -659,6 +780,12 @@ function benchFailure(sim) {
  * A failed test can give a clue about where to look next.
  */
 export function test(sim, name) {
+  if (sim.station === 'projector' || sim.station === 'tv') {
+    const ok = sim.station === 'projector' ? projectorReadings(sim).works.projector : tvReadings(sim).works.tv_online;
+    let why = GOAL_WORDS[sim.goal][1];
+    if (sim.station === 'projector' && !ok && projectorReadings(sim).signal && sim.projector.mode === 'second_only') why = 'the slides show, but now the laptop screen is off';
+    return { sim, ok, solved: ok, message: `${name} tries again: ${ok ? GOAL_WORDS[sim.goal][0] : why}.` };
+  }
   if (sim.station === 'bench') {
     const ok = benchReadings(sim).works.stable;
     return { sim, ok, solved: ok, message: `${name} tries the PC: ${ok ? GOAL_WORDS.stable[0] : benchFailure(sim)}.` };
@@ -704,7 +831,8 @@ export function test(sim, name) {
 /** Does this ticket need the player in the server room right now? */
 export function needsServerRoom(sim) {
   if (!sim || !sim.serverClue) return false;
-  return sim.port.movedTo === null || (sim.required.includes('report_port') && !sim.done.report_port);
+  const portBroken = sim.port.movedTo === null && (sim.port.dead || sim.port.loose);
+  return portBroken || (sim.required.includes('report_port') && !sim.done.report_port);
 }
 
 // ---------- progress, for the mission card ----------
@@ -712,6 +840,8 @@ export function needsServerRoom(sim) {
 /** Is the person's problem fixed (and every required action done)? The survey counts once measured. */
 export function isFixed(sim) {
   if (sim.station === 'bench') return benchReadings(sim).works.stable;
+  if (sim.station === 'projector') return projectorReadings(sim).works.projector;
+  if (sim.station === 'tv') return tvReadings(sim).works.tv_online;
   if (sim.station === 'printer') return printerReadings(sim).works;
   if (sim.station === 'laptop') return Boolean(laptopReadings(sim).works[sim.goal]);
   if (sim.station === 'survey') return surveyDone(sim);

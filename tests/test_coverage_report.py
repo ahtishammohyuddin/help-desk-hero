@@ -49,8 +49,8 @@ def test_render_shows_cells_and_missing(tmp_path):
     text = render(counts)
     assert "drafted / target" in text
     assert "1/8" in text  # Hardware L1
-    assert "1/203" in text  # grand total
-    assert "Still missing: L1 35, L2 52, L3 47, L4 38, L5 30" in text
+    assert "1/211" in text  # grand total
+    assert "Still missing: L1 35, L2 58, L3 49, L4 38, L5 30" in text
 
 
 def test_render_marks_over_target(tmp_path):
@@ -67,7 +67,7 @@ def test_main_output_and_exit_code(tmp_path, capsys):
     assert main([str(tmp_path), "--reviewed"]) == 0
     out = capsys.readouterr().out
     assert "reviewed / target" in out
-    assert "0/203" in out
+    assert "0/211" in out
 
 
 def test_main_missing_folder(tmp_path):

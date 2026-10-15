@@ -4,7 +4,8 @@
 
 import {
   benchReadings,
-  DISPLAY_MODES, ITEM_NAMES, ITEMS, LAPTOP_PARTS, laptopReadings, PARTS, printerReadings, readings, SPARE_PORTS, SWITCH_PORTS,
+  DISPLAY_MODES, ITEM_NAMES, ITEMS, LAPTOP_PARTS, laptopReadings, PARTS, printerReadings, projectorReadings, readings, SPARE_PORTS, SWITCH_PORTS,
+  TV_NETWORKS, tvReadings,
 } from './handson.js';
 
 const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
@@ -176,6 +177,7 @@ export function switchSvg(sim) {
     const mine = n === sim.port.number;
     let cableIn;
     let lit;
+    const loose = mine && sim.port.loose && sim.port.movedTo === null;
     if (mine) {
       cableIn = sim.port.movedTo === null;
       lit = r.deskPortLit;
@@ -186,15 +188,19 @@ export function switchSvg(sim) {
       cableIn = true; // other desks, all working
       lit = true;
     }
-    const canMove = spare && sim.port.movedTo === null;
+    // A loose cable is reseated first; spares are for a port that is really dead.
+    const canMove = spare && sim.port.movedTo === null && !sim.port.loose;
+    const plugY = loose ? 100 : 88; // a loose plug hangs half out of the port
     const body = `
       ${led(x, 70, lit, { blink: true })}
       <rect x="${x - 13}" y="84" width="26" height="22" rx="2" fill="#0d1116" stroke="${mine ? '#ffb02e' : '#55606c'}" stroke-width="${mine ? 2.5 : 1}"/>
-      ${cableIn ? `<rect x="${x - 9}" y="88" width="18" height="16" rx="1" fill="${mine || (spare && cableIn) ? '#2f6feb' : '#7b8794'}"/><path d="M${x} 104 L${x} 150" stroke="${mine || (spare && cableIn) ? '#2f6feb' : '#7b8794'}" stroke-width="5"/>` : ''}
+      ${cableIn ? `<rect x="${x - 9}" y="${plugY}" width="18" height="16" rx="1" fill="${mine || (spare && cableIn) ? '#2f6feb' : '#7b8794'}"/><path d="M${x} ${plugY + 16} L${x} 150" stroke="${mine || (spare && cableIn) ? '#2f6feb' : '#7b8794'}" stroke-width="5"/>` : ''}
       <text x="${x}" y="${cableIn ? 168 : 128}" text-anchor="middle" class="tiny${mine ? ' strong' : ''}">${spare ? 'Spare' : `Desk ${n}`}</text>
       <text x="${x}" y="56" text-anchor="middle" class="tiny light">${n}</text>`;
     ports.push(
-      canMove
+      loose
+        ? `<g class="part" data-reseat="1" tabindex="0" role="button" aria-label="Push Desk ${sim.deskNumber}'s cable back into port ${n}"><title>Check Desk ${sim.deskNumber}'s cable in this port</title><rect x="${x - 19}" y="58" width="38" height="70" rx="6" class="hit"/>${body}</g>`
+        : canMove
         ? `<g class="part" data-spare="${n}" tabindex="0" role="button" aria-label="Move Desk ${sim.deskNumber}'s cable to spare port ${n}"><title>Move Desk ${sim.deskNumber}'s cable here</title><rect x="${x - 19}" y="58" width="38" height="56" rx="6" class="hit"/>${body}</g>`
         : body,
     );
@@ -587,5 +593,111 @@ export function benchSummary(sim) {
     { label: 'Power drained', value: b.drained ? 'Yes' : 'No', ok: b.drained },
     { label: 'RAM', value: `A ${slotText('A')}, B ${slotText('B')}`, ok: null },
     { label: 'Bench test', value: boot, ok: b.lastBoot ? !b.lastBoot.errors : null },
+  ];
+}
+
+// ---------- the meeting room projector ----------
+
+/** A clickable projector part. */
+function prPart(action, label, inner, hit) {
+  return `<g class="part" data-projector="${action}" tabindex="0" role="button" aria-label="${esc(label)}"><title>${esc(label)}</title>
+    <rect x="${hit[0]}" y="${hit[1]}" width="${hit[2]}" height="${hit[3]}" rx="6" class="hit"/>${inner}</g>`;
+}
+
+/** The meeting room: the projector screen on the wall, the projector and the laptop on the table. */
+export function projectorSvg(sim) {
+  const p = sim.projector;
+  const r = projectorReadings(sim);
+  const wall = !r.on
+    ? '<rect x="150" y="20" width="300" height="130" fill="#f4f4f4" stroke="#cfd6de"/>'
+    : r.signal
+      ? `<rect x="150" y="20" width="300" height="130" fill="#ffffff" stroke="#cfd6de"/><rect x="150" y="20" width="300" height="26" fill="#1f2a37"/>
+         ${fitText('Quarterly review', 300, 38, 260, { size: 12, cls: 'tiny light', weight: 700 })}
+         <rect x="190" y="110" width="30" height="30" fill="#2f6feb"/><rect x="240" y="90" width="30" height="50" fill="#33d17a"/><rect x="290" y="100" width="30" height="40" fill="#ffb02e"/><rect x="340" y="70" width="30" height="70" fill="#6c4fd1"/>`
+      : `<rect x="150" y="20" width="300" height="130" fill="#1d3f8f" stroke="#cfd6de"/>${fitText(r.screen, 300, 90, 240, { size: 15, cls: 'tiny light', weight: 700 })}`;
+  const hdmiIn = p.hdmi === 'in';
+  const lapScreen = r.laptopScreen
+    ? '<rect x="96" y="206" width="104" height="58" rx="2" fill="#2f6feb"/><rect x="104" y="214" width="40" height="5" fill="#fff" opacity=".8"/>'
+    : '<rect x="96" y="206" width="104" height="58" rx="2" fill="#0d1116"/>';
+  return `<svg class="station" viewBox="0 0 600 320" role="img" aria-label="Meeting room projector, cable and laptop">
+    <rect x="0" y="0" width="600" height="320" rx="12" fill="#dfe4ea"/>
+    ${wall}
+    <text x="300" y="166" text-anchor="middle" class="tiny">Projector screen</text>
+    <rect x="40" y="180" width="520" height="130" rx="8" fill="#b08a5a"/>
+    ${prPart('hdmi', 'Check the HDMI cable at both ends', `
+      <rect x="86" y="200" width="124" height="74" rx="6" fill="#2b313a"/>${lapScreen}<rect x="76" y="274" width="144" height="10" rx="3" fill="#3b4552"/>
+      <rect x="${hdmiIn ? 220 : 228}" y="262" width="14" height="10" rx="2" fill="#11161c"/>
+      <path d="M${hdmiIn ? 234 : 242} 267 C 300 300, 360 300, 404 252" stroke="${CABLE}" stroke-width="5" fill="none"/>`, [70, 194, 340, 92])}
+    ${fitText(hdmiIn ? 'HDMI cable' : 'HDMI cable (loose at the laptop)', 312, 300, 200, { size: 10, cls: 'tiny ink', weight: hdmiIn ? 400 : 700 })}
+    <rect x="400" y="222" width="110" height="40" rx="8" fill="#2b313a"/><circle cx="420" cy="242" r="10" fill="#11161c" stroke="#5b6b7c"/>
+    ${led(500, 232, r.on)}
+    ${prPart('power', r.on ? 'Switch the projector off' : 'Switch the projector on', `<rect x="440" y="226" width="22" height="14" rx="3" fill="#5b6b7c"/>${fitText('Power', 451, 254, 40, { size: 9, cls: 'tiny light' })}`, [436, 222, 30, 38])}
+    ${prPart('input', 'Press the Input button on the projector', `<rect x="468" y="226" width="22" height="14" rx="3" fill="#5b6b7c"/>${fitText('Input', 479, 254, 40, { size: 9, cls: 'tiny light' })}`, [464, 222, 30, 38])}
+    ${fitText(`Projector input: ${p.input}`, 455, 282, 200, { size: 11, cls: 'tiny ink', weight: 700 })}
+  </svg>`;
+}
+
+/** Windows key + P on the meeting room laptop. */
+export function projectorModesHtml(sim) {
+  return `<div class="winp"><span class="small"><b>Windows key + P</b> on the laptop:</span>
+    ${Object.entries(DISPLAY_MODES).map(([k, v]) => `<button class="mode${sim.projector.mode === k ? ' on' : ''}" data-projector="mode" data-arg="${k}">${esc(v)}</button>`).join('')}</div>`;
+}
+
+export function projectorSummary(sim) {
+  const r = projectorReadings(sim);
+  return [
+    { label: 'Projector', value: r.on ? 'On' : 'Off', ok: r.on },
+    { label: 'Input', value: sim.projector.input, ok: null },
+    { label: 'Screen', value: !r.on ? 'Off' : r.signal ? 'Slides' : 'No signal', ok: r.on && r.signal },
+    { label: 'Laptop screen', value: r.laptopScreen ? 'On' : 'Off', ok: r.laptopScreen },
+  ];
+}
+
+// ---------- the lounge TV ----------
+
+function tvPart(action, label, inner, hit) {
+  return `<g class="part" data-tv="${action}" tabindex="0" role="button" aria-label="${esc(label)}"><title>${esc(label)}</title>
+    <rect x="${hit[0]}" y="${hit[1]}" width="${hit[2]}" height="${hit[3]}" rx="6" class="hit"/>${inner}</g>`;
+}
+
+/** The lounge TV from the front, with its network port at the back shown beside it. */
+export function tvSvg(sim) {
+  const t = sim.tv;
+  const r = tvReadings(sim);
+  const msg = r.online ? 'Ready. Press Play to test.' : t.video === 'error' ? 'No internet connection' : 'Video app';
+  const picture = t.video === 'playing' && r.online
+    ? '<rect x="60" y="40" width="320" height="180" fill="#7ec3ff"/><path d="M60 190 Q 140 160 220 185 T 380 175 L380 220 L60 220 Z" fill="#3d8b5a"/>'
+    : `<rect x="60" y="40" width="320" height="180" fill="#11161c"/>${fitText(msg, 220, 130, 280, { size: 14, cls: 'tiny light', weight: 700 })}`;
+  const back = t.wired
+    ? `${tvPart('cable', "Check the TV's network cable", `<rect x="440" y="70" width="120" height="110" rx="8" fill="#2b313a"/>
+        <rect x="486" y="96" width="28" height="22" rx="2" fill="#0d1116"/>
+        <rect x="490" y="${t.cable === 'in' ? 100 : 112}" width="20" height="16" rx="1" fill="#2f6feb"/>
+        <path d="M500 ${t.cable === 'in' ? 116 : 128} L500 176" stroke="#2f6feb" stroke-width="5"/>`, [434, 64, 132, 122])}
+       ${fitText(t.cable === 'in' ? 'Network port (back)' : 'Network cable (loose)', 500, 200, 130, { size: 10, cls: 'tiny ink', weight: 700 })}`
+    : `<rect x="440" y="70" width="120" height="110" rx="8" fill="#2b313a"/><rect x="486" y="96" width="28" height="22" rx="2" fill="#0d1116"/>
+       ${fitText('Network port (back): empty, the TV uses Wi-Fi', 500, 200, 130, { size: 10, cls: 'tiny ink' })}`;
+  return `<svg class="station" viewBox="0 0 600 270" role="img" aria-label="Lounge TV and its network port">
+    <rect x="0" y="0" width="600" height="270" rx="12" fill="#dfe4ea"/>
+    <rect x="48" y="28" width="344" height="204" rx="8" fill="#0b0e12"/>
+    ${picture}
+    <rect x="200" y="232" width="40" height="22" fill="#2b313a"/>
+    ${tvPart('video', 'Play a test video', '<rect x="250" y="236" width="70" height="22" rx="6" fill="#e5484d"/><path d="M280 241 L280 253 L292 247 Z" fill="#fff"/>', [246, 232, 78, 30])}
+    ${tvPart('settings', 'Open network settings on the TV', `<rect x="330" y="236" width="62" height="22" rx="6" fill="#5b6b7c"/>${fitText('Settings', 361, 251, 56, { size: 9, cls: 'tiny light', weight: 700 })}`, [326, 232, 70, 30])}
+    ${back}
+  </svg>`;
+}
+
+/** The TV's Wi-Fi list, as buttons under the drawing (only for a TV on Wi-Fi, once settings are open). */
+export function tvNetworksHtml(sim) {
+  if (sim.tv.wired || !sim.looked.settings) return '';
+  return `<div class="winp"><span class="small"><b>TV Wi-Fi networks:</b></span>
+    ${Object.keys(TV_NETWORKS).map((n) => `<button class="mode${sim.tv.network === n ? ' on' : ''}" data-tv="network" data-arg="${esc(n)}">${esc(n)}</button>`).join('')}</div>`;
+}
+
+export function tvSummary(sim) {
+  const r = tvReadings(sim);
+  return [
+    { label: 'Connection', value: sim.tv.wired ? 'Cable' : 'Wi-Fi', ok: null },
+    { label: 'Internet', value: r.online ? 'Connected' : 'No connection', ok: r.online },
   ];
 }

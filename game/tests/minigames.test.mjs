@@ -1,27 +1,60 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  closeMismatch, flipCard, hitRush, isBest, KIT, newMatch, newRush, pickLine, RUSH_SECONDS, rushPace, tickRush, TYPING_LINES, typingScore,
+  closeMismatch, DASH_HIT_Y, dashScore, dropStack, flipCard, isBest, KIT, newDash, newMatch, newSimon, newStack, pickLine, pressSimon,
+  simonScore, stackScore, steerDash, tickDash, tickStack, TYPING_LINES, typingScore,
 } from '../src/minigames.js';
 
-test('ticket rush: tickets appear, can be hit, and expire as misses', () => {
-  let s = tickRush(newRush(), 0.5, () => 0);
-  const idx = s.cells.findIndex(Boolean);
-  assert.equal(idx, 0);
-  const hit = hitRush(s, idx);
-  assert.equal(hit.hit, true);
-  assert.equal(hit.state.score, 1);
-  assert.equal(hitRush(hit.state, idx).hit, false); // nothing left there
-  s = tickRush(s, 2, () => 0); // the first ticket times out
-  assert.ok(s.missed >= 1);
+test('packet dash: steering stays inside the lanes, and a firewall ends the run', () => {
+  let s = newDash();
+  s = steerDash(steerDash(steerDash(s, -1), -1), -1);
+  assert.equal(s.lane, 0);
+  s = steerDash(steerDash(steerDash(s, 1), 1), 1);
+  assert.equal(s.lane, 2);
+  const crash = tickDash({ ...newDash(), lane: 1, blocks: [{ lane: 1, y: DASH_HIT_Y - 0.01 }] }, 0.01);
+  assert.equal(crash.over, true);
+  const safe = tickDash({ ...newDash(), lane: 0, blocks: [{ lane: 1, y: DASH_HIT_Y - 0.01 }] }, 0.01);
+  assert.equal(safe.over, false);
 });
 
-test('ticket rush: ends after the time and speeds up', () => {
-  let s = newRush();
-  for (let t = 0; t < RUSH_SECONDS + 1; t += 0.5) s = tickRush(s, 0.5);
-  assert.equal(s.over, true);
-  assert.ok(rushPace(25).life < rushPace(0).life);
-  assert.ok(rushPace(25).gap < rushPace(0).gap);
+test('packet dash: never blocks all three lanes, distance grows', () => {
+  let s = newDash();
+  for (let i = 0; i < 200; i++) {
+    s = tickDash({ ...s, over: false, lane: -9 }, 0.05);
+    const rows = new Map();
+    for (const b of s.blocks) rows.set(b.y.toFixed(3), (rows.get(b.y.toFixed(3)) ?? 0) + 1);
+    for (const n of rows.values()) assert.ok(n <= 2);
+  }
+  assert.ok(dashScore(s) > 0);
+});
+
+test('server stack: overhang is cut, a miss ends it, perfect keeps the width', () => {
+  let s = newStack();
+  s = { ...s, moving: { x: 0.35, w: 0.5, dir: 1 } };
+  let r = dropStack(s);
+  assert.equal(r.result, 'placed');
+  assert.ok(Math.abs(r.state.layers[1].w - 0.4) < 1e-9);
+  r = dropStack({ ...r.state, moving: { x: 0.35, w: 0.4, dir: 1 } });
+  assert.equal(r.result, 'perfect');
+  assert.equal(stackScore(r.state), 2);
+  const miss = dropStack({ ...r.state, moving: { x: 0.9, w: 0.1, dir: 1 } });
+  assert.equal(miss.result, 'miss');
+  assert.equal(miss.state.over, true);
+  const moved = tickStack({ ...newStack(), moving: { x: 0.49, w: 0.5, dir: 1 } }, 1);
+  assert.equal(moved.moving.dir, -1); // bounced off the side
+});
+
+test('switch lights: repeat the pattern, it grows, a wrong pad ends it', () => {
+  let s = newSimon(() => 0);
+  assert.deepEqual(s.pattern, [0]);
+  let r = pressSimon(s, 0, () => 0.5);
+  assert.equal(r.result, 'round');
+  assert.deepEqual(r.state.pattern, [0, 2]);
+  r = pressSimon(r.state, 0);
+  assert.equal(r.result, 'good');
+  r = pressSimon(r.state, 3);
+  assert.equal(r.result, 'wrong');
+  assert.equal(simonScore(r.state), 1);
 });
 
 test('kit match: every item appears twice and pairs are found', () => {
@@ -62,8 +95,8 @@ test('quick typer: speed and accuracy', () => {
 });
 
 test('best scores: higher is better, except kit match moves', () => {
-  const best = { rush: 10, match: 12, typer: 40 };
-  assert.equal(isBest(best, 'rush', 11), true);
+  const best = { dash: 10, match: 12, typer: 40 };
+  assert.equal(isBest(best, 'dash', 11), true);
   assert.equal(isBest(best, 'typer', 39), false);
   assert.equal(isBest(best, 'match', 10), true);
   assert.equal(isBest({ ...best, match: 0 }, 'match', 20), true);

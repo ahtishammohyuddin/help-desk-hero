@@ -81,6 +81,15 @@ export function sitDown(person) {
   person.userData.seated = true;
 }
 
+/** Back on their feet: legs and arms down, at floor level. */
+export function standUp(person) {
+  const { leftLeg, rightLeg, leftArm, rightArm } = person.userData.limbs;
+  leftLeg.rotation.x = rightLeg.rotation.x = 0;
+  leftArm.rotation.x = rightArm.rotation.x = 0;
+  person.position.y = 0;
+  person.userData.seated = false;
+}
+
 /** A floating "!" shown above someone who needs help. */
 export function makeAlertMarker() {
   const g = new THREE.Group();

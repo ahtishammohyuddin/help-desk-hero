@@ -1,0 +1,74 @@
+{
+  "id": "L3-SV-05",
+  "level": 3,
+  "category": "Servers, backups, Active Directory",
+  "title": "Server not responding",
+  "character": {
+    "name": "Farah",
+    "department": "HR",
+    "personality": "organised, polite",
+    "gender": "female"
+  },
+  "symptom": "Several people cannot open the shared drive, and the file server does not respond",
+  "user_description": "Nobody in HR can open the shared drive since about ten minutes ago. It just spins and then says the path is not available. My internet works fine though.",
+  "options": [
+    {
+      "text": "Go to the server room and hold the power button until the server restarts",
+      "correct": false,
+      "why": "A forced restart can corrupt files and hide the cause. Restarting a server is the server team's decision."
+    },
+    {
+      "text": "Restart the network switch so everyone reconnects",
+      "correct": false,
+      "why": "That cuts off everyone in the office and does not fix a server that has stopped."
+    },
+    {
+      "text": "Tell everyone to save their work on their own PCs until tomorrow",
+      "correct": false,
+      "why": "Files saved on local PCs are not backed up and the real problem is left unfixed."
+    },
+    {
+      "text": "Check it affects several people while the internet still works, look at the server's screen in the server room and note any error, then escalate to the server team before anyone restarts it",
+      "correct": true,
+      "why": "Many people losing the same server points to the server itself. The server team needs the details to find the cause and restart it safely if needed."
+    }
+  ],
+  "hints": [
+    "Is it one person or many?",
+    "Does the internet still work?",
+    "Who should decide whether to restart a server?"
+  ],
+  "real_world_tip": "Before escalating, check a second PC and note the exact error. A message on the server's own screen can save the server team a lot of time.",
+  "escalation": {
+    "team": "server",
+    "team_why": "The file server is run by the server team. They can see what went wrong and restart it safely without losing data.",
+    "details": [
+      {
+        "text": "Which server or shared drive is not responding",
+        "send": true,
+        "why": "Tells them exactly which machine to check."
+      },
+      {
+        "text": "How many people are affected and when it started",
+        "send": true,
+        "why": "Shows how urgent it is and helps match it to an event."
+      },
+      {
+        "text": "Any error shown on the server's own screen",
+        "send": true,
+        "why": "Can point straight to the cause."
+      },
+      {
+        "text": "That the internet still works on the same PCs",
+        "send": true,
+        "why": "Shows the general network is up, so the fault is likely on the server."
+      },
+      {
+        "text": "The HR files people were trying to open",
+        "send": false,
+        "why": "Not needed and may be private. The server team only needs to know the server is down."
+      }
+    ]
+  },
+  "reviewed": true
+}

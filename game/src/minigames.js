@@ -1,45 +1,84 @@
 // Lounge mini-games at the arcade. Pure logic (no browser), tested with Node.
 // They are for a break: no XP and no IT facts, just best scores kept on this device.
 
-// ---------- Ticket rush: click tickets before they vanish ----------
-export const RUSH_SECONDS = 30;
-export const RUSH_CELLS = 9;
+// ---------- Packet dash: steer a data packet between three lanes, dodging firewalls ----------
+export const DASH_LANES = 3;
+export const DASH_HIT_Y = 0.85; // where the packet sits (0 top .. 1 bottom)
 
-export const newRush = () => ({ timeLeft: RUSH_SECONDS, cells: Array(RUSH_CELLS).fill(null), score: 0, missed: 0, spawnIn: 0.4, elapsed: 0, over: false });
+export const newDash = () => ({ lane: 1, blocks: [], distance: 0, speed: 0.45, spawnIn: 0.6, over: false });
 
-/** How long a ticket stays, and the gap between tickets: both shrink as the round goes on. */
-export const rushPace = (elapsed) => ({ life: Math.max(0.75, 1.5 - elapsed * 0.025), gap: Math.max(0.35, 0.8 - elapsed * 0.015) });
+/** Move one lane left (-1) or right (+1). */
+export const steerDash = (state, dir) => (state.over ? state : { ...state, lane: Math.min(DASH_LANES - 1, Math.max(0, state.lane + dir)) });
 
-/** Advance the round by dt seconds. rng() picks the free cell. */
-export function tickRush(state, dt, rng = Math.random) {
+/** Advance by dt seconds. Blocks fall from the top; touching one ends the run. rng picks lanes. */
+export function tickDash(state, dt, rng = Math.random) {
   if (state.over) return state;
-  const elapsed = state.elapsed + dt;
-  let missed = state.missed;
-  const cells = state.cells.map((c) => {
-    if (c && c.left - dt <= 0) {
-      missed += 1;
-      return null;
-    }
-    return c ? { left: c.left - dt } : null;
-  });
+  const speed = Math.min(1.4, state.speed + dt * 0.02); // screens per second, slowly faster
+  let blocks = state.blocks.map((b) => ({ ...b, y: b.y + speed * dt })).filter((b) => b.y < 1.2);
   let spawnIn = state.spawnIn - dt;
-  const pace = rushPace(elapsed);
   if (spawnIn <= 0) {
-    const free = cells.map((c, i) => (c ? -1 : i)).filter((i) => i >= 0);
-    if (free.length) cells[free[Math.floor(rng() * free.length)]] = { left: pace.life };
-    spawnIn = pace.gap;
+    // One or two lanes blocked, never all three.
+    const lanes = [0, 1, 2].sort(() => rng() - 0.5).slice(0, rng() < 0.35 ? 2 : 1);
+    blocks = [...blocks, ...lanes.map((lane) => ({ lane, y: -0.1 }))];
+    spawnIn = Math.max(0.45, 1.1 - speed * 0.45);
   }
-  const timeLeft = Math.max(0, state.timeLeft - dt);
-  return { ...state, cells, missed, spawnIn, elapsed, timeLeft, over: timeLeft === 0 };
+  const hit = blocks.some((b) => b.lane === state.lane && Math.abs(b.y - DASH_HIT_Y) < 0.06);
+  return { ...state, blocks, speed, spawnIn, distance: state.distance + speed * dt * 10, over: hit };
 }
 
-/** Click a cell: a ticket there scores a point. Returns { state, hit }. */
-export function hitRush(state, index) {
-  if (state.over || !state.cells[index]) return { state, hit: false };
-  const cells = [...state.cells];
-  cells[index] = null;
-  return { state: { ...state, cells, score: state.score + 1 }, hit: true };
+export const dashScore = (state) => Math.floor(state.distance);
+
+// ---------- Server stack: drop each server so it lands on the one below ----------
+export const STACK_WIDTH = 0.5; // starting width (fraction of the play area)
+
+export const newStack = () => ({ layers: [{ x: 0.25, w: STACK_WIDTH }], moving: { x: 0, w: STACK_WIDTH, dir: 1 }, speed: 0.55, over: false, perfect: 0 });
+
+export function tickStack(state, dt) {
+  if (state.over) return state;
+  let { x, dir } = state.moving;
+  x += dir * state.speed * dt;
+  if (x + state.moving.w > 1) { x = 1 - state.moving.w; dir = -1; }
+  if (x < 0) { x = 0; dir = 1; }
+  return { ...state, moving: { ...state.moving, x, dir } };
 }
+
+/** Drop the moving server. The overhang is cut off; missing completely ends the game. */
+export function dropStack(state) {
+  if (state.over) return { state, result: 'ignored' };
+  const top = state.layers[state.layers.length - 1];
+  const m = state.moving;
+  const left = Math.max(top.x, m.x);
+  const right = Math.min(top.x + top.w, m.x + m.w);
+  const w = right - left;
+  if (w <= 0.005) return { state: { ...state, over: true }, result: 'miss' };
+  const perfect = Math.abs(m.x - top.x) < 0.012;
+  const layer = perfect ? { x: top.x, w: top.w } : { x: left, w };
+  const layers = [...state.layers, layer];
+  return {
+    state: { ...state, layers, moving: { x: 0, w: layer.w, dir: 1 }, speed: Math.min(1.6, state.speed + 0.05), perfect: state.perfect + (perfect ? 1 : 0) },
+    result: perfect ? 'perfect' : 'placed',
+  };
+}
+
+export const stackScore = (state) => state.layers.length - 1;
+
+// ---------- Switch lights: repeat the pattern of port lights ----------
+export const SIMON_PADS = 4;
+
+export const newSimon = (rng = Math.random) => ({ pattern: [Math.floor(rng() * SIMON_PADS)], input: [], over: false });
+
+/** Press a pad. Returns { state, result: 'good' | 'round' (pattern done, one more added) | 'wrong' }. */
+export function pressSimon(state, pad, rng = Math.random) {
+  if (state.over) return { state, result: 'ignored' };
+  const input = [...state.input, pad];
+  if (state.pattern[input.length - 1] !== pad) return { state: { ...state, input, over: true }, result: 'wrong' };
+  if (input.length === state.pattern.length) {
+    return { state: { pattern: [...state.pattern, Math.floor(rng() * SIMON_PADS)], input: [], over: false }, result: 'round' };
+  }
+  return { state: { ...state, input }, result: 'good' };
+}
+
+export const simonScore = (state) => state.pattern.length - 1;
 
 // ---------- Kit match: find the pairs ----------
 export const KIT = ['🖥️', '💻', '🖨️', '⌨️', '🖱️', '📱', '🎧', '🔌'];
@@ -95,7 +134,7 @@ export function typingScore(target, typed, seconds) {
 }
 
 // ---------- best scores ----------
-export const emptyBest = () => ({ rush: 0, match: 0, typer: 0 });
+export const emptyBest = () => ({ dash: 0, stack: 0, simon: 0, match: 0, typer: 0 });
 
 /** Is this a new best? For kit match fewer moves is better (0 means none yet). */
 export function isBest(best, game, value) {

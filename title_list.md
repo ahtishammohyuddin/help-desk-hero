@@ -1,6 +1,6 @@
 # Help Desk Hero: planned problem titles
 
-Total: 203 problems. Review each level and tell me what to change.
+Total: 211 problems. Review each level and tell me what to change.
 
 ## Level 1 (36)
 
@@ -60,15 +60,16 @@ Total: 203 problems. Review each level and tell me what to change.
 - `L1-CH-01` Angry user raising their voice
 - `L1-CH-02` User does not understand technical terms
 
-## Level 2 (52)
+## Level 2 (58)
 
-**Hardware** (6)
+**Hardware** (7)
 - `L2-HW-01` Laptop overheating and shutting down
 - `L2-HW-02` Second monitor not detected
 - `L2-HW-03` Docking station not working
 - `L2-HW-04` Webcam not found in video calls
 - `L2-HW-05` Headset microphone not picked up
 - `L2-HW-06` Beeping sound at startup
+- `L2-HW-07` Meeting room projector shows no signal
 
 **Printers and scanners** (5)
 - `L2-PR-01` Wrong printer set as default
@@ -102,13 +103,15 @@ Total: 203 problems. Review each level and tell me what to change.
 - `L2-EM-05` Important email lands in spam
 - `L2-EM-06` Add a shared mailbox to Outlook
 
-**Networking and Wi-Fi** (6)
+**Networking and Wi-Fi** (8)
 - `L2-NW-01` Slow Wi-Fi in one corner of the office
 - `L2-NW-02` Cannot reach the shared drive
 - `L2-NW-03` Websites not loading, DNS suspected
 - `L2-NW-04` IP address conflict
 - `L2-NW-05` VPN will not connect from home
 - `L2-NW-06` Wi-Fi keeps dropping
+- `L2-NW-07` Network cable came out at the server room switch
+- `L2-NW-08` Lounge TV says no internet
 
 **Software and installs** (5)
 - `L2-SW-01` Software licence expired
@@ -117,11 +120,12 @@ Total: 203 problems. Review each level and tell me what to change.
 - `L2-SW-04` Two versions of an app conflict
 - `L2-SW-05` Office app crashes opening one file
 
-**Security and phishing** (4)
+**Security and phishing** (5)
 - `L2-SC-01` Unknown USB drive found in the car park
 - `L2-SC-02` Pop-up claims a virus, call this number
 - `L2-SC-03` Unlocked PC left unattended
 - `L2-SC-04` Gift card request from the CEO
+- `L2-SC-05` Someone follows you through the server room door
 
 **Mobile and phones** (4)
 - `L2-MB-01` Work email not syncing on phone
@@ -129,14 +133,16 @@ Total: 203 problems. Review each level and tell me what to change.
 - `L2-MB-03` Phone storage full
 - `L2-MB-04` Move the MFA app to a new phone
 
-**Servers, backups, Active Directory** (1)
+**Servers, backups, Active Directory** (3)
 - `L2-SV-01` File server share almost full
+- `L2-SV-02` UPS alarm beeping in the server room
+- `L2-SV-03` Server room is too hot
 
 **Customer handling** (2)
 - `L2-CH-01` User wants an instant fix, queue has priorities
 - `L2-CH-02` Ticket needs more information from the user
 
-## Level 3 (47)
+## Level 3 (49)
 
 **Hardware** (4)
 - `L3-HW-01` Random blue screens, suspect faulty RAM
@@ -198,10 +204,12 @@ Total: 203 problems. Review each level and tell me what to change.
 - `L3-MB-02` Device enrolment fails
 - `L3-MB-03` App notifications not arriving
 
-**Servers, backups, Active Directory** (3)
+**Servers, backups, Active Directory** (5)
 - `L3-SV-01` Overnight backup job failed
 - `L3-SV-02` Mapped drive access denied
 - `L3-SV-03` Folder deleted from a file share
+- `L3-SV-04` Amber warning light on a server disk
+- `L3-SV-05` Server not responding
 
 **Customer handling** (2)
 - `L3-CH-01` VIP demands to skip the queue

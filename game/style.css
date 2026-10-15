@@ -654,3 +654,13 @@ kbd {
 .arc-result { text-align: center; padding: 10px 0 14px; }
 .arc-big { font-size: 34px; font-weight: 700; color: #6c4fd1; }
 .arc-best { font-weight: 700; color: var(--warn); }
+.arc-canvas { display: block; width: 100%; height: auto; border-radius: 14px; touch-action: manipulation; cursor: pointer; }
+.small-light { font-weight: 400; font-size: 13px; color: #c9c2ea; }
+.simon-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.simon-pad { aspect-ratio: 1.5; border: 0; border-radius: 18px; background: color-mix(in srgb, var(--c) 30%, #1f1640); cursor: pointer; transition: background 0.08s, transform 0.08s; }
+.simon-pad span { color: rgba(255, 255, 255, 0.5); font-weight: 700; font-size: 22px; }
+.simon-pad.lit { background: var(--c); box-shadow: 0 0 24px var(--c); transform: scale(1.03); }
+.simon-pad:disabled { cursor: default; }
+#arcade { backdrop-filter: none; background: rgba(20, 28, 38, 0.7); }
+.seg-wrap { flex-wrap: wrap; justify-content: flex-end; border-radius: 14px; }
+#sound-btn.off { text-decoration: line-through; opacity: 0.55; }

@@ -7,7 +7,7 @@ import { FollowCamera } from './camera.js';
 import {
   benchAction,
   createSim, laptopAction, measure, moveToSpare, needsServerRoom, placesNeeded, printerAction, putBack, reportCoverage, reportPort,
-  reseat, spotsLeft, takeItem, test as testFix,
+  projectorAction, reseat, reseatSwitchPort, spotsLeft, takeItem, test as testFix, tvAction,
 } from './handson.js';
 import { createEmployees } from './employees.js';
 import { Input } from './input.js';
@@ -29,10 +29,12 @@ import { sound } from './sound.js';
 import { clockFor, coachRequest, recordTopic, SHIFT_SECONDS, summarizeShift, topicStatus } from './shift.js';
 import { maxLevelFor, PRIORITIES, RANKS, rankFor, streakMultiplier, TicketQueue, xpFor } from './tickets.js';
 import * as ui from './ui.js';
-import { music } from './music.js';
-import {
-  closeMismatch, emptyBest, flipCard, hitRush, isBest, newMatch, newRush, pickLine, tickRush, typingScore,
-} from './minigames.js';
+import { music, STYLES as MUSIC_STYLES } from './music.js';
+import { emptyBest } from './minigames.js';
+import { createArcade } from './arcade.js';
+import { buildGrid } from './nav.js';
+import { createStaffLife } from './staff.js';
+import { drawSlides, drawTv } from './screens.js';
 import { addSeen, coffeeLeft, drinkCoffee, emptyCoffee, libraryTopics, speedFor } from './perks.js';
 import { hasSave, loadingStep, menuState, PLAYER_NAME_KEY, tipAt } from './menu.js';
 
@@ -139,7 +141,8 @@ function start() {
   scene.add(sun);
 
   // ---------- world ----------
-  const { colliders, blinkers } = buildOffice(scene);
+  const { colliders, blinkers, screens } = buildOffice(scene);
+  const navGrid = buildGrid(colliders, BOUNDS); // walking routes for staff (furniture only, before people are added)
   const employees = createEmployees(scene, colliders, $('labels'));
   const byName = new Map(employees.map((e) => [e.name, e]));
   const player = createPlayer(scene, PLAYER_START);
@@ -181,39 +184,49 @@ function start() {
   }
 
   // ---------- graphics quality ----------
-  // "smooth": normal resolution and simpler shadows, for laptops. "detailed": sharper and softer.
+  // smooth: fewer pixels and no shadows, for slow laptops.
+  // balanced: normal resolution with simple shadows.
+  // realistic: sharpest picture and soft, detailed shadows.
   const QUALITY_KEY = 'hdh-quality';
-  let quality = 'detailed';
+  const QUALITIES = ['smooth', 'balanced', 'realistic'];
+  const QUALITY_NAMES = { smooth: 'Smooth', balanced: 'Balanced', realistic: 'Realistic' };
+  let quality = 'realistic';
   let qualityChosen = false; // true once the player picks, so auto-switching never overrides them
   try {
     const saved = localStorage.getItem(QUALITY_KEY);
-    if (saved === 'smooth' || saved === 'detailed') {
-      quality = saved;
+    const known = saved === 'detailed' ? 'realistic' : saved; // the old name for the top setting
+    if (QUALITIES.includes(known)) {
+      quality = known;
       qualityChosen = true;
     }
   } catch {
     /* storage blocked */
   }
   function applyQuality(next) {
-    quality = next;
-    const smooth = next === 'smooth';
-    // Without a graphics card, drawing fewer pixels is the only thing that really helps.
-    renderer.setPixelRatio(smooth ? (softwareRendering ? 0.5 : 1) : Math.min(window.devicePixelRatio, 1.5));
+    quality = QUALITIES.includes(next) ? next : 'realistic';
+    const dpr = window.devicePixelRatio || 1;
+    const ratio = { smooth: softwareRendering ? 0.5 : Math.min(dpr, 1) * 0.85, balanced: Math.min(dpr, 1.25), realistic: Math.min(dpr, 2) }[quality];
+    renderer.setPixelRatio(ratio);
     renderer.setSize(window.innerWidth, window.innerHeight);
     // Shadows are the most expensive part of each frame, so Smooth turns them off completely.
-    renderer.shadowMap.enabled = !smooth;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    sun.castShadow = !smooth;
-    sun.shadow.mapSize.set(2048, 2048);
+    const shadows = quality !== 'smooth';
+    renderer.shadowMap.enabled = shadows;
+    renderer.shadowMap.type = quality === 'realistic' ? THREE.PCFSoftShadowMap : THREE.PCFShadowMap;
+    sun.castShadow = shadows;
+    const size = quality === 'realistic' ? 2048 : 1024;
+    sun.shadow.mapSize.set(size, size);
     if (sun.shadow.map) {
       sun.shadow.map.dispose();
       sun.shadow.map = null; // rebuilt at the new size on the next frame
     }
+    renderer.toneMappingExposure = quality === 'realistic' ? 1.05 : 1;
     scene.traverse((obj) => {
       if (obj.material) obj.material.needsUpdate = true;
     });
-    $('quality-btn').textContent = `Graphics: ${smooth ? 'Smooth' : 'Detailed'}`;
+    $('quality-btn').textContent = `Graphics: ${QUALITY_NAMES[quality]}`;
+    needsRender = true;
   }
+  let needsRender = true;
   applyQuality(quality);
   function setQuality(next) {
     applyQuality(next);
@@ -224,7 +237,7 @@ function start() {
       /* ignore */
     }
   }
-  $('quality-btn').addEventListener('click', () => setQuality(quality === 'smooth' ? 'detailed' : 'smooth'));
+  $('quality-btn').addEventListener('click', () => setQuality(QUALITIES[(QUALITIES.indexOf(quality) + 1) % QUALITIES.length]));
   const showFps = new URLSearchParams(window.location.search).has('fps');
   $('fps').hidden = !showFps;
 
@@ -255,11 +268,13 @@ function start() {
       if (need.includes('repair_bench')) return 'Next: Repair bench';
       if (d.sim.bench.where === 'carried') return `Next: take the PC back to Desk ${byName.get(t.employee).desk}`;
     }
+    if (d?.sim?.station === 'projector' && !d.result) return placesNeeded(d.sim).length ? 'Next: Meeting room projector' : `Next: back to ${t.employee}`;
+    if (d?.sim?.station === 'tv' && !d.result) return placesNeeded(d.sim).length ? 'Next: Lounge TV' : `Next: back to ${t.employee}`;
     if (d?.sim?.station === 'printer' && !d.result) {
       const need = placesNeeded(d.sim);
       return need.includes('parts_cabinet') ? 'Next: Parts cabinet' : need.length ? 'Next: Printer' : `Next: back to ${t.employee}`;
     }
-    if (d?.sim && d.sim.port.movedTo !== null && !d.result) return `Next: back to ${t.employee}`;
+    if (d?.sim && d.sim.serverClue && !needsServerRoom(d.sim) && !d.result) return `Next: back to ${t.employee}`;
     return jobLabel(d?.job, t.employee);
   };
   // Open tickets that need the player somewhere: [{ ticket, job, kind }]
@@ -283,6 +298,13 @@ function start() {
         // While the PC is on the bench, the bench can always be opened (marker only when it is the next stop).
         if (d.sim.bench.where === 'bench' && !need.includes('repair_bench')) list.push({ ...benchVisit, quiet: true });
         return list;
+      }
+      if ((d?.sim?.station === 'projector' || d?.sim?.station === 'tv') && !d.result) {
+        const kind = d.sim.station;
+        const place = kind === 'projector' ? 'meeting_projector' : 'lounge_tv';
+        const v = visit(kind, place, kind === 'projector' ? `Check the meeting room projector for ${ticket.employee}` : `Check the lounge TV for ${ticket.employee}`);
+        // Always usable while the ticket is open; the marker only shows while it is still broken.
+        return [placesNeeded(d.sim).length ? v : { ...v, quiet: true }];
       }
       if (d?.sim?.station === 'printer' && !d.result) {
         // The cabinet itself is always open to use (below); here it only adds its marker.
@@ -399,13 +421,31 @@ function start() {
     for (const entry of shift.eventLog) if (ids.has(entry.id)) entry.solved += 1;
   }
   let shift = newShift();
+  // Office life: staff take breaks (kitchen, lounge TV, arcade) and hold meetings when they do not need help.
+  const staffLife = createStaffLife({
+    employees,
+    grid: navGrid,
+    isBusy: (p) => Boolean(queue.forEmployee(p.name)),
+    isTalking: (p) => talkingTo === p,
+  });
+  let screenTimer = 0;
+  let screenState = '';
+  // While a projector or TV ticket is open and not fixed yet, that screen shows the fault in the office.
+  const brokenScreens = () => {
+    const out = { tv: false, projector: false };
+    for (const t of queue.open) {
+      const sim = details.get(t.number)?.sim;
+      if (sim && (sim.station === 'tv' || sim.station === 'projector') && placesNeeded(sim).length) out[sim.station] = true;
+    }
+    return out;
+  };
   let nearby = null;
   let talkingTo = null; // the employee in conversation
   let activeTicket = null; // the ticket shown in the ticket panel, if any
 
   ui.renderStatus(progress);
   ui.renderQueue([], byName);
-  $('sound-btn').classList.toggle('off', sound.muted);
+  $('sound-btn').classList.toggle('off', sound.allMuted);
 
   // ---------- start-up: wait for the backend ----------
   async function boot() {
@@ -777,6 +817,8 @@ function start() {
     const person = byName.get(switchTicket.employee);
     if (stationKind === 'printer') ui.renderPrinterPanel(person, switchTicket, detail);
     else if (stationKind === 'bench') ui.renderBenchPanel(person, switchTicket, detail);
+    else if (stationKind === 'projector') ui.renderProjectorPanel(person, switchTicket, detail);
+    else if (stationKind === 'tv') ui.renderTvPanel(person, switchTicket, detail);
     else ui.renderSwitchPanel(person, switchTicket, detail);
   }
   function closeSwitch() {
@@ -789,6 +831,9 @@ function start() {
     if (!detail?.sim) return;
     if (action === 'move') simAction(detail, moveToSpare(detail.sim, arg));
     else if (action === 'report') simAction(detail, reportPort(detail.sim));
+    else if (action === 'reseat') simAction(detail, reseatSwitchPort(detail.sim));
+    else if (action === 'projector') simAction(detail, projectorAction(detail.sim, arg.action, arg.arg));
+    else if (action === 'tv') simAction(detail, tvAction(detail.sim, arg.action, arg.arg));
     else if (action === 'printer') {
       // The printer may use what the player is carrying (a new toner cartridge).
       const step = printerAction({ ...detail.sim, carrying: carried }, arg);
@@ -1225,7 +1270,7 @@ function start() {
     if (target.kind === 'library') return openLibrary();
     if (target.kind === 'board') return openBoard();
     if (target.kind === 'arcade') return openArcade();
-    if (target.kind === 'switch' || target.kind === 'printer' || target.kind === 'bench') return openSwitch(target.ticket, target.kind);
+    if (['switch', 'printer', 'bench', 'projector', 'tv'].includes(target.kind)) return openSwitch(target.ticket, target.kind);
     working = { ...target, t: 0 };
     player.face(target.place.markX, target.place.markZ);
     sound.click();
@@ -1303,10 +1348,12 @@ function start() {
       refreshTicketPanel();
     }
   }
+  // The ♪ button and the M key: all sound (effects, footsteps and music) off or on.
   function toggleSound() {
-    const muted = sound.toggle();
-    $('sound-btn').classList.toggle('off', muted);
-    ui.toast(muted ? 'Sound off' : 'Sound on');
+    const off = sound.toggleAll();
+    $('sound-btn').classList.toggle('off', off);
+    ui.toast(off ? 'All sound off' : 'Sound on');
+    if (menuOpen && menuView === 'settings') renderMenu();
   }
 
   // ---------- welcome card ----------
@@ -1416,122 +1463,40 @@ function start() {
 
   // ---------- lounge arcade (no XP: just a break, with best scores on this device) ----------
   const ARCADE_KEY = 'hdh-arcade';
-  let arcadeBest = (() => {
+  const arcadeBest = (() => {
     try {
       return { ...emptyBest(), ...JSON.parse(readSetting(ARCADE_KEY) || '{}') };
     } catch {
       return emptyBest();
     }
   })();
-  let arcade = { view: 'select', data: null };
-  let rushTimer = null;
-  function drawArcade() {
-    ui.renderArcade(arcade.view, arcade.data, arcadeBest);
-  }
+  const arcadeCtl = createArcade({
+    card: $('arcade-card'),
+    overlay: $('arcade'),
+    sound,
+    best: arcadeBest,
+    saveBest: (b) => writeSetting(ARCADE_KEY, JSON.stringify(b)),
+    onClose: () => {
+      arcadeOpen = false;
+    },
+  });
   function openArcade() {
     arcadeOpen = true;
     if (talkingTo) closeConversation();
-    arcade = { view: 'select', data: null };
     sound.click();
-    drawArcade();
+    arcadeCtl.open();
   }
   function closeArcade() {
-    stopRush();
-    arcadeOpen = false;
-    ui.hideArcade();
+    if (arcadeOpen) arcadeCtl.close();
   }
-  function stopRush() {
-    if (rushTimer) clearInterval(rushTimer);
-    rushTimer = null;
-  }
-  function finishGame(game, value, headline, detail) {
-    const newBest = isBest(arcadeBest, game, value);
-    if (newBest) {
-      arcadeBest = { ...arcadeBest, [game]: value };
-      writeSetting(ARCADE_KEY, JSON.stringify(arcadeBest));
-    }
-    sound.gameWin();
-    arcade = { view: 'result', data: { game, headline, detail, newBest } };
-    drawArcade();
-  }
-  function startGame(game) {
-    stopRush();
-    sound.gameStart();
-    if (game === 'rush') {
-      arcade = { view: 'rush', data: { ...newRush(), game } };
-      let last = performance.now();
-      rushTimer = setInterval(() => {
-        const t = performance.now();
-        const before = arcade.data;
-        const next = { ...tickRush(before, (t - last) / 1000), game };
-        last = t;
-        if (next.missed > before.missed) sound.gameMiss();
-        arcade.data = next;
-        if (next.over) {
-          stopRush();
-          return finishGame('rush', next.score, `${next.score} tickets`, `You missed ${next.missed}. Can you beat it?`);
-        }
-        if (!ui.updateRush(next)) drawArcade();
-      }, 80);
-    } else if (game === 'match') {
-      arcade = { view: 'match', data: { ...newMatch(), game } };
-    } else if (game === 'typer') {
-      arcade = { view: 'typer', data: { game, line: pickLine(), typed: '', started: 0, score: { wpm: 0, accuracy: 0, done: false } } };
-    }
-    drawArcade();
-  }
-  $('arcade').addEventListener('click', (e) => {
-    const pick = e.target.closest('[data-arcade]')?.dataset.arcade;
-    if (pick === 'select') {
-      arcade = { view: 'select', data: null };
-      return drawArcade();
-    }
-    if (pick) return startGame(pick);
-    if (e.target.closest('[data-action="close-arcade"]')) return closeArcade();
-    const card = e.target.closest('[data-card]');
-    if (card && arcade.view === 'match') {
-      const r = flipCard(arcade.data, Number(card.dataset.card));
-      if (r.result === 'ignored') return;
-      arcade.data = { ...r.state, game: 'match' };
-      if (r.result === 'match') sound.gamePoint();
-      else if (r.result === 'miss') {
-        sound.gameMiss();
-        const shown = arcade.data;
-        setTimeout(() => {
-          if (arcade.data === shown) {
-            arcade.data = { ...closeMismatch(shown), game: 'match' };
-            drawArcade();
-          }
-        }, 800);
-      } else sound.click();
-      if (arcade.data.over) return finishGame('match', arcade.data.moves, `${arcade.data.moves} moves`, 'All the kit matched. Fewer moves is better.');
-      drawArcade();
-    }
-  });
-  // Ticket rush reacts on press, not release, so fast clicks always count.
-  $('arcade').addEventListener('pointerdown', (e) => {
-    const cell = e.target.closest('[data-rush]');
-    if (!cell || arcade.view !== 'rush') return;
-    const r = hitRush(arcade.data, Number(cell.dataset.rush));
-    arcade.data = { ...r.state, game: 'rush' };
-    if (r.hit) sound.gamePoint();
-    ui.updateRush(arcade.data);
-  });
-  $('arcade').addEventListener('input', (e) => {
-    if (e.target.id !== 'typer-input' || arcade.view !== 'typer') return;
-    const d = arcade.data;
-    const started = d.started || performance.now();
-    const typed = e.target.value;
-    const score = typingScore(d.line, typed, (performance.now() - started) / 1000);
-    arcade.data = { ...d, typed, started, score };
-    if (score.done) return finishGame('typer', score.wpm, `${score.wpm} words per minute`, `${score.accuracy}% accurate.`);
-    drawArcade();
-  });
 
   // ---------- main menu ----------
   let menuView = 'main';
   let menuError = '';
-  const menuSettings = () => ({ muted: sound.muted, footsteps: sound.footsteps, music: music.on, quality, events: eventsOn });
+  const menuSettings = () => ({
+    allMuted: sound.allMuted, muted: sound.muted, footsteps: sound.footsteps, music: music.on,
+    style: music.style, volume: music.volume, styles: MUSIC_STYLES, quality, events: eventsOn,
+  });
   function renderMenu() {
     ui.renderMenu(menuState(progress, readSetting(PLAYER_NAME_KEY), new Date(), { inShift: shiftStarted }), menuView, menuSettings(), { error: menuError });
   }
@@ -1604,8 +1569,18 @@ function start() {
     saveName($('menu-name')?.value);
   });
   $('menu').addEventListener('click', (e) => {
+    const musicStyle = e.target.closest('[data-music-style]')?.dataset.musicStyle;
+    if (musicStyle) {
+      music.setStyle(musicStyle);
+      return renderMenu();
+    }
+    const musicVolume = e.target.closest('[data-music-volume]')?.dataset.musicVolume;
+    if (musicVolume) {
+      music.setVolume(musicVolume);
+      return renderMenu();
+    }
     const setting = e.target.closest('[data-setting]')?.dataset.setting;
-    if (setting === 'smooth' || setting === 'detailed') {
+    if (setting === 'smooth' || setting === 'balanced' || setting === 'realistic') {
       setQuality(setting);
       return renderMenu();
     }
@@ -1622,8 +1597,10 @@ function start() {
   });
   $('menu').addEventListener('change', (e) => {
     const setting = e.target.dataset?.setting;
-    if (setting === 'sound') {
-      if (e.target.checked === sound.muted) toggleSound();
+    if (setting === 'all') {
+      if (e.target.checked === sound.allMuted) toggleSound();
+    } else if (setting === 'sound') {
+      sound.setEffects(e.target.checked);
     } else if (setting === 'events') {
       setEvents(e.target.checked);
     } else if (setting === 'footsteps') {
@@ -1650,6 +1627,11 @@ function start() {
       if (e.target.closest('[data-action="put-back"]')) return onCabinet('put-back');
       const spare = e.target.closest('[data-spare]');
       if (spare) return onSwitchAction('move', Number(spare.dataset.spare));
+      if (e.target.closest('[data-reseat]')) return onSwitchAction('reseat');
+      const proj = e.target.closest('[data-projector]');
+      if (proj) return onSwitchAction('projector', { action: proj.dataset.projector, arg: proj.dataset.arg });
+      const tvPart = e.target.closest('[data-tv]');
+      if (tvPart) return onSwitchAction('tv', { action: tvPart.dataset.tv, arg: tvPart.dataset.arg });
       const benchPart = e.target.closest('[data-bench]');
       if (benchPart) return onSwitchAction('bench', benchPart.dataset.bench);
       const printerPart = e.target.closest('[data-printer]');
@@ -1688,6 +1670,7 @@ function start() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
+    needsRender = true;
   });
 
   // ---------- wall clock ----------
@@ -1726,6 +1709,18 @@ function start() {
     followCam.update(dt, player.position);
 
     const shiftRunning = backendReady && shiftStarted && !overlayOpen() && !shift.ended;
+    if (backendReady && !overlayOpen()) staffLife.update(dt);
+    screenTimer -= dt;
+    if (screenTimer <= 0) {
+      screenTimer = 0.2;
+      const { tvOn, meetingOn } = staffLife.status();
+      const b = brokenScreens();
+      const key = `${tvOn}|${meetingOn}|${b.tv}|${b.projector}`;
+      // Animated pictures redraw a few times a second; switched-off screens only when they change.
+      if ((tvOn && !b.tv) || key !== screenState) drawTv(screens.tv, time, tvOn, b.tv);
+      if ((meetingOn && !b.projector) || key !== screenState) drawSlides(screens.projector, time, meetingOn, b.projector);
+      screenState = key;
+    }
     if (shiftRunning) {
       const before = shift.elapsed;
       shift.elapsed += dt;
@@ -1857,7 +1852,11 @@ function start() {
     }
     document.body.classList.toggle('talking', talkingTo !== null);
 
-    renderer.render(scene, camera);
+    // Behind a full-screen card (menu, arcade, notes...) the office is paused and blurred, so drawing it
+    // again every frame only slows the card down. Draw once, then wait until the card closes.
+    const covered = menuOpen || arcadeOpen || libraryOpen || boardOpen || helpOpen || progressOpen || dailyOpen || shareOpen || reportOpen;
+    if (!covered || needsRender) renderer.render(scene, camera);
+    needsRender = !covered;
 
     fpsFrames += 1;
     fpsTime += rawDt;
@@ -1871,7 +1870,7 @@ function start() {
       autoCheckTime += rawDt;
       if (autoCheckTime >= 3) {
         autoChecked = true;
-        if (autoCheckFrames / autoCheckTime < 40 && quality === 'detailed') {
+        if (autoCheckFrames / autoCheckTime < 40 && quality !== 'smooth') {
           applyQuality('smooth');
           ui.toast('Switched to smooth graphics so the game runs better on this computer.');
         }
@@ -1893,6 +1892,7 @@ function start() {
   $('events-toggle').addEventListener('change', (e) => setEvents(e.target.checked));
 
   window.helpDeskHero = {
+    staffLife,
     triggerEvent: (id) => {
       shift.events = [...(shift.events ?? []), { id, at: shift.elapsed + 0.01 }];
     },

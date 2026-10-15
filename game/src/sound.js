@@ -3,6 +3,7 @@
 // so the audio system starts on the first sound request after that.
 
 let ctx = null;
+let master = null; // every sound goes through this, so the ♪ button can mute everything at once
 const read = (key, fallback) => {
   try {
     const v = localStorage.getItem(key);
@@ -18,7 +19,8 @@ const write = (key, on) => {
     /* ignore */
   }
 };
-let muted = read('hdh-muted', false); // sound effects off
+let allMuted = read('hdh-mute-all', false); // the ♪ button: no sound at all
+let muted = read('hdh-muted', false); // sound effects off (clicks, alerts, results)
 let footsteps = read('hdh-footsteps', true);
 
 /** The shared audio system (created on first use, after the player has clicked or pressed a key). */
@@ -27,40 +29,71 @@ export function audioContext() {
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
     if (!AudioCtx) return null;
     ctx = new AudioCtx();
+    master = ctx.createGain();
+    master.gain.value = allMuted ? 0 : 1;
+    master.connect(ctx.destination);
   }
   if (ctx.state === 'suspended') ctx.resume();
   return ctx;
 }
 
-function audio() {
-  return muted ? null : audioContext();
+/** Where every sound should connect (instead of the speakers directly). */
+export function output() {
+  return audioContext() ? master : null;
 }
 
-// A short burst of soft noise, reused for every footstep.
+function audio() {
+  return muted || allMuted ? null : audioContext();
+}
+
+// Footsteps: a soft, low "thud" (heel) and a quieter brush (sole), like shoes on carpet.
 let noise = null;
 function noiseBuffer(a) {
   if (!noise) {
-    noise = a.createBuffer(1, Math.floor(a.sampleRate * 0.12), a.sampleRate);
+    noise = a.createBuffer(1, Math.floor(a.sampleRate * 0.2), a.sampleRate);
     const data = noise.getChannelData(0);
-    for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / data.length) ** 2;
+    let last = 0;
+    for (let i = 0; i < data.length; i++) {
+      last = last * 0.86 + (Math.random() * 2 - 1) * 0.14; // smoothed noise: duller, less hiss
+      data[i] = last * 3;
+    }
   }
   return noise;
 }
 let stepCount = 0;
 function step() {
-  if (!footsteps) return;
+  if (!footsteps || allMuted) return;
   const a = audioContext();
   if (!a) return;
+  const t = a.currentTime;
+  const left = stepCount++ % 2 === 0;
+  const vary = 0.9 + Math.random() * 0.2;
+  // heel: short low thump
+  const thump = a.createOscillator();
+  thump.type = 'sine';
+  thump.frequency.setValueAtTime((left ? 92 : 84) * vary, t);
+  thump.frequency.exponentialRampToValueAtTime(48, t + 0.08);
+  const tg = a.createGain();
+  tg.gain.setValueAtTime(0.0001, t);
+  tg.gain.exponentialRampToValueAtTime(0.045, t + 0.006);
+  tg.gain.exponentialRampToValueAtTime(0.0001, t + 0.11);
+  thump.connect(tg).connect(master);
+  thump.start(t);
+  thump.stop(t + 0.13);
+  // sole: soft brush on the carpet
   const src = a.createBufferSource();
   src.buffer = noiseBuffer(a);
-  src.playbackRate.value = stepCount++ % 2 ? 0.9 : 1.05; // left and right feet sound slightly different
-  const filter = a.createBiquadFilter();
-  filter.type = 'lowpass';
-  filter.frequency.value = 900;
-  const gain = a.createGain();
-  gain.gain.value = 0.1;
-  src.connect(filter).connect(gain).connect(a.destination);
-  src.start();
+  src.playbackRate.value = vary;
+  const band = a.createBiquadFilter();
+  band.type = 'bandpass';
+  band.frequency.value = left ? 420 : 380;
+  band.Q.value = 0.9;
+  const ng = a.createGain();
+  ng.gain.setValueAtTime(0.0001, t + 0.01);
+  ng.gain.exponentialRampToValueAtTime(0.03, t + 0.025);
+  ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.14);
+  src.connect(band).connect(ng).connect(master);
+  src.start(t + 0.01, Math.random() * 0.05, 0.15);
 }
 
 /** Play one note: frequency in Hz, start delay and duration in seconds. */
@@ -75,19 +108,29 @@ function tone(freq, start, duration, type = 'sine', volume = 0.12) {
   gain.gain.setValueAtTime(0.0001, t);
   gain.gain.exponentialRampToValueAtTime(volume, t + 0.01);
   gain.gain.exponentialRampToValueAtTime(0.0001, t + duration);
-  osc.connect(gain).connect(a.destination);
+  osc.connect(gain).connect(master);
   osc.start(t);
   osc.stop(t + duration + 0.02);
 }
 
 export const sound = {
+  /** The ♪ button: everything off (effects, footsteps and music) or back on. */
+  get allMuted() {
+    return allMuted;
+  },
+  toggleAll() {
+    allMuted = !allMuted;
+    write('hdh-mute-all', allMuted);
+    if (master && ctx) master.gain.setTargetAtTime(allMuted ? 0 : 1, ctx.currentTime, 0.05);
+    return allMuted;
+  },
+  /** Sound effects only (clicks, alerts, results). */
   get muted() {
     return muted;
   },
-  toggle() {
-    muted = !muted;
+  setEffects(on) {
+    muted = !on;
     write('hdh-muted', muted);
-    return muted;
   },
   get footsteps() {
     return footsteps;

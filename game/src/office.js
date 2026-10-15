@@ -3,12 +3,14 @@
 //
 // Coordinates: X runs west (-) to east (+), Z runs north (-) to south (+), Y is up.
 // The main office covers X -20..20 and Z -14..14; the east wing (kitchen, lounge, meeting room,
-// learning corner) covers X 20..36. One unit is roughly one metre.
+// learning corner) covers X 20..36, and the manager's office and phone booths X 36..46.
+// One unit is roughly one metre.
 
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
-export const BOUNDS = { minX: -20, maxX: 36, minZ: -14, maxZ: 14 };
+export const BOUNDS = { minX: -20, maxX: 46, minZ: -14, maxZ: 14 };
+export const WING_MAX_X = 36; // the wall between the east wing and the manager's office / phone booths
 export const MAIN_MAX_X = 20; // the wall between the main office and the east wing
 export const PLAYER_START = { x: -15, z: 9 };
 
@@ -41,6 +43,10 @@ const COLORS = {
   wood: 0x9b7653,
   counter: 0xe9e4dc,
   fridge: 0xdfe4e8,
+  managerFloor: 0x6b4f3a,
+  managerRug: 0x8c2f39,
+  leather: 0x3b2418,
+  boothFloor: 0xc9d6cf,
 };
 
 /** Builds everything into `scene`. Returns colliders and things that animate. */
@@ -95,6 +101,9 @@ export function buildOffice(scene) {
   floorPatch(22, 31, -4.2, 3.8, COLORS.loungeRug);       // lounge rug
   floorPatch(26.2, 36, 6, 14, COLORS.meetingCarpet);      // meeting room
   floorPatch(20.2, 26, 6, 14, COLORS.learnCarpet);        // learning corner
+  floorPatch(36.2, 46, -14, -1.2, COLORS.managerFloor);   // manager's office (wood)
+  floorPatch(39.5, 44.5, -10.5, -5.5, COLORS.managerRug, 0.01); // rug under the desk area
+  floorPatch(36.2, 46, -0.8, 14, COLORS.boothFloor);      // phone booths and lockers
 
   // ---------- outer walls ----------
   const T = 0.3; // wall thickness
@@ -111,6 +120,13 @@ export function buildOffice(scene) {
   box(18, 1, T, COLORS.wall, -11, 0, BOUNDS.maxZ + T / 2, { collide: true });
   box(18, 1, T, COLORS.wall, 11, 0, BOUNDS.maxZ + T / 2, { collide: true });
   box(16, 1, T, COLORS.wall, 28, 0, BOUNDS.maxZ + T / 2, { collide: true }); // east wing
+  box(10, 1, T, COLORS.wall, 41, 0, BOUNDS.maxZ + T / 2, { collide: true }); // manager's office side
+  // Wall between the east wing and the new rooms, with a door to each (manager z -4.4..-2.6, booths z 2.6..4.4).
+  box(T, H, 9.6, COLORS.wall, WING_MAX_X + T / 2, 0, -9.2, { collide: true });
+  box(T, H, 5.2, COLORS.wall, WING_MAX_X + T / 2, 0, 0, { collide: true });
+  box(T, H, 9.6, COLORS.wall, WING_MAX_X + T / 2, 0, 9.2, { collide: true });
+  // Wall between the manager's office and the booths area, door near the east end is not needed: closed wall.
+  box(9.8, H, T, COLORS.wall, 41.1, 0, -1, { collide: true });
   box(4, 2.2, 0.1, COLORS.glass, 0, 0, BOUNDS.maxZ + T / 2, {
     collide: true, cast: false, extra: { transparent: true, opacity: 0.3 },
   }); // glass entrance door
@@ -213,7 +229,7 @@ export function buildOffice(scene) {
   box(1.0, 0.4, 1.6, COLORS.wood, 25.6, 0, 0, { collide: true }); // coffee table
   box(0.5, 0.75, 1.0, 0x2b313a, 30.2, 0, 0, { collide: true }); // TV stand
   box(0.08, 1.1, 2.0, 0x11161c, 30.2, 0.95, 0); // TV
-  box(0.02, 0.95, 1.85, 0x2f6feb, 30.15, 1.02, 0, { extra: { emissive: 0x2f6feb, emissiveIntensity: 0.35 } }); // TV screen
+  const tvScreen = liveScreen(1.85, 0.95, 30.14, 1.5, 0, -Math.PI / 2); // TV picture (animated in main.js)
   beanbag(26.6, -2.8, 0xe0a64b);
   beanbag(26.6, 2.8, 0x5aa87a);
   // game corner: an arcade cabinet for the mini-games
@@ -235,6 +251,7 @@ export function buildOffice(scene) {
     chair(31.4 + dx, 11.1, Math.PI);
   }
   box(0.06, 1.4, 2.6, 0xffffff, 35.8, 0.9, 10); // projector screen
+  const projectorScreen = liveScreen(2.5, 1.3, 35.76, 1.6, 10, -Math.PI / 2); // the projected picture
   box(0.4, 0.15, 0.3, 0x2b313a, 31.4, 0.8, 10); // projector on the table
   box(0.4, 0.05, 0.3, 0x1f252d, 30.6, 0.8, 10.2); // conference phone
   sign('MEETING ROOM', 2.2, 0.45, 0x1f2a36, '#ffffff', 31.1, 2.5, 5.94, Math.PI);
@@ -251,6 +268,47 @@ export function buildOffice(scene) {
     }
   }
   sign('LEARNING CORNER', 2.2, 0.45, 0x5a4a8a, '#ffffff', 23.2, 2.4, 13.84, Math.PI);
+
+  // ---------- manager's office ----------
+  // An executive desk facing the door, leather chair, guest chairs, bookshelf, sofa corner and a big window.
+  box(2.6, 0.78, 1.1, 0x4a3022, 43.2, 0, -8, { collide: true }); // desk
+  box(2.7, 0.05, 1.2, 0x2b1a12, 43.2, 0.78, -8); // desk top (darker wood)
+  box(1.2, 0.78, 0.7, 0x4a3022, 44.2, 0, -6.6, { collide: true }); // return of the L-shaped desk
+  monitor(43.6, -8.2, -Math.PI / 2);
+  box(0.35, 0.03, 0.25, 0xf4f4f4, 42.6, 0.81, -7.7); // papers
+  box(0.12, 0.2, 0.12, 0x2f6feb, 42.4, 0.81, -8.4); // pen pot
+  executiveChair(44.2, -8, -Math.PI / 2);
+  chair(41.6, -8.6, Math.PI / 2);
+  chair(41.6, -7.4, Math.PI / 2);
+  box(3.2, 2.2, 0.45, COLORS.wood, 41.5, 0, -13.6, { collide: true }); // bookshelf
+  for (let row = 0; row < 4; row++) {
+    for (let i = 0; i < 7; i++) {
+      const colors = [0x8c2f39, 0x1f2a37, 0xb7791f, 0x2f6feb, 0x5a4a8a];
+      box(0.3, 0.34, 0.3, colors[(i * 2 + row) % 5], 40.2 + i * 0.42, 0.15 + row * 0.5, -13.45);
+    }
+  }
+  box(0.08, 1.6, 4.5, 0xa9d6e8, 45.92, 0.7, -7.5, { extra: { emissive: 0xcfe9ff, emissiveIntensity: 0.5 } }); // window
+  box(0.1, 1.7, 0.1, 0xffffff, 45.9, 0.65, -9.8); box(0.1, 1.7, 0.1, 0xffffff, 45.9, 0.65, -5.2);
+  box(2.2, 0.42, 0.85, COLORS.leather, 38.2, 0, -12.6, { collide: true }); // leather sofa
+  box(2.2, 0.5, 0.22, 0x2a170f, 38.2, 0.42, -13.0);
+  box(1.0, 0.4, 0.6, 0x2b1a12, 38.2, 0, -11.3, { collide: true }); // coffee table
+  box(0.4, 0.04, 0.3, 0xb7791f, 38.2, 0.4, -11.3); // a magazine
+  plant(45.2, -13.2);
+  plant(37, -2);
+  box(0.06, 0.25, 0.7, 0x1f2a37, 36.2, 1.55, -5.2); // nameplate frame by the door (on the wing side)
+  sign('MANAGER', 0.65, 0.2, 0x1f2a37, '#e9d39b', 35.82, 1.6, -5.2, -Math.PI / 2);
+  sign("MANAGER'S OFFICE", 1.8, 0.4, 0x2b1a12, '#e9d39b', 41.1, 2.4, -1.16, Math.PI);
+
+  // ---------- phone booths and lockers ----------
+  for (const bz of [3, 8]) {
+    box(0.1, 2.3, 3, COLORS.glass, 42, 0, bz + 1.5, glass); // booth front glass, door gap on the west side
+    box(4, 2.3, 0.1, COLORS.glass, 44, 0, bz, glass);
+    box(0.9, 0.75, 0.6, COLORS.desk, 45.3, 0, bz + 1.5, { collide: true });
+    chair(44.6, bz + 1.5, Math.PI / 2);
+  }
+  box(4, 2.3, 0.1, COLORS.glass, 44, 0, 13, glass);
+  for (let i = 0; i < 5; i++) box(0.75, 1.9, 0.5, i % 2 ? 0x5b7fa6 : 0x4a6a8f, 37.2 + i * 0.8, 0, 13.6, { collide: true }); // lockers
+  sign('PHONE BOOTHS', 1.6, 0.36, 0x2c3e50, '#ffffff', 41.5, 2.4, -0.84, 0);
 
   // ---------- small real-office details ----------
   wallClock(-6, -13.82);
@@ -276,7 +334,7 @@ export function buildOffice(scene) {
   }
 
   mergeStatic(root, scene);
-  return { colliders, blinkers };
+  return { colliders, blinkers, screens: { tv: tvScreen, projector: projectorScreen } };
 
   // ---------- small furniture helpers ----------
 
@@ -330,6 +388,23 @@ export function buildOffice(scene) {
     }
     box(3.4, 0.45, 0.06, COLORS.divider, cx, 0.77, cz); // divider
     addCollider(cx, cz, 3.4, 1.8);
+  }
+
+  function executiveChair(x, z, facing) {
+    const g = new THREE.Group();
+    const seat = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.12, 0.6), mat(COLORS.leather));
+    seat.position.y = 0.48;
+    const back = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.85, 0.1), mat(COLORS.leather));
+    back.position.set(0, 0.95, -0.27);
+    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.42), mat(COLORS.deskLeg));
+    post.position.y = 0.22;
+    const base = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.32, 0.05, 10), mat(COLORS.deskLeg));
+    base.position.y = 0.03;
+    for (const m of [seat, back, post, base]) m.castShadow = true;
+    g.add(seat, back, post, base);
+    g.position.set(x, 0, z);
+    g.rotation.y = facing;
+    root.add(g);
   }
 
   function roundTable(x, z, r) {
@@ -387,6 +462,23 @@ export function buildOffice(scene) {
     );
     bottle.position.set(x, 1.23, z);
     root.add(bottle);
+  }
+
+  /** A screen whose picture is a canvas, so main.js can draw on it (TV videos, meeting slides). */
+  function liveScreen(w, h, x, y, z, rotY) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 256;
+    canvas.height = Math.round((256 * h) / w);
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#05080b';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    const mesh = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ map: texture, toneMapped: false }));
+    mesh.position.set(x, y, z);
+    mesh.rotation.y = rotY;
+    scene.add(mesh);
+    return { mesh, canvas, ctx, texture };
   }
 
   /** A flat sign with text, drawn on a canvas and used as a texture. */

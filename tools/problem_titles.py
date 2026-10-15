@@ -13,16 +13,16 @@ from tools.validate_problems import CATEGORIES
 
 # Target counts per level (L1, L2, L3, L4, L5), straight from the brief.
 TARGETS: dict[str, tuple[int, int, int, int, int]] = {
-    "Hardware": (8, 6, 4, 2, 1),
+    "Hardware": (8, 7, 4, 2, 1),
     "Printers and scanners": (4, 5, 4, 2, 1),
     "Windows and OS": (5, 7, 6, 4, 2),
     "Accounts and passwords": (4, 6, 4, 4, 3),
     "Email and Outlook / M365": (3, 6, 5, 3, 2),
-    "Networking and Wi-Fi": (3, 6, 6, 6, 4),
+    "Networking and Wi-Fi": (3, 8, 6, 6, 4),
     "Software and installs": (3, 5, 5, 3, 2),
-    "Security and phishing": (2, 4, 5, 5, 5),
+    "Security and phishing": (2, 5, 5, 5, 5),
     "Mobile and phones": (2, 4, 3, 2, 1),
-    "Servers, backups, Active Directory": (0, 1, 3, 6, 8),
+    "Servers, backups, Active Directory": (0, 3, 5, 6, 8),
     "Customer handling": (2, 2, 2, 1, 1),
 }
 
@@ -45,6 +45,7 @@ TITLES: dict[str, dict[int, list[str]]] = {
             "Webcam not found in video calls",
             "Headset microphone not picked up",
             "Beeping sound at startup",
+            "Meeting room projector shows no signal",
         ],
         3: [
             "Random blue screens, suspect faulty RAM",
@@ -201,6 +202,8 @@ TITLES: dict[str, dict[int, list[str]]] = {
             "IP address conflict",
             "VPN will not connect from home",
             "Wi-Fi keeps dropping",
+            "Network cable came out at the server room switch",
+            "Lounge TV says no internet",
         ],
         3: [
             "DHCP not handing out addresses",
@@ -265,6 +268,7 @@ TITLES: dict[str, dict[int, list[str]]] = {
             "Pop-up claims a virus, call this number",
             "Unlocked PC left unattended",
             "Gift card request from the CEO",
+            "Someone follows you through the server room door",
         ],
         3: [
             "Entered password on a phishing page",
@@ -316,11 +320,15 @@ TITLES: dict[str, dict[int, list[str]]] = {
         1: [],
         2: [
             "File server share almost full",
+            "UPS alarm beeping in the server room",
+            "Server room is too hot",
         ],
         3: [
             "Overnight backup job failed",
             "Mapped drive access denied",
             "Folder deleted from a file share",
+            "Amber warning light on a server disk",
+            "Server not responding",
         ],
         4: [
             "Restore a deleted folder from backup",

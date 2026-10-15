@@ -1,8 +1,8 @@
 // Free learning links and a simple IT support path for the learning corner.
 // These are facts about the outside world (what is free, where it is), so they are only shown
-// once Ahtisham has reviewed them: set REVIEWED to true after checking every line.
+// once Ahtisham has reviewed them. Approved by Ahtisham; re-check the links now and then, since sites move.
 
-export const RESOURCES_REVIEWED = false;
+export const RESOURCES_REVIEWED = true;
 
 export const COURSES = [
   {
@@ -34,7 +34,7 @@ export const COURSES = [
 
 export const ROADMAPS = [
   { name: 'roadmap.sh: Cyber Security', url: 'https://roadmap.sh/cyber-security', note: 'A step-by-step map if you want to move into security.' },
-  { name: 'roadmap.sh: Linux', url: 'https://roadmap.sh/linux', note: 'A map for learning Linux, useful for sysadmin roles.' },
+  { name: 'roadmap.sh: Linux', url: 'https://roadmap.sh/linux', note: 'A step-by-step map for learning Linux, useful for sysadmin roles.' },
 ];
 
 // A simple path from beginner to first IT support job. This is study advice, not official guidance.

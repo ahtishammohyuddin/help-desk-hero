@@ -1,0 +1,49 @@
+{
+  "id": "L2-NW-08",
+  "level": 2,
+  "category": "Networking and Wi-Fi",
+  "title": "Lounge TV says no internet",
+  "character": {
+    "name": "Saima",
+    "department": "Reception",
+    "personality": "cheerful, busy",
+    "gender": "female"
+  },
+  "symptom": "The smart TV in the lounge cannot play videos and says no internet connection",
+  "user_description": "The TV in the lounge says no internet connection. People want to watch the company video at lunch. Can I just give it the staff Wi-Fi password?",
+  "options": [
+    {
+      "text": "Give the TV the staff Wi-Fi password",
+      "correct": false,
+      "why": "The staff network is for staff laptops and phones. Smart devices like TVs usually go on a separate network so they cannot reach staff computers and files."
+    },
+    {
+      "text": "Factory reset the TV",
+      "correct": false,
+      "why": "This wipes all its settings and apps and does not fix the network problem."
+    },
+    {
+      "text": "Buy a new TV",
+      "correct": false,
+      "why": "The TV works. It has only lost its network connection."
+    },
+    {
+      "text": "Check the TV's network settings and reconnect it to the network meant for office devices or guests, not the staff network",
+      "correct": true,
+      "why": "The TV dropped off its network. Reconnecting it to the devices or guest network fixes it and keeps it apart from staff computers."
+    }
+  ],
+  "hints": [
+    "Is the TV on a cable or Wi-Fi?",
+    "What do the TV's network settings show?",
+    "Which network should smart devices use?"
+  ],
+  "real_world_tip": "Many offices put TVs, printers and other smart devices on their own network, separate from staff computers. Check which network your office uses for devices.",
+  "hands_on": {
+    "faults": [
+      "tv_wifi_dropped"
+    ],
+    "goal": "tv_online"
+  },
+  "reviewed": true
+}

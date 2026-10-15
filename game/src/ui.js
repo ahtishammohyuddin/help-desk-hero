@@ -11,9 +11,9 @@ import { missionStep, needsServerRoom, placesNeeded, SURVEY_SPOTS, surveyDone } 
 import { jobStage, PLACES } from './jobs.js';
 import {
   benchSummary, benchSvg, cabinetSvg, chipsHtml, deskSummary, deskSvg, displayModeHtml, laptopSummary, laptopSvg, pcDeskSummary, pcDeskSvg,
-  printerSummary, printerSvg, switchSvg,
+  printerSummary, printerSvg, projectorModesHtml, projectorSummary, projectorSvg, switchSvg, tvNetworksHtml, tvSummary, tvSvg,
 } from './stations.js';
-import { benchReadings, CARRY_NAMES } from './handson.js';
+import { benchReadings, CARRY_NAMES, projectorReadings, tvReadings } from './handson.js';
 import { topicStatus } from './shift.js';
 import { PRIORITIES, RANKS, rankFor, streakMultiplier } from './tickets.js';
 
@@ -101,14 +101,20 @@ export function renderMenu(state, view, settings, { error = '' } = {}) {
       <h1 class="menu-greeting">Settings</h1>
       <p class="menu-sub">Saved on this device.</p>
       <div class="menu-settings">
+        <label class="setting"><span><b>All sound</b><small>The ♪ button in the top bar (or M) turns everything off</small></span>
+          <input type="checkbox" class="switch" data-setting="all" ${settings.allMuted ? '' : 'checked'}></label>
         <label class="setting"><span><b>Sound effects</b><small>Clicks, ticket alerts and results</small></span>
           <input type="checkbox" class="switch" data-setting="sound" ${settings.muted ? '' : 'checked'}></label>
         <label class="setting"><span><b>Footsteps</b><small>Soft steps while you walk</small></span>
           <input type="checkbox" class="switch" data-setting="footsteps" ${settings.footsteps ? 'checked' : ''}></label>
-        <label class="setting"><span><b>Background music</b><small>Very quiet, calm music</small></span>
+        <label class="setting"><span><b>Background music</b><small>Quiet and calm</small></span>
           <input type="checkbox" class="switch" data-setting="music" ${settings.music ? 'checked' : ''}></label>
-        <div class="setting"><span><b>Graphics</b><small>Smooth runs faster on laptops</small></span>
-          <span class="seg"><button data-setting="smooth" class="${settings.quality === 'smooth' ? 'on' : ''}">Smooth</button><button data-setting="detailed" class="${settings.quality === 'detailed' ? 'on' : ''}">Detailed</button></span></div>
+        <div class="setting"><span><b>Music style</b></span>
+          <span class="seg seg-wrap">${Object.entries(settings.styles).map(([id, st]) => `<button data-music-style="${id}" class="${settings.style === id ? 'on' : ''}">${esc(st.name)}</button>`).join('')}</span></div>
+        <div class="setting"><span><b>Music volume</b></span>
+          <span class="seg">${['low', 'medium', 'high'].map((v) => `<button data-music-volume="${v}" class="${settings.volume === v ? 'on' : ''}">${v[0].toUpperCase() + v.slice(1)}</button>`).join('')}</span></div>
+        <div class="setting"><span><b>Graphics</b><small>Smooth runs fastest; Realistic looks best</small></span>
+          <span class="seg">${['smooth', 'balanced', 'realistic'].map((q) => `<button data-setting="${q}" class="${settings.quality === q ? 'on' : ''}">${q[0].toUpperCase() + q.slice(1)}</button>`).join('')}</span></div>
         <label class="setting"><span><b>Random events</b><small>Power flickers, phishing waves, VIP requests</small></span>
           <input type="checkbox" class="switch" data-setting="events" ${settings.events ? 'checked' : ''}></label>
       </div>
@@ -258,6 +264,10 @@ export function renderTicketPanel(person, ticket, detail) {
         main = `${testBtn(false)}<button class="btn" data-action="later">Go to the repair bench ${key('E')}</button>`;
       } else if (station === 'printer') {
         main = `${testBtn(false)}<button class="btn" data-action="later">Go to the printer ${key('E')}</button>`;
+      } else if (station === 'projector') {
+        main = `${testBtn(false)}<button class="btn" data-action="later">Go to the meeting room ${key('E')}</button>`;
+      } else if (station === 'tv') {
+        main = `${testBtn(false)}<button class="btn" data-action="later">Go to the lounge TV ${key('E')}</button>`;
       } else {
         main = `${testBtn(false)}<button class="btn" data-action="inspect">Inspect Desk ${person.desk} ${key('I')}</button>`;
       }
@@ -302,6 +312,8 @@ function missionHtml(person, detail) {
   const step = missionStep(sim);
   const where = sim.station === 'bench' ? `Check Desk ${person.desk}'s PC`
     : sim.station === 'printer' ? 'Go to the printer'
+    : sim.station === 'projector' ? 'Go to the meeting room'
+    : sim.station === 'tv' ? 'Go to the lounge TV'
     : sim.station === 'survey' ? 'Measure Wi-Fi at 3 spots'
       : `Inspect Desk ${person.desk}`;
   const fix = sim.station === 'survey' ? 'Note the weak spot' : sim.station === 'bench' ? 'Repair it at the bench' : 'Fix what you find';
@@ -325,6 +337,8 @@ function nextPlaceHtml(person, detail) {
     if (sim.bench.where === 'carried') return `<div class="next-place"><span aria-hidden="true">📍</span> Next: take the PC back to <b>Desk ${person.desk}</b> and plug it in.</div>`;
     return '';
   }
+  if (sim.station === 'projector' && placesNeeded(sim).length) return `<div class="next-place"><span aria-hidden="true">📍</span> Next: the <b>projector</b> in the meeting room. Follow the blue marker.</div>`;
+  if (sim.station === 'tv' && placesNeeded(sim).length) return `<div class="next-place"><span aria-hidden="true">📍</span> Next: the <b>TV</b> in the lounge. Follow the blue marker.</div>`;
   if (needsServerRoom(sim)) return `<div class="next-place"><span aria-hidden="true">📍</span> Next: the <b>server room</b>. Follow the blue marker.</div>`;
   if (placesNeeded(sim).includes('parts_cabinet')) return `<div class="next-place"><span aria-hidden="true">📍</span> Next: the <b>parts cabinet</b>. Follow the blue marker.</div>`;
   return '';
@@ -399,10 +413,10 @@ export function renderSwitchPanel(person, ticket, detail) {
       <div class="tp-meta">${priorityBadge(ticket.priority)}<span id="tp-timer" class="timer"></span></div>
     </header>
     <div class="tp-body">
-      <div id="station-hint" class="station-hint">Desk ${person.desk} is port ${sim.port.number}. ${sim.port.movedTo === null ? 'A dark light means no connection: click a spare port to move the cable.' : `Moved to port ${sim.port.movedTo}.`}</div>
+      <div id="station-hint" class="station-hint">Desk ${person.desk} is port ${sim.port.number}. ${sim.port.movedTo !== null ? `Moved to port ${sim.port.movedTo}.` : sim.port.loose ? 'A dark light means no connection: look closely at the cable in that port.' : 'A dark light means no connection: click a spare port to move the cable.'}</div>
       ${switchSvg(sim)}
       ${latestHtml(detail)}
-      ${sim.port.movedTo !== null && !canReport ? `<div class="next-place"><span aria-hidden="true">📍</span> Done here. Go back to <b>${esc(person.name)}</b> and ask them to test.</div>` : ''}
+      ${(sim.port.movedTo !== null || (!sim.port.loose && !sim.port.dead)) && !canReport ? `<div class="next-place"><span aria-hidden="true">📍</span> Done here. Go back to <b>${esc(person.name)}</b> and ask them to test.</div>` : ''}
     </div>
     <footer class="tp-actions">
       ${canReport ? `<button class="btn" data-action="report">Log the faulty port ${key('L')}</button>` : ''}
@@ -1029,73 +1043,53 @@ export function setBoost(seconds) {
   if (seconds > 0) $('boost').innerHTML = `☕ Coffee boost: <b>${seconds}s</b>`;
 }
 
-// ---------- lounge arcade ----------
 
-const ARCADE_GAMES = [
-  { id: 'rush', icon: '🎫', name: 'Ticket rush', about: 'Click the tickets before they disappear. 30 seconds.', best: (b) => (b.rush ? `Best: ${b.rush} tickets` : 'No score yet') },
-  { id: 'match', icon: '🧩', name: 'Kit match', about: 'Find the pairs of office kit in as few moves as you can.', best: (b) => (b.match ? `Best: ${b.match} moves` : 'No score yet') },
-  { id: 'typer', icon: '⌨️', name: 'Quick typer', about: 'Type a help desk line as fast and accurately as you can.', best: (b) => (b.typer ? `Best: ${b.typer} words per minute` : 'No score yet') },
-];
-
-/** view: 'select' | 'rush' | 'match' | 'typer' | 'result'. data depends on the view. */
-export function renderArcade(view, data, best) {
-  let body;
-  if (view === 'rush') {
-    const s = data;
-    body = `<div class="arc-bar"><span>⏱ ${Math.ceil(s.timeLeft)}s</span><span>🎫 ${s.score}</span><span>❌ ${s.missed}</span></div>
-      <div class="rush-grid">${s.cells.map((c, i) => `<button class="rush-cell${c ? ' on' : ''}" data-rush="${i}" aria-label="${c ? 'Ticket' : 'Empty'}">${c ? '🎫' : ''}</button>`).join('')}</div>`;
-  } else if (view === 'match') {
-    const s = data;
-    body = `<div class="arc-bar"><span>Moves: ${s.moves}</span><span>Pairs: ${s.deck.filter((c) => c.matched).length / 2} of ${s.deck.length / 2}</span></div>
-      <div class="match-grid">${s.deck.map((c, i) => {
-        const shown = c.matched || s.open.includes(i);
-        return `<button class="match-card${shown ? ' shown' : ''}${c.matched ? ' done' : ''}" data-card="${i}" aria-label="${shown ? 'Card' : 'Hidden card'}">${shown ? c.face : '?'}</button>`;
-      }).join('')}</div>`;
-  } else if (view === 'typer') {
-    const { line, typed, score } = data;
-    const chars = [...line].map((ch, i) => {
-      const cls = i < typed.length ? (typed[i] === ch ? 'ok' : 'bad') : i === typed.length ? 'now' : '';
-      return `<span class="${cls}">${esc(ch)}</span>`;
-    }).join('');
-    body = `<div class="arc-bar"><span>${score.wpm} words per minute</span><span>${score.accuracy}% accurate</span></div>
-      <div class="typer-line">${chars}</div>
-      <input id="typer-input" class="typer-input" autocomplete="off" spellcheck="false" maxlength="${line.length}" value="${esc(typed)}" aria-label="Type the line here" placeholder="Start typing...">`;
-  } else if (view === 'result') {
-    body = `<div class="arc-result"><div class="arc-big">${esc(data.headline)}</div><p>${esc(data.detail)}</p>${data.newBest ? '<p class="arc-best">🏆 New best score!</p>' : ''}</div>
-      <div class="menu-list"><button class="btn" data-arcade="${esc(data.game)}">Play again</button><button class="btn ghost" data-arcade="select">Other games</button></div>`;
-  } else {
-    body = `<div class="arc-games">${ARCADE_GAMES.map((g) => `<button class="arc-game" data-arcade="${g.id}"><span class="arc-icon">${g.icon}</span><b>${esc(g.name)}</b><small>${esc(g.about)}</small><em>${esc(g.best(best))}</em></button>`).join('')}</div>`;
-  }
-  $('arcade-card').innerHTML = `
-    <h1 id="arcade-title">🕹️ Game corner</h1>
-    <p class="lead">${view === 'select' ? 'Take a short break. Your shift is paused while you play.' : esc(ARCADE_GAMES.find((g) => g.id === (data?.game ?? view))?.name ?? '')}</p>
-    ${body}
-    <div class="menu-list" style="margin-top:14px"><button class="btn ghost" data-action="close-arcade">Back to work ${key('Esc')}</button></div>`;
-  $('arcade').hidden = false;
-  if (view === 'typer') {
-    const box = $('typer-input');
-    box.focus();
-    box.setSelectionRange(box.value.length, box.value.length);
-  }
+function stationHead(letter, color, title, person, ticket) {
+  return `<header class="tp-head">
+      <span class="avatar big" style="--c:${color}" aria-hidden="true">${letter}</span>
+      <div class="tp-who"><div class="tp-name">${title}</div><div class="small">For ${esc(person.name)}, Desk ${person.desk}, ticket ${ticket.number}</div></div>
+      <div class="tp-meta">${priorityBadge(ticket.priority)}<span id="tp-timer" class="timer"></span></div>
+    </header>`;
 }
 
-/** Update the ticket rush board in place, so a click is never lost to a redraw. */
-export function updateRush(s) {
-  const cells = document.querySelectorAll('#arcade .rush-cell');
-  const bar = document.querySelector('#arcade .arc-bar');
-  if (cells.length !== s.cells.length || !bar) return false;
-  cells.forEach((el, i) => {
-    const on = Boolean(s.cells[i]);
-    if (el.classList.contains('on') !== on) {
-      el.classList.toggle('on', on);
-      el.textContent = on ? '🎫' : '';
-      el.setAttribute('aria-label', on ? 'Ticket' : 'Empty');
-    }
-  });
-  bar.innerHTML = `<span>⏱ ${Math.ceil(s.timeLeft)}s</span><span>🎫 ${s.score}</span><span>❌ ${s.missed}</span>`;
-  return true;
+function showStation(html) {
+  const sheet = $('ticket');
+  const wasOpen = !sheet.hidden;
+  sheet.innerHTML = html;
+  sheet.hidden = false;
+  if (!wasOpen) sheet.scrollTop = 0;
 }
 
-export function hideArcade() {
-  $('arcade').hidden = true;
+/** The meeting room projector, opened by walking to it and pressing E. */
+export function renderProjectorPanel(person, ticket, detail) {
+  const sim = detail.sim;
+  const done = projectorReadings(sim).works.projector
+    ? `<div class="next-place"><span aria-hidden="true">📍</span> The slides are on the screen. Go back to <b>${esc(person.name)}</b> and ask them to test.</div>`
+    : '';
+  showStation(`${stationHead('P', '#1d3f8f', 'Meeting room projector', person, ticket)}
+    <div class="tp-body">
+      <div id="station-hint" class="station-hint">${HOVER_HINT} Check the cable at both ends, the projector input, and the laptop's display mode.</div>
+      ${projectorSvg(sim)}
+      ${projectorModesHtml(sim)}
+      ${chipsHtml(projectorSummary(sim))}
+      ${done}${latestHtml(detail)}
+    </div>
+    <footer class="tp-actions"><button class="btn ghost" data-action="close-station">Close ${key('E')}</button></footer>`);
+}
+
+/** The lounge TV, opened by walking to it and pressing E. */
+export function renderTvPanel(person, ticket, detail) {
+  const sim = detail.sim;
+  const done = tvReadings(sim).online
+    ? `<div class="next-place"><span aria-hidden="true">📍</span> The TV is online. Go back to <b>${esc(person.name)}</b> and ask them to test.</div>`
+    : '';
+  showStation(`${stationHead('T', '#11161c', 'Lounge TV', person, ticket)}
+    <div class="tp-body">
+      <div id="station-hint" class="station-hint">${HOVER_HINT} Start with the network settings and the cable at the back.</div>
+      ${tvSvg(sim)}
+      ${tvNetworksHtml(sim)}
+      ${chipsHtml(tvSummary(sim))}
+      ${done}${latestHtml(detail)}
+    </div>
+    <footer class="tp-actions"><button class="btn ghost" data-action="close-station">Close ${key('E')}</button></footer>`);
 }

@@ -35,7 +35,7 @@ export function createPlayer(scene, start) {
         group.position.z = next.z;
         group.rotation.y = turnToward(group.rotation.y, Math.atan2(dir.x, dir.z), TURN_SPEED * dt);
         const before = walkTime;
-        walkTime += dt * (input.run ? 13 : 9);
+        walkTime += dt * (input.run ? 10.5 : 7.2); // about 2 steps a second when walking
         // A foot lands each time the stride passes the middle (twice per full stride).
         if (stepsBetween(before, walkTime) > 0) this.onStep?.();
       }

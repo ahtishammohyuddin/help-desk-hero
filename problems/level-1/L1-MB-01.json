@@ -33,5 +33,11 @@
     "How can you test the cable, adapter and port one by one?"
   ],
   "real_world_tip": "A different cable and a different adapter is the quickest test. Mixed-up cables cause a lot of 'charging' tickets.",
+  "physical_steps": [
+    {
+      "place": "parts_cabinet",
+      "action": "Take a spare charging cable to try"
+    }
+  ],
   "reviewed": true
 }

@@ -73,6 +73,13 @@ class AnswerResult(BaseModel):
 MAX_ATTEMPTS = 2  # first try, plus one second chance
 
 
+class PhysicalStep(BaseModel):
+    """A place in the office to walk to, and what to do there, after choosing the right fix."""
+
+    place: Literal["printer", "parts_cabinet", "server_room"]
+    action: str
+
+
 class CheckRequest(BaseModel):
     option_id: int
     attempt: int = Field(1, ge=1, le=MAX_ATTEMPTS)  # which try this is
@@ -98,6 +105,8 @@ class CheckResult(BaseModel):
     correct_option_id: int | None = None
     explanations: list[Explanation] | None = None
     real_world_tip: str | None = None
+    # Only sent when the answer is right: listing them earlier would give the answer away.
+    physical_steps: list[PhysicalStep] | None = None
 
 
 class HintResponse(BaseModel):

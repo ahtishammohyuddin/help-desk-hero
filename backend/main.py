@@ -39,6 +39,7 @@ from backend.schemas import (
     Explanation,
     Health,
     HintResponse,
+    PhysicalStep,
     ProblemPublic,
     ProblemSummary,
     PublicOption,
@@ -190,6 +191,8 @@ def create_app(problems_dir: Path | None = None, ai_client: object = FROM_ENV) -
                 for i, o in enumerate(options)
             ]
             result.real_world_tip = problem.get("real_world_tip")
+            if is_correct and problem.get("physical_steps"):
+                result.physical_steps = [PhysicalStep(**step) for step in problem["physical_steps"]]
         elif body.next_hint <= len(problem["hints"]):
             result.hint = problem["hints"][body.next_hint - 1]
         return result

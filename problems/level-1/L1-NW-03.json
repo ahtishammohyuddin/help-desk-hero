@@ -33,5 +33,11 @@
     "How can you test whether the cable or the port is at fault?"
   ],
   "real_world_tip": "Look at the small lights on the network port. If they are off, the link is not working at all.",
+  "physical_steps": [
+    {
+      "place": "parts_cabinet",
+      "action": "Take a spare network cable to try"
+    }
+  ],
   "reviewed": true
 }

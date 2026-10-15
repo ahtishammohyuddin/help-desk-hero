@@ -4,6 +4,7 @@
 
 import { ACHIEVEMENTS } from './achievements.js';
 import { DISCLAIMER, NAME_MAX } from './cards.js';
+import { jobStage, PLACES } from './jobs.js';
 import { topicStatus } from './shift.js';
 import { PRIORITIES, RANKS, rankFor, streakMultiplier } from './tickets.js';
 
@@ -84,7 +85,7 @@ export function renderStatus(progress) {
 
 // ---------- ticket list ----------
 
-export function renderQueue(tickets, people) {
+export function renderQueue(tickets, people, labelFor = () => '') {
   if (tickets.length === 0) {
     $('queue').innerHTML = '<p class="empty">No one needs help right now. New requests will appear here.</p>';
     return;
@@ -94,11 +95,12 @@ export function renderQueue(tickets, people) {
       const person = people.get(t.employee);
       const pct = Math.max(0, (t.secondsLeft / t.sla) * 100);
       const late = t.secondsLeft <= 0;
+      const label = labelFor(t);
       return `<div class="qitem${late ? ' late' : ''}">
         ${avatar(person)}
         <div class="qmain">
           <div class="qtop"><b>${esc(t.employee)}</b>${priorityBadge(t.priority)}</div>
-          <div class="small">${esc(t.category)}</div>
+          ${label ? `<div class="small job-label">${esc(label)}</div>` : `<div class="small">${esc(t.category)}</div>`}
           <div class="bar thin"><div style="width:${pct}%;background:${PRIORITIES[t.priority].color}"></div></div>
           <div class="small ${late ? 'late-text' : ''}">${late ? 'Overdue: help them soon' : `${formatTime(t.secondsLeft)} left`}</div>
         </div>
@@ -127,11 +129,12 @@ export function renderTicketPanel(person, ticket, detail) {
     body = `<p class="notice bad">This ticket could not load. Check that the backend is still running, then try again.</p>`;
     actions = `<button class="btn" data-action="retry">Try again ${key('R')}</button><button class="btn ghost" data-action="later">Close ${key('E')}</button>`;
   } else if (detail.result) {
-    body = resultHtml(detail) + seniorHtml(detail);
+    const pending = jobStage(detail.job) !== 'finished';
+    body = resultHtml(detail) + jobHtml(person, detail) + seniorHtml(detail);
     const asked = detail.chat.filter((t) => t.role === 'junior').length;
     const canAsk = !detail.chatOpen && asked < MAX_QUESTIONS;
     actions = `${canAsk ? `<button class="btn ghost" data-action="ask">Ask the senior tech ${key('Q')}</button>` : ''}
-      <button class="btn" data-action="close">Close ticket ${key('E')}</button>`;
+      <button class="btn" data-action="close">${pending ? 'On my way' : 'Close ticket'} ${key('E')}</button>`;
   } else {
     body = questionHtml(person, detail);
     const p = detail.problem;
@@ -180,7 +183,11 @@ function resultHtml(detail) {
   const bonus = r.mult > 1 ? ` (streak bonus ×${r.mult})` : '';
 
   let banner;
-  if (r.is_correct && r.attempt === 1) banner = `<div class="banner good"><span class="icon">✓</span><div><b>Solved!</b> +${r.xp} XP${bonus}</div></div>`;
+  const pending = jobStage(detail.job) !== 'finished';
+  if (pending) banner = `<div class="banner blue"><span class="icon">✓</span><div><b>Right fix!</b> Now do it in person to close the ticket. The timer is still running.</div></div>`;
+  else if (detail.job && r.attempt === 1) banner = `<div class="banner good"><span class="icon">✓</span><div><b>Fixed in person!</b> +${r.xp} XP${bonus}</div></div>`;
+  else if (detail.job) banner = `<div class="banner good"><span class="icon">✓</span><div><b>Fixed in person on your second try.</b> +${r.xp} XP</div></div>`;
+  else if (r.is_correct && r.attempt === 1) banner = `<div class="banner good"><span class="icon">✓</span><div><b>Solved!</b> +${r.xp} XP${bonus}</div></div>`;
   else if (r.is_correct) banner = `<div class="banner good"><span class="icon">✓</span><div><b>Solved on your second try.</b> +${r.xp} XP</div></div>`;
   else banner = `<div class="banner bad"><span class="icon">✕</span><div><b>Not solved this time.</b> Here is what a senior tech would do.</div></div>`;
 
@@ -194,6 +201,23 @@ function resultHtml(detail) {
   parts.push(card('good', `The right fix: ${esc(correct.text)}`, correct.why));
   if (r.real_world_tip) parts.push(`<div class="tip"><b>From real help desks:</b> ${esc(r.real_world_tip)}</div>`);
   return parts.join('');
+}
+
+// The places to visit for a physical fix, ticked off as they are done.
+function jobHtml(person, detail) {
+  const job = detail.job;
+  if (!job) return '';
+  const stage = jobStage(job);
+  const items = job.steps.map((step, i) => {
+    const state = i < job.index ? 'done' : i === job.index && stage === 'place' ? 'now' : 'todo';
+    return `<li class="${state}"><b>${esc(PLACES[step.place].name)}:</b> ${esc(step.action)}</li>`;
+  });
+  const back = stage === 'finished' ? 'done' : stage === 'return' ? 'now' : 'todo';
+  items.push(back === 'done'
+    ? `<li class="done"><b>Back to ${esc(person.name)}:</b> told them it is fixed</li>`
+    : `<li class="${back}"><b>Back to ${esc(person.name)}:</b> press ${key('E')} to finish</li>`);
+  return `<section class="job"><h3>${stage === 'finished' ? 'What you did' : 'Do the fix'}</h3><ol class="job-steps">${items.join('')}</ol>
+    ${stage === 'place' ? '<p class="small">Follow the blue marker. It is on your map too.</p>' : ''}</section>`;
 }
 
 function seniorHtml(detail) {

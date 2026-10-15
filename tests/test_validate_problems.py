@@ -65,6 +65,16 @@ def test_real_world_tip_is_optional():
     assert validate_problem(problem) == []
 
 
+def test_physical_steps_are_optional_and_checked():
+    good = [{"place": "parts_cabinet", "action": "Take a new toner cartridge"}, {"place": "printer", "action": "Replace the cartridge"}]
+    assert validate_problem(make(physical_steps=good)) == []
+    assert has_error(validate_problem(make(physical_steps=[])), "list of 1-3 steps")
+    assert has_error(validate_problem(make(physical_steps=good * 2)), "list of 1-3 steps")
+    assert has_error(validate_problem(make(physical_steps=[{"place": "roof", "action": "x"}])), "place must be one of")
+    assert has_error(validate_problem(make(physical_steps=[{"place": "printer", "action": " "}])), "action must be a non-empty string")
+    assert has_error(validate_problem(make(physical_steps=["printer"])), "must be an object")
+
+
 def test_non_object_rejected():
     assert validate_problem([1, 2]) == ["problem must be a JSON object"]
 

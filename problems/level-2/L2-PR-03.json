@@ -39,5 +39,11 @@
     "Where would you find the correct cleaning steps?"
   ],
   "real_world_tip": "Check whether the streaks are in the same place on every page. A fixed streak usually points to a worn or dirty part.",
+  "physical_steps": [
+    {
+      "place": "printer",
+      "action": "Print the printer's own test page"
+    }
+  ],
   "reviewed": true
 }

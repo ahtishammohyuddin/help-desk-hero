@@ -137,7 +137,10 @@ export function buildOffice(scene) {
   monitor(-16.6, 11.4, Math.PI);
   monitor(-15.4, 11.4, Math.PI);
   chair(-16, 10.1, 0);
-  box(0.8, 1.9, 0.5, COLORS.printerDark, -19.5, 0, 12.8, { collide: true }); // spare-parts cabinet
+  // Spare-parts cabinet against the west wall, facing into the room (physical fixes start here).
+  box(0.5, 1.9, 0.9, COLORS.printerDark, -19.6, 0, 8, { collide: true });
+  box(0.02, 1.7, 0.02, 0x9aa4ae, -19.34, 0.1, 8); // gap between the two doors
+  sign('SPARE PARTS', 0.8, 0.22, 0xffc94a, '#1f2a37', -19.33, 1.6, 8, Math.PI / 2);
   box(1.2, 0.8, 0.8, 0x7a8a9a, -12.2, 0, 13.2, { collide: true }); // returns trolley
   sign('IT HELP DESK', 3, 0.6, 0x14335a, '#ffffff', -19.84, 2.2, 10, Math.PI / 2);
 

@@ -33,5 +33,15 @@
     "What runs out in a laser printer over time?"
   ],
   "real_world_tip": "Ask when the cartridge was last replaced. Keeping one spare cartridge in stock saves a lot of waiting.",
+  "physical_steps": [
+    {
+      "place": "parts_cabinet",
+      "action": "Take a new toner cartridge"
+    },
+    {
+      "place": "printer",
+      "action": "Check the toner level and replace the cartridge"
+    }
+  ],
   "reviewed": true
 }

@@ -19,9 +19,10 @@ export class Minimap {
 
   /**
    * people: employees ({ x, z, name }); ticketFor(name) returns their open ticket or null.
+   * targets: places a physical fix is waiting at ({ x, z }), drawn as blue squares.
    * Furniture colliders include the people themselves, so only boxes bigger than a person are drawn.
    */
-  draw({ player, playerAngle, cameraYaw, people, ticketFor, time }) {
+  draw({ player, playerAngle, cameraYaw, people, ticketFor, targets = [], time }) {
     const { ctx, bounds } = this;
     const { w, h } = this.size;
     const officeW = bounds.maxX - bounds.minX;
@@ -73,6 +74,16 @@ export class Minimap {
         ctx.globalAlpha = 1;
       }
       dot(ctx, person.x, person.z, 6.5 * px, color, '#ffffff', 2 * px);
+    }
+
+    // Places to go for a physical fix: pulsing blue squares.
+    for (const t of targets) {
+      const r = (7 + 2 * (0.5 + 0.5 * Math.sin(time * 5))) * px;
+      ctx.fillStyle = '#2f6feb';
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2 * px;
+      ctx.fillRect(t.x - r, t.z - r, r * 2, r * 2);
+      ctx.strokeRect(t.x - r, t.z - r, r * 2, r * 2);
     }
 
     // You: a blue arrow pointing the way you face.

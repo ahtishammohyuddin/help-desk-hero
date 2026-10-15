@@ -41,9 +41,11 @@ To use a backend hosted elsewhere, add `?api=https://your-backend` to the game a
 
 Each shift runs 9 AM to 5 PM in 8 real minutes and ends with a shift report. "My progress" shows your accuracy per topic and your badges.
 
+Some problems have `physical_steps` in their JSON (each with a `place`: `printer`, `parts_cabinet` or `server_room`, and an `action`). After the right answer, the player walks to each place, presses E, then goes back to the person to close the ticket. The steps are only sent with a right answer, so they never give the answer away. Like everything else in a problem, they are written for review and only used once reviewed.
+
 Badges are earned for things like a first fix, solving an urgent ticket in time, or a clean shift. After a shift, "Share my result" makes an image and suggested text for a LinkedIn post. Reaching the Sysadmin rank unlocks a downloadable completion certificate. It states: "Completion of a training game, not an accredited certification." Both images are drawn in the browser, so the name typed for the certificate never leaves the player's computer.
 
-Game logic tests (optional, needs Node.js): `node --test game/tests/logic.test.mjs game/tests/tickets.test.mjs game/tests/shift.test.mjs game/tests/achievements.test.mjs game/tests/cards.test.mjs`
+Game logic tests (optional, needs Node.js): `node --test game/tests/logic.test.mjs game/tests/tickets.test.mjs game/tests/shift.test.mjs game/tests/achievements.test.mjs game/tests/cards.test.mjs game/tests/jobs.test.mjs`
 
 ## Run the backend
 ```

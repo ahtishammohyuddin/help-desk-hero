@@ -38,5 +38,11 @@
     "In which direction does the paper normally travel?"
   ],
   "real_world_tip": "Look for small torn pieces. Most repeat jams come from a tiny scrap left behind.",
+  "physical_steps": [
+    {
+      "place": "printer",
+      "action": "Open the access panels and gently remove the jammed paper, checking no scraps remain"
+    }
+  ],
   "reviewed": true
 }

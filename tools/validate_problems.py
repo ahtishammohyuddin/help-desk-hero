@@ -6,6 +6,7 @@ Checks every problem JSON file against the schema and the bank-wide rules:
   - id format (L<level>-<CAT>-<NN>) matches the level and category fields
   - file name matches the id
   - no duplicate ids or titles across the bank
+  - optional physical_steps: 1-3 steps, each with a known place and an action
 
 Usage (from the repo root):
     python -m tools.validate_problems            # validates ./problems
@@ -36,6 +37,9 @@ CATEGORIES: dict[str, str] = {
 }
 
 LEVELS = (1, 2, 3, 4, 5)
+# Places in the office a physical fix can send the player to (see game/src/office.js).
+PLACES = ("printer", "parts_cabinet", "server_room")
+MAX_PHYSICAL_STEPS = 3
 GENDERS = ("female", "male")
 MIN_OPTIONS = 3
 MAX_OPTIONS = 4
@@ -159,6 +163,21 @@ def validate_problem(problem: object) -> list[str]:
     tip = problem.get("real_world_tip")
     if tip is not None and not _is_nonempty_str(tip):
         errors.append("real_world_tip, when present, must be a non-empty string")
+
+    # --- optional physical steps: places to walk to after the right answer ---
+    steps = problem.get("physical_steps")
+    if steps is not None:
+        if not isinstance(steps, list) or not 1 <= len(steps) <= MAX_PHYSICAL_STEPS:
+            errors.append(f"physical_steps, when present, must be a list of 1-{MAX_PHYSICAL_STEPS} steps")
+        else:
+            for i, step in enumerate(steps, start=1):
+                if not isinstance(step, dict):
+                    errors.append(f"physical step {i} must be an object")
+                    continue
+                if step.get("place") not in PLACES:
+                    errors.append(f"physical step {i}: place must be one of {', '.join(PLACES)}")
+                if not _is_nonempty_str(step.get("action")):
+                    errors.append(f"physical step {i}: action must be a non-empty string")
 
     # --- reviewed ---
     if not isinstance(problem["reviewed"], bool):

@@ -39,5 +39,11 @@
     "If hardware checks pass, what software might the dock depend on?"
   ],
   "real_world_tip": "If a spare dock is available, swapping it in is the fastest way to prove whether the dock or the laptop is at fault.",
+  "physical_steps": [
+    {
+      "place": "parts_cabinet",
+      "action": "Take a spare cable to test the dock with"
+    }
+  ],
   "reviewed": true
 }

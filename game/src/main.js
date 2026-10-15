@@ -6,9 +6,11 @@ import { api, API_BASE } from './api.js';
 import { FollowCamera } from './camera.js';
 import { createEmployees } from './employees.js';
 import { Input } from './input.js';
+import { advance, createJob, finish, jobLabel, jobStage, PLACES, placeInReach, placesWaiting, WORK_SECONDS } from './jobs.js';
 import { nearestWithin } from './logic.js';
 import { Minimap } from './minimap.js';
 import { BOUNDS, buildOffice, PLAYER_START } from './office.js';
+import { makeAlertMarker } from './people.js';
 import { createPlayer } from './player.js';
 import { ACHIEVEMENTS, award, newlyEarned } from './achievements.js';
 import { cleanName, drawCertificate, drawResultCard, postText } from './cards.js';
@@ -117,6 +119,30 @@ function start() {
   const input = new Input();
   const minimap = new Minimap($('minimap-canvas'), BOUNDS, colliders);
 
+  // A blue marker above each place, and a ring on the floor where to stand.
+  // Shown only while a physical fix needs the player there.
+  const placeMarkers = new Map();
+  for (const [key, place] of Object.entries(PLACES)) {
+    const marker = makeAlertMarker();
+    for (const part of marker.children) {
+      part.material = part.material.clone();
+      part.material.color.set(0x2f6feb);
+      part.material.emissive.set(0x2f6feb);
+    }
+    marker.position.set(place.markX, 0, place.markZ);
+    const ring = new THREE.Mesh(
+      new THREE.RingGeometry(0.45, 0.6, 32),
+      new THREE.MeshBasicMaterial({ color: 0x2f6feb, transparent: true, opacity: 0.8 }),
+    );
+    ring.rotation.x = -Math.PI / 2;
+    ring.position.set(place.x, 0.02, place.z);
+    const group = new THREE.Group();
+    group.add(marker, ring);
+    group.visible = false;
+    scene.add(group);
+    placeMarkers.set(key, { group, marker, ring });
+  }
+
   // ---------- graphics quality ----------
   // "smooth": normal resolution and simpler shadows, for laptops. "detailed": sharper and softer.
   const QUALITY_KEY = 'hdh-quality';
@@ -176,6 +202,12 @@ function start() {
   const progress = loadProgress();
   const queue = new TicketQueue();
   const details = new Map(); // ticket number -> what we fetched for it
+  const queueLabel = (t) => jobLabel(details.get(t.number)?.job, t.employee);
+  // Open tickets that are waiting for a physical fix: [{ ticket, job }]
+  const activeJobs = () =>
+    queue.open.map((ticket) => ({ ticket, job: details.get(ticket.number)?.job })).filter((e) => jobStage(e.job) !== 'finished');
+  let working = null; // { ticket, step, place, t }: the player is doing a step at a place
+  let nearPlace = null; // a place in reach with a step waiting
   let backendReady = false;
   let shiftStarted = false; // tickets only arrive after the player presses "Start my shift"
   let helpOpen = false;
@@ -283,6 +315,7 @@ function start() {
 
   function refreshTicketPanel() {
     if (activeTicket && talkingTo) ui.renderTicketPanel(talkingTo, activeTicket, details.get(activeTicket.number));
+    ui.renderQueue(queue.open, byName, queueLabel);
   }
 
   // ---------- badges ----------
@@ -302,6 +335,65 @@ function start() {
       });
     }
     return fresh;
+  }
+
+  // Close a ticket for good: XP, streak, stats, badges.
+  function finishTicket(ticket, detail, result) {
+    const baseXp = xpFor({
+      level: ticket.level,
+      priority: ticket.priority,
+      correct: result.is_correct,
+      attempt: result.attempt,
+      hintsUsed: ticket.hintsUsed,
+      secondsLeft: ticket.secondsLeft,
+      sla: ticket.sla,
+    });
+    // Streak: tickets in a row solved on the first try. A mistake resets it.
+    const firstTryWin = result.is_correct && result.attempt === 1;
+    progress.streak = firstTryWin ? progress.streak + 1 : 0;
+    progress.bestStreak = Math.max(progress.bestStreak, progress.streak);
+    const mult = firstTryWin ? streakMultiplier(progress.streak) : 1;
+    const xp = Math.round(baseXp * mult);
+
+    const before = rankFor(progress.xp);
+    progress.xp += xp;
+    progress.attempts += 1;
+    if (result.is_correct) progress.solved += 1;
+    if (result.is_correct && result.attempt === 1) progress.firstTry += 1;
+    const outcome = !result.is_correct ? 'failed' : result.attempt === 1 ? 'first' : 'second';
+    progress.topics = recordTopic(progress.topics, ticket.category, outcome);
+    shift.records.push({
+      category: ticket.category,
+      outcome,
+      overdue: ticket.secondsLeft <= 0,
+      seconds: shift.elapsed - (ticket.openedAt ?? shift.elapsed),
+      xp,
+    });
+    saveProgress(progress);
+    earnBadges({ type: 'ticket', priority: ticket.priority, outcome, overdue: ticket.secondsLeft <= 0, secondsLeft: ticket.secondsLeft, sla: ticket.sla });
+    detail.result = { ...result, xp, mult };
+
+    queue.close(ticket.number);
+    byName.get(ticket.employee).marker.visible = false;
+    ui.renderStatus(progress);
+    ui.renderQueue(queue.open, byName, queueLabel);
+    if (result.is_correct) {
+      sound.correct();
+      if (xp > 0) ui.xpPop(xp);
+    } else {
+      sound.wrong();
+    }
+    if (firstTryWin && [3, 5, 10, 15, 20].includes(progress.streak)) {
+      ui.toast(`${progress.streak} right in a row! Bonus ×${mult} XP`, 'big');
+    }
+    const after = rankFor(progress.xp);
+    if (after.index > before.index) {
+      setTimeout(() => sound.rankUp(), 500);
+      setTimeout(() => confetti(), 300);
+      const unlocked = queue.pool.some((p) => p.level === maxLevelFor(progress.xp));
+      ui.toast(`Promoted to ${ui.esc(after.name)}!${unlocked ? ' Harder tickets unlocked.' : ''}`, 'big');
+    }
+    if (detail.job) detail.job = finish(detail.job);
   }
 
   async function chooseOption(index) {
@@ -328,60 +420,15 @@ function start() {
         return;
       }
 
-      const baseXp = xpFor({
-        level: ticket.level,
-        priority: ticket.priority,
-        correct: result.is_correct,
-        attempt: result.attempt,
-        hintsUsed: ticket.hintsUsed,
-        secondsLeft: ticket.secondsLeft,
-        sla: ticket.sla,
-      });
-      // Streak: tickets in a row solved on the first try. A mistake resets it.
-      const firstTryWin = result.is_correct && result.attempt === 1;
-      progress.streak = firstTryWin ? progress.streak + 1 : 0;
-      progress.bestStreak = Math.max(progress.bestStreak, progress.streak);
-      const mult = firstTryWin ? streakMultiplier(progress.streak) : 1;
-      const xp = Math.round(baseXp * mult);
-
-      const before = rankFor(progress.xp);
-      progress.xp += xp;
-      progress.attempts += 1;
-      if (result.is_correct) progress.solved += 1;
-      if (result.is_correct && result.attempt === 1) progress.firstTry += 1;
-      const outcome = !result.is_correct ? 'failed' : result.attempt === 1 ? 'first' : 'second';
-      progress.topics = recordTopic(progress.topics, ticket.category, outcome);
-      shift.records.push({
-        category: ticket.category,
-        outcome,
-        overdue: ticket.secondsLeft <= 0,
-        seconds: shift.elapsed - (ticket.openedAt ?? shift.elapsed),
-        xp,
-      });
-      saveProgress(progress);
-      earnBadges({ type: 'ticket', priority: ticket.priority, outcome, overdue: ticket.secondsLeft <= 0, secondsLeft: ticket.secondsLeft, sla: ticket.sla });
-      detail.result = { ...result, xp, mult };
-
-      queue.close(ticket.number);
-      byName.get(ticket.employee).marker.visible = false;
-      ui.renderStatus(progress);
-      ui.renderQueue(queue.open, byName);
-      if (result.is_correct) {
+      // A physical fix: the right answer, but the job is not done until the player has
+      // walked to each place and back. XP is given then, so the timer keeps counting.
+      if (result.is_correct && result.physical_steps?.length) {
+        detail.result = { ...result, xp: null, mult: 1 };
+        detail.job = createJob(result.physical_steps);
         sound.correct();
-        if (xp > 0) ui.xpPop(xp);
-      } else {
-        sound.wrong();
+        return;
       }
-      if (firstTryWin && [3, 5, 10, 15, 20].includes(progress.streak)) {
-        ui.toast(`${progress.streak} right in a row! Bonus ×${mult} XP`, 'big');
-      }
-      const after = rankFor(progress.xp);
-      if (after.index > before.index) {
-        setTimeout(() => sound.rankUp(), 500);
-        setTimeout(() => confetti(), 300);
-        const unlocked = queue.pool.some((p) => p.level === maxLevelFor(progress.xp));
-        ui.toast(`Promoted to ${ui.esc(after.name)}!${unlocked ? ' Harder tickets unlocked.' : ''}`, 'big');
-      }
+      finishTicket(ticket, detail, result);
     } catch {
       detail.answerError = true;
     } finally {
@@ -457,6 +504,8 @@ function start() {
     const ticket = queue.forEmployee(person.name);
     if (ticket) {
       activeTicket = ticket;
+      const detail = details.get(ticket.number);
+      if (jobStage(detail?.job) === 'return') finishTicket(ticket, detail, detail.result); // back after the physical fix
       refreshTicketPanel();
     } else {
       $('panel-name').textContent = person.name;
@@ -472,7 +521,8 @@ function start() {
     if (!talkingTo) return;
     talkingTo.group.rotation.y = talkingTo.facing;
     // Answered tickets are finished: forget their details.
-    if (activeTicket && details.get(activeTicket.number)?.result) details.delete(activeTicket.number);
+    const done = activeTicket && details.get(activeTicket.number);
+    if (done?.result && jobStage(done.job) === 'finished') details.delete(activeTicket.number);
     talkingTo = null;
     activeTicket = null;
     $('panel').hidden = true;
@@ -489,7 +539,7 @@ function start() {
       queue.close(t.number);
       details.delete(t.number);
     }
-    ui.renderQueue(queue.open, byName);
+    ui.renderQueue(queue.open, byName, queueLabel);
     progress.shifts += 1;
     saveProgress(progress);
     const summary = summarizeShift(shift.records, leftOpen);
@@ -619,8 +669,34 @@ function start() {
 
   input.onPress('KeyE', () => {
     if (talkingTo) closeConversation();
+    else if (working || overlayOpen()) return;
+    else if (nearPlace) startWork(nearPlace);
     else if (nearby) openConversation(nearby);
   });
+
+  // ---------- physical fixes ----------
+  function startWork(target) {
+    working = { ...target, t: 0 };
+    player.face(target.place.markX, target.place.markZ);
+    sound.click();
+  }
+
+  function updateWork(dt) {
+    working.t += dt;
+    const pct = Math.min(1, working.t / WORK_SECONDS) * 100;
+    $('prompt').innerHTML = `<div>${ui.esc(working.step.action)}<span class="dots"></span></div><div class="work-bar"><div style="width:${pct}%"></div></div>`;
+    $('prompt').hidden = false;
+    if (working.t < WORK_SECONDS) return;
+    const detail = details.get(working.ticket.number);
+    if (detail?.job) {
+      detail.job = advance(detail.job);
+      sound.correct();
+      const next = jobLabel(detail.job, working.ticket.employee).replace(/^Next: /, '');
+      ui.toast(`Done. Next: <b>${ui.esc(next)}</b>`);
+      ui.renderQueue(queue.open, byName, queueLabel);
+    }
+    working = null;
+  }
   input.onPress('Escape', () => {
     if (shareOpen) closeShare();
     else if (progressOpen) closeProgress();
@@ -726,7 +802,7 @@ function start() {
     const dt = Math.min(rawDt, 0.05); // cap so a slow frame can't teleport the player
     const time = clock.elapsedTime;
 
-    player.update(dt, input.state, followCam.yaw, colliders, talkingTo !== null || overlayOpen());
+    player.update(dt, input.state, followCam.yaw, colliders, talkingTo !== null || overlayOpen() || working !== null);
     followCam.focusTarget = activeTicket ? 1 : 0;
     followCam.update(dt, player.position);
 
@@ -752,17 +828,45 @@ function start() {
     }
     refreshClock(shift);
 
+    // Physical fixes: a place with a step waiting comes before people nearby.
+    const jobs = activeJobs();
+    if (working && (!queue.open.includes(working.ticket) || overlayOpen())) {
+      if (!queue.open.includes(working.ticket)) working = null; // shift ended mid-step
+    } else if (working) {
+      updateWork(dt);
+    }
+    nearPlace = talkingTo || working ? null : placeInReach(player.position, jobs);
+
     // Who is close enough to talk to?
-    nearby = talkingTo ? null : nearestWithin(player.position, employees, TALK_RADIUS);
-    if (nearby) {
-      const hasTicket = queue.forEmployee(nearby.name);
-      $('prompt').innerHTML = `Press <kbd>E</kbd> to ${hasTicket ? 'help' : 'talk to'} <b>${ui.esc(nearby.name)}</b>`;
+    nearby = talkingTo || working || nearPlace ? null : nearestWithin(player.position, employees, TALK_RADIUS);
+    if (working) {
+      // the prompt shows the progress bar (updateWork)
+    } else if (nearPlace) {
+      $('prompt').innerHTML = `Press <kbd>E</kbd> to ${ui.esc(nearPlace.step.action.charAt(0).toLowerCase() + nearPlace.step.action.slice(1))}`;
+      $('prompt').hidden = false;
+    } else if (nearby) {
+      const ticket = queue.forEmployee(nearby.name);
+      const stage = ticket ? jobStage(details.get(ticket.number)?.job) : 'finished';
+      const verb = !ticket ? 'talk to' : stage === 'return' ? 'finish the fix for' : 'help';
+      $('prompt').innerHTML = `Press <kbd>E</kbd> to ${verb} <b>${ui.esc(nearby.name)}</b>`;
       $('prompt').hidden = false;
     } else {
       $('prompt').hidden = true;
     }
+    const waiting = new Set(placesWaiting(jobs));
+    for (const [key, m] of placeMarkers) {
+      m.group.visible = waiting.has(key);
+      if (m.group.visible) {
+        m.marker.position.y = 2.4 + Math.sin(time * 3) * 0.08;
+        m.marker.rotation.y = time * 2;
+        m.ring.material.opacity = 0.55 + 0.35 * Math.sin(time * 4);
+      }
+    }
     if (talkingTo && nearestWithin(player.position, [talkingTo], TALK_RADIUS + 0.5) === null) closeConversation();
-    if (activeTicket) ui.updateTicketTimer(activeTicket, Boolean(details.get(activeTicket.number)?.result));
+    if (activeTicket) {
+      const d = details.get(activeTicket.number);
+      ui.updateTicketTimer(activeTicket, Boolean(d?.result) && jobStage(d.job) === 'finished');
+    }
 
     // Name tags, with priority and time left for anyone who has an open ticket
     hudTimer -= dt;
@@ -790,7 +894,7 @@ function start() {
         person.marker.rotation.y = time * 2;
       }
     }
-    if (refreshHud) ui.renderQueue(queue.open, byName);
+    if (refreshHud) ui.renderQueue(queue.open, byName, queueLabel);
 
     for (const led of blinkers) {
       led.material.emissiveIntensity = Math.sin(time * led.speed + led.phase) > 0.2 ? 1.2 : 0.1;
@@ -806,6 +910,7 @@ function start() {
         cameraYaw: followCam.yaw,
         people: employees,
         ticketFor: (name) => queue.forEmployee(name),
+        targets: [...waiting].map((key) => PLACES[key]),
         time,
       });
     }

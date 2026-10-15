@@ -38,5 +38,11 @@
     "Does Windows have a setting that pretends a printer is offline?"
   ],
   "real_world_tip": "Look at the printer's own screen first. If it shows an error or has lost its network connection, the fault is on the printer side, not the PC.",
+  "physical_steps": [
+    {
+      "place": "printer",
+      "action": "Check the printer is on and connected to the network"
+    }
+  ],
   "reviewed": true
 }

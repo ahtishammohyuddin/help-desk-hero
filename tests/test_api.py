@@ -251,3 +251,31 @@ def test_check_validates_input(client, payload):
 def test_check_unknown_option_and_unreviewed(client):
     assert client.post("/problems/L1-HW-03/check", json={"option_id": 7}).status_code == 400
     assert client.post("/problems/L1-HW-05/check", json={"option_id": 0}).status_code == 404
+
+
+# ---------- physical steps ----------
+
+STEPS = [{"place": "parts_cabinet", "action": "Take a spare video cable"}]
+
+
+@pytest.fixture
+def physical_client(tmp_path):
+    write(tmp_path, make(reviewed=True, physical_steps=STEPS))
+    return TestClient(create_app(tmp_path, ai_client=None))
+
+
+def test_physical_steps_only_come_with_a_right_answer(physical_client):
+    # Never in the ticket itself: the steps would give the answer away.
+    assert "physical_steps" not in physical_client.get("/problems/L1-HW-03").text
+    assert "spare video cable" not in physical_client.get("/problems/L1-HW-03").text
+    wrong = physical_client.post("/problems/L1-HW-03/check", json={"option_id": 1, "attempt": 1}).json()
+    assert wrong["physical_steps"] is None
+    last_wrong = physical_client.post("/problems/L1-HW-03/check", json={"option_id": 1, "attempt": 2}).json()
+    assert last_wrong["physical_steps"] is None
+    right = physical_client.post("/problems/L1-HW-03/check", json={"option_id": 0, "attempt": 1}).json()
+    assert right["physical_steps"] == STEPS
+
+
+def test_problems_without_steps_send_none(client):
+    body = client.post("/problems/L1-HW-03/check", json={"option_id": 0, "attempt": 1}).json()
+    assert body["physical_steps"] is None

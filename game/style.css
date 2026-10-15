@@ -290,9 +290,10 @@ kbd {
 #minimap { position: fixed; left: 16px; bottom: 16px; padding: 10px 10px 8px; }
 #minimap-canvas { display: block; width: 210px; height: 210px; }
 .map-key { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 6px; font-size: 12px; color: var(--muted); }
-.key-you, .key-help { display: inline-block; width: 10px; height: 10px; border-radius: 50%; }
+.key-you, .key-help, .key-go { display: inline-block; width: 10px; height: 10px; border-radius: 50%; }
 .key-you { background: var(--blue); border-radius: 2px; transform: rotate(45deg); }
 .key-help { background: #ff9f43; margin-left: 8px; }
+.key-go { background: var(--blue); border-radius: 2px; margin-left: 8px; }
 
 #fps { position: fixed; left: 50%; bottom: 8px; transform: translateX(-50%); padding: 2px 8px; border-radius: 6px; background: rgba(31, 42, 55, 0.75); color: #fff; font-size: 12px; font-variant-numeric: tabular-nums; }
 
@@ -361,3 +362,22 @@ kbd {
 .share-img { display: block; width: 100%; height: auto; border-radius: 12px; border: 1px solid var(--line); }
 .share-text { display: block; width: 100%; padding: 12px 14px; border: 2px solid var(--line); border-radius: 10px; font: 14px/1.5 var(--font); color: var(--ink); resize: vertical; }
 .report-actions a.btn { display: inline-flex; align-items: center; text-decoration: none; }
+
+/* ---------- physical fixes ---------- */
+.banner.blue { background: var(--blue-soft); }
+.banner.blue .icon { background: var(--blue); }
+.job { margin: 4px 0 12px; padding: 12px 14px; border-radius: 12px; border: 2px solid var(--blue-soft); }
+.job h3 { font-size: 16px; margin-bottom: 8px; }
+.job-steps { margin: 0 0 4px; padding: 0; list-style: none; counter-reset: job; }
+.job-steps li { counter-increment: job; position: relative; padding: 4px 0 8px 34px; font-size: 15px; line-height: 1.45; }
+.job-steps li::before {
+  content: counter(job); position: absolute; left: 0; top: 2px;
+  display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%;
+  background: var(--wash); color: var(--muted); font-size: 13px; font-weight: 700;
+}
+.job-steps li.now::before { background: var(--blue); color: #fff; }
+.job-steps li.done { color: var(--muted); }
+.job-steps li.done::before { content: '✓'; background: var(--good); color: #fff; }
+.job-label { color: var(--blue); font-weight: 700; }
+.work-bar { width: 220px; height: 6px; margin-top: 6px; border-radius: 99px; background: var(--wash); overflow: hidden; }
+.work-bar div { height: 100%; background: var(--blue); }

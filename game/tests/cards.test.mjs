@@ -37,3 +37,14 @@ test('post text uses only the real shift numbers and says it is a game', () => {
   assert.match(many, /- Strongest topic: Hardware/);
   assert.match(many, /- New badges: First fix, On a roll/);
 });
+
+test('certificate ID: same details give the same ID, different details a different one', async () => {
+  const { certificateId, CERT_SIGNER } = await import('../src/cards.js');
+  const base = { name: 'Ahtisham', date: new Date(2026, 9, 16), solved: 120, firstTryRate: 82, shifts: 14 };
+  const id = certificateId(base);
+  assert.match(id, /^HDH-20261016-[0-9A-F]{6}$/);
+  assert.equal(certificateId({ ...base }), id);
+  assert.notEqual(certificateId({ ...base, name: 'Sana' }), id);
+  assert.notEqual(certificateId({ ...base, solved: 121 }), id);
+  assert.ok(CERT_SIGNER.caption.includes('creator'));
+});

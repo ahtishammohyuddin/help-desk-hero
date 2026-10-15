@@ -29,6 +29,7 @@ import { sound } from './sound.js';
 import { clockFor, coachRequest, recordTopic, SHIFT_SECONDS, summarizeShift, topicStatus } from './shift.js';
 import { maxLevelFor, PRIORITIES, RANKS, rankFor, streakMultiplier, TicketQueue, xpFor } from './tickets.js';
 import * as ui from './ui.js';
+import { hasSave, loadingStep, menuState, PLAYER_NAME_KEY, tipAt } from './menu.js';
 
 const TALK_RADIUS = 1.8; // how close you must be to talk to someone
 const LABEL_RADIUS = 8; // name tags show within this distance (always shown for open tickets)
@@ -80,6 +81,14 @@ function saveProgress(progress) {
 }
 
 function start() {
+  document.body.dataset.booted = '1'; // the game's code is running (see the check in index.html)
+  ui.bootStep(loadingStep('office'));
+  const bootStarted = performance.now();
+  ui.bootTip(tipAt(0));
+  const tipTimer = setInterval(() => {
+    if ($('boot').hidden) return clearInterval(tipTimer);
+    ui.bootTip(tipAt((performance.now() - bootStarted) / 1000));
+  }, 1000);
   // ---------- renderer, scene, camera ----------
   let renderer;
   try {
@@ -189,15 +198,16 @@ function start() {
     $('quality-btn').textContent = `Graphics: ${smooth ? 'Smooth' : 'Detailed'}`;
   }
   applyQuality(quality);
-  $('quality-btn').addEventListener('click', () => {
-    applyQuality(quality === 'smooth' ? 'detailed' : 'smooth');
+  function setQuality(next) {
+    applyQuality(next);
     qualityChosen = true;
     try {
       localStorage.setItem(QUALITY_KEY, quality);
     } catch {
       /* ignore */
     }
-  });
+  }
+  $('quality-btn').addEventListener('click', () => setQuality(quality === 'smooth' ? 'detailed' : 'smooth'));
   const showFps = new URLSearchParams(window.location.search).has('fps');
   $('fps').hidden = !showFps;
 
@@ -279,7 +289,9 @@ function start() {
   let shareOpen = false;
   let dailyOpen = false;
   let lastReport = null; // the most recent shift report, for the share card
-  const overlayOpen = () => helpOpen || reportOpen || progressOpen || shareOpen || dailyOpen; // pauses the shift and the player
+  let menuOpen = false;
+  let returnToMenu = false; // a screen opened from the menu goes back to the menu when closed
+  const overlayOpen = () => menuOpen || helpOpen || reportOpen || progressOpen || shareOpen || dailyOpen; // pauses the shift and the player
 
   // Badges already earned before badges existed (or on another version) are given quietly.
   const backfill = newlyEarned(progress, { type: 'load' });
@@ -372,23 +384,20 @@ function start() {
     const started = performance.now();
     for (let attempt = 0; attempt < 45; attempt++) {
       try {
+        ui.bootStep(loadingStep('server'));
         const health = await api.health();
         if (health.problems_loaded === 0) {
           ui.bootMessage('No reviewed problems found', 'Mark problems as reviewed with <code>python -m tools.mark_reviewed</code>.', { error: true, retry: boot });
           return;
         }
+        ui.bootStep(loadingStep('tickets'));
         const problems = await api.listProblems();
         queue.setPool(problems);
         backendReady = true;
+        ui.bootStep(loadingStep('ready'));
+        await sleep(400); // let the bar reach the end
         ui.hideBoot();
-        let seenHelp = false;
-        try {
-          seenHelp = localStorage.getItem('hdh-seen-help') === '1';
-        } catch {
-          /* storage blocked: show the welcome card */
-        }
-        if (seenHelp) startShift();
-        else openHelp(true);
+        openMenu();
         return;
       } catch {
         const waited = Math.round((performance.now() - started) / 1000);
@@ -1044,6 +1053,7 @@ function start() {
     daily = null;
     dailyOpen = false;
     ui.hideDaily();
+    backToMenu();
   }
 
   $('daily-btn').addEventListener('click', () => (dailyOpen ? closeDaily() : openDaily()));
@@ -1135,11 +1145,12 @@ function start() {
   function openProgress() {
     progressOpen = true;
     const categories = [...new Set([...queue.pool.map((p) => p.category), ...Object.keys(progress.topics)])];
-    ui.showProgress(progress, categories, { certName: readSetting(CERT_NAME_KEY) });
+    ui.showProgress(progress, categories, { certName: readSetting(CERT_NAME_KEY) || readSetting(PLAYER_NAME_KEY) });
   }
   function closeProgress() {
     progressOpen = false;
     ui.hideProgress();
+    backToMenu();
   }
 
   $('progress-btn').addEventListener('click', () => (progressOpen ? closeProgress() : openProgress()));
@@ -1209,6 +1220,14 @@ function start() {
     working = null;
   }
   input.onPress('Escape', () => {
+    if (menuOpen) {
+      if (menuView !== 'main' && !menuState(progress, readSetting(PLAYER_NAME_KEY)).needsName) {
+        menuView = 'main';
+        return renderMenu();
+      }
+      if (shiftStarted) closeMenu();
+      return;
+    }
     if (stationKind && !overlayOpen()) closeSwitch();
     else if (shareOpen) closeShare();
     else if (dailyOpen) closeDaily();
@@ -1261,6 +1280,7 @@ function start() {
   function closeHelp() {
     helpOpen = false;
     ui.hideHelp();
+    if (backToMenu()) return;
     if (!shiftStarted) startShift();
   }
   function startShift() {
@@ -1270,8 +1290,111 @@ function start() {
     } catch {
       /* ignore */
     }
-    ui.toast('Your shift has started. Requests will appear on the right.');
+    const name = menuState(progress, readSetting(PLAYER_NAME_KEY)).name;
+    ui.toast(`${name ? `Let's go, ${ui.esc(name)}! ` : ''}Your shift has started. Requests will appear on the right.`);
   }
+
+  // ---------- main menu ----------
+  let menuView = 'main';
+  let menuError = '';
+  const menuSettings = () => ({ muted: sound.muted, quality, events: eventsOn });
+  function renderMenu() {
+    ui.renderMenu(menuState(progress, readSetting(PLAYER_NAME_KEY), new Date(), { inShift: shiftStarted }), menuView, menuSettings(), { error: menuError });
+  }
+  function openMenu(view = 'main') {
+    if (reportOpen) return; // the end-of-shift report comes first
+    if (talkingTo) closeConversation();
+    if (stationKind) closeSwitch();
+    for (const [open, close] of [[helpOpen, () => { helpOpen = false; ui.hideHelp(); }], [progressOpen, closeProgress], [dailyOpen, closeDaily], [shareOpen, closeShare]]) {
+      if (open) close();
+    }
+    returnToMenu = false;
+    menuOpen = true;
+    menuView = view;
+    menuError = '';
+    renderMenu();
+  }
+  function closeMenu() {
+    menuOpen = false;
+    ui.hideMenu();
+  }
+  /** After a screen opened from the menu closes: go back to the menu. Returns true if it did. */
+  function backToMenu() {
+    if (!returnToMenu) return false;
+    returnToMenu = false;
+    openMenu();
+    return true;
+  }
+  function fromMenu(open) {
+    closeMenu();
+    returnToMenu = true;
+    open();
+  }
+  function play() {
+    closeMenu();
+    if (shiftStarted) return; // back to the shift in progress
+    let seenHelp = false;
+    try {
+      seenHelp = localStorage.getItem('hdh-seen-help') === '1';
+    } catch {
+      /* storage blocked: show the welcome card */
+    }
+    if (seenHelp && hasSave(progress)) startShift();
+    else openHelp(true);
+  }
+  function saveName(raw) {
+    const name = cleanName(raw);
+    if (!name) {
+      menuError = 'Please type at least 2 letters.';
+      renderMenu();
+      return;
+    }
+    writeSetting(PLAYER_NAME_KEY, name);
+    if (!readSetting(CERT_NAME_KEY)) writeSetting(CERT_NAME_KEY, name);
+    menuView = 'main';
+    menuError = '';
+    renderMenu();
+  }
+  function newGame() {
+    for (const k of [SAVE_KEY, 'hdh-daily', 'hdh-seen-help']) {
+      try {
+        localStorage.removeItem(k);
+      } catch {
+        /* storage blocked */
+      }
+    }
+    window.location.reload();
+  }
+  $('menu').addEventListener('submit', (e) => {
+    e.preventDefault();
+    saveName($('menu-name')?.value);
+  });
+  $('menu').addEventListener('click', (e) => {
+    const setting = e.target.closest('[data-setting]')?.dataset.setting;
+    if (setting === 'smooth' || setting === 'detailed') {
+      setQuality(setting);
+      return renderMenu();
+    }
+    const action = e.target.closest('[data-menu]')?.dataset.menu;
+    if (!action) return;
+    sound.click();
+    if (action === 'play') play();
+    else if (action === 'daily') fromMenu(openDaily);
+    else if (action === 'progress') fromMenu(openProgress);
+    else if (action === 'help') fromMenu(() => openHelp(false));
+    else if (action === 'back') { menuView = 'main'; menuError = ''; renderMenu(); }
+    else if (['settings', 'name', 'reset'].includes(action)) { menuView = action; menuError = ''; renderMenu(); }
+    else if (action === 'reset-yes') newGame();
+  });
+  $('menu').addEventListener('change', (e) => {
+    const setting = e.target.dataset?.setting;
+    if (setting === 'sound') {
+      if (e.target.checked === sound.muted) toggleSound();
+    } else if (setting === 'events') {
+      setEvents(e.target.checked);
+    }
+  });
+  $('menu-btn').addEventListener('click', () => (menuOpen ? (shiftStarted && closeMenu()) : openMenu()));
   $('help-start').addEventListener('click', closeHelp);
   $('help-btn').addEventListener('click', () => openHelp(false));
   $('sound-btn').addEventListener('click', toggleSound);
@@ -1521,11 +1644,13 @@ function start() {
   // Handy for debugging in the browser console: helpDeskHero.queue.open
   // Events switch in the help card
   $('events-toggle').checked = eventsOn;
-  $('events-toggle').addEventListener('change', (e) => {
-    eventsOn = e.target.checked;
+  function setEvents(on) {
+    eventsOn = on;
+    $('events-toggle').checked = on;
     writeSetting(EVENTS_KEY, eventsOn ? 'on' : 'off');
     if (!eventsOn && shift.events) shift.events = shift.events.filter((ev) => ev.at <= shift.elapsed); // drop upcoming ones
-  });
+  }
+  $('events-toggle').addEventListener('change', (e) => setEvents(e.target.checked));
 
   window.helpDeskHero = {
     triggerEvent: (id) => {

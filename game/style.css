@@ -546,3 +546,47 @@ kbd {
 /* ---------- repair bench ---------- */
 .station .bsod { font: 11px var(--font); fill: #ffffff; }
 .station .bsod-face { font: 700 34px var(--font); fill: #ffffff; }
+
+/* ---------- loading screen ---------- */
+#boot { background: radial-gradient(circle at 50% 35%, #2a3b52 0%, #1f2a37 60%, #141c26 100%); }
+.boot-logo-img { width: min(420px, 80vw); height: auto; margin-bottom: 22px; filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.35)); animation: logo-float 3s ease-in-out infinite; }
+@keyframes logo-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+.load-bar { width: min(360px, 80vw); height: 10px; margin: 0 auto 14px; border-radius: 999px; background: rgba(255, 255, 255, 0.12); overflow: hidden; }
+#load-fill { width: 5%; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #2f6feb, #ffc94a); transition: width 0.6s ease; }
+.boot-tip { margin-top: 18px; min-height: 2.6em; font-size: 14px; color: #9fb0c2; }
+.boot-tip b { color: #ffc94a; }
+
+/* ---------- main menu ---------- */
+.menu { background: rgba(20, 28, 38, 0.62); backdrop-filter: blur(5px); z-index: 45; }
+.menu-card {
+  width: min(460px, 100%); max-height: calc(100vh - 32px); overflow-y: auto; text-align: center;
+  padding: 26px 28px 24px; background: var(--paper); border-radius: 24px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+}
+.menu-logo { width: min(320px, 90%); height: auto; margin: -4px auto 10px; display: block; }
+.menu-greeting { font-size: 22px; margin: 0 0 2px; }
+.menu-sub { color: var(--muted); font-size: 15px; margin-bottom: 18px; }
+.menu-list { display: grid; gap: 8px; }
+.menu-list .btn { width: 100%; justify-content: center; }
+.menu-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.menu-link { margin-top: 14px; background: none; border: 0; color: var(--blue); font: inherit; font-size: 14px; cursor: pointer; text-decoration: underline; }
+.menu-link.danger { color: var(--bad); }
+.menu-links { display: flex; justify-content: center; gap: 18px; flex-wrap: wrap; }
+.menu-field { display: grid; gap: 6px; text-align: left; margin: 6px 0 12px; }
+.menu-field input { font: inherit; font-size: 17px; padding: 12px 14px; border: 2px solid var(--line); border-radius: 12px; }
+.menu-field input:focus { outline: none; border-color: var(--blue); }
+.menu-note { font-size: 13px; color: var(--muted); text-align: left; margin-bottom: 14px; }
+.menu-error { color: var(--bad); font-size: 14px; text-align: left; margin: -4px 0 10px; }
+.menu-settings { display: grid; gap: 10px; text-align: left; margin-bottom: 16px; }
+.menu-settings .setting { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border-radius: 12px; background: var(--wash); font-size: 15px; }
+.menu-settings .setting small { display: block; color: var(--muted); font-size: 13px; }
+.seg { display: inline-flex; border-radius: 999px; background: var(--paper); box-shadow: inset 0 0 0 1px var(--line); padding: 3px; }
+.seg button { border: 0; background: none; font: inherit; font-size: 13px; font-weight: 700; padding: 6px 12px; border-radius: 999px; cursor: pointer; color: var(--muted); }
+.seg button.on { background: var(--blue); color: #fff; }
+.switch { width: 22px; height: 22px; accent-color: var(--blue); }
+
+/* ---------- top bar brand / menu button ---------- */
+.brand-btn { display: inline-flex; align-items: center; gap: 8px; border: 0; background: none; font: inherit; color: inherit; cursor: pointer; padding: 0; }
+.brand-icon { width: 28px; height: 28px; margin-left: -6px; }
+.brand-menu { font-size: 12px; font-weight: 700; color: var(--blue); background: var(--blue-soft); padding: 3px 8px; border-radius: 999px; }
+.brand-btn:hover .brand-menu { background: var(--blue); color: #fff; }
+.danger-btn { background: var(--bad); }

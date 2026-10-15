@@ -6,7 +6,8 @@
   <title>Help Desk Hero</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Cormorant+Garamond:ital,wght@0,600;0,700;1,500&family=Dancing+Script:wght@600&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="assets/favicon.png">
   <link rel="stylesheet" href="style.css">
   <!-- Import map: lets our code write `import * as THREE from 'three'`
        and the browser fetches Three.js from a free CDN. No install or build step. -->
@@ -21,7 +22,7 @@
 </head>
 <body>
   <div id="brand">
-    <span class="brand-name">Help Desk Hero</span>
+    <button id="menu-btn" class="brand-btn" title="Main menu (Esc)"><img src="assets/logo-icon.png" alt="" class="brand-icon"><span class="brand-name">Help Desk Hero</span><span class="brand-menu">Menu</span></button>
     <span id="clock" class="clock" title="Your shift runs from 9 AM to 5 PM. One real minute is one office hour."></span>
     <button id="progress-btn" class="pill-btn">My progress</button>
     <button id="daily-btn" class="pill-btn daily-pill">📅 Daily challenge</button>
@@ -97,14 +98,35 @@
   <div id="daily" class="overlay" hidden role="dialog" aria-labelledby="daily-title"><div class="help-card" id="daily-card"></div></div>
   <div id="share" class="overlay" hidden role="dialog" aria-labelledby="share-title"><div class="help-card wide" id="share-card"></div></div>
 
+  <div id="menu" class="overlay menu" hidden role="dialog" aria-label="Main menu">
+    <div class="menu-card">
+      <img src="assets/logo.png" class="menu-logo" alt="Help Desk Hero">
+      <div id="menu-body"></div>
+    </div>
+  </div>
+
   <div id="boot" class="overlay">
     <div class="boot-box">
-      <div class="boot-logo">Help Desk Hero</div>
+      <img src="assets/logo.png" class="boot-logo-img" alt="Help Desk Hero">
+      <div class="load-bar" aria-hidden="true"><div id="load-fill"></div></div>
       <div id="boot-title">Opening the office...</div>
       <div id="boot-detail"></div>
+      <div id="boot-tip" class="boot-tip"></div>
       <button id="boot-retry" class="btn" hidden>Try again</button>
     </div>
   </div>
+  <script>
+    // If the game's files never start (an old copy stuck in the browser, or the 3D engine
+    // could not download), say so instead of showing "Opening the office..." forever.
+    setTimeout(function () {
+      if (document.body.dataset.booted) return;
+      var t = document.getElementById('boot-title');
+      var d = document.getElementById('boot-detail');
+      if (!t || !d) return;
+      t.textContent = 'The game files did not load';
+      d.innerHTML = 'Press <b>Ctrl+F5</b> to reload the page. If it still does not start, check your internet connection: the 3D engine downloads when the game opens.';
+    }, 20000);
+  </script>
 
   <div id="error" class="overlay" hidden>
     <div class="boot-box">

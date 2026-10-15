@@ -220,8 +220,100 @@ export async function drawResultCard(data) {
  * data: { name, rankName, solved, firstTryRate, shifts, mastered, date }
  * Returns a PNG data URL.
  */
+/**
+ * A short ID printed on the certificate, made from its own details (name, date, numbers).
+ * The same details always give the same ID. It labels the image; it is not a record kept anywhere.
+ */
+export function certificateId({ name, date, solved, firstTryRate, shifts }) {
+  const d = date instanceof Date ? date : new Date(date);
+  const day = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`;
+  let h = 0x811c9dc5; // FNV-1a
+  for (const ch of `${name}|${day}|${solved}|${firstTryRate}|${shifts}`) {
+    h ^= ch.codePointAt(0);
+    h = Math.imul(h, 0x01000193) >>> 0;
+  }
+  return `HDH-${day}-${h.toString(16).toUpperCase().padStart(8, '0').slice(0, 6)}`;
+}
+
+export const CERT_SIGNER = { signature: 'A. Mohyuddin', caption: 'Ahtisham Mohyuddin, creator of Help Desk Hero' };
+const SCRIPT_FONT = '"Dancing Script", "Segoe Script", "Brush Script MT", cursive';
+
+
+const SERIF = '"Cormorant Garamond", Georgia, "Times New Roman", serif';
+
+function serif(ctx, value, x, y, { size = 40, weight = 600, italic = false, color = C.ink, align = 'center', maxWidth, spacing } = {}) {
+  ctx.save();
+  const font = (s) => `${italic ? 'italic ' : ''}${weight} ${s}px ${SERIF}`;
+  ctx.font = font(size);
+  if (spacing && 'letterSpacing' in ctx) ctx.letterSpacing = spacing;
+  ctx.fillStyle = color;
+  ctx.textAlign = align;
+  if (maxWidth) {
+    let s = size;
+    while (s > 14 && ctx.measureText(value).width > maxWidth) {
+      s -= 2;
+      ctx.font = font(s);
+    }
+  }
+  ctx.fillText(value, x, y);
+  ctx.restore();
+}
+
+// A plain embossed-style seal: navy disc, gold rings, monogram and text around the edge.
+function seal(ctx, x, y) {
+  const navy = '#1c2b45';
+  const gold = '#b8892d';
+  ctx.save();
+  ctx.fillStyle = navy;
+  ctx.beginPath();
+  ctx.arc(x, y, 74, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = gold;
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.arc(x, y, 66, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.arc(x, y, 44, 0, Math.PI * 2);
+  ctx.stroke();
+  // words around the ring
+  const words = '• HELP DESK HERO • COMPLETED ';
+  ctx.font = `700 13px ${FONT}`;
+  ctx.fillStyle = '#e9d39b';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  const step = (Math.PI * 2) / words.length;
+  for (let i = 0; i < words.length; i++) {
+    const a = -Math.PI / 2 + i * step;
+    ctx.save();
+    ctx.translate(x + Math.cos(a) * 55, y + Math.sin(a) * 55);
+    ctx.rotate(a + Math.PI / 2);
+    ctx.fillText(words[i], 0, 0);
+    ctx.restore();
+  }
+  ctx.textBaseline = 'alphabetic';
+  ctx.restore();
+  serif(ctx, 'HDH', x, y + 12, { size: 34, weight: 700, color: '#e9d39b' });
+}
+
+/**
+ * The completion certificate (1600 x 1131, A4 landscape shape). Returns a PNG data URL.
+ * A plain, formal design: serif type, thin navy and gold rules, no cartoon logo.
+ * data: { name, rankName, solved, firstTryRate, shifts, mastered, date }
+ */
 export async function drawCertificate(data) {
   await fontsReady();
+  try {
+    await Promise.all([
+      document.fonts.load(`600 60px ${SCRIPT_FONT}`),
+      document.fonts.load(`600 60px ${SERIF}`),
+      document.fonts.load(`700 60px ${SERIF}`),
+      document.fonts.load(`italic 500 40px ${SERIF}`),
+    ]);
+  } catch {
+    /* fallback fonts are fine */
+  }
   const W = 1600;
   const H = 1131;
   const canvas = document.createElement('canvas');
@@ -229,56 +321,83 @@ export async function drawCertificate(data) {
   canvas.height = H;
   const ctx = canvas.getContext('2d');
   const cx = W / 2;
+  const navy = '#1c2b45';
+  const gold = '#b8892d';
 
-  ctx.fillStyle = '#fffdf8';
+  ctx.fillStyle = '#fdfcf8';
   ctx.fillRect(0, 0, W, H);
-  // double border
-  ctx.strokeStyle = C.blue;
-  ctx.lineWidth = 10;
-  ctx.strokeRect(40, 40, W - 80, H - 80);
-  ctx.strokeStyle = '#b9cdf6';
+
+  // border: a solid navy rule, a thin gold rule inside it, and small corner brackets
+  ctx.strokeStyle = navy;
+  ctx.lineWidth = 6;
+  ctx.strokeRect(44, 44, W - 88, H - 88);
+  ctx.strokeStyle = gold;
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(62, 62, W - 124, H - 124);
+  ctx.strokeStyle = gold;
   ctx.lineWidth = 3;
-  ctx.strokeRect(66, 66, W - 132, H - 132);
+  for (const [x, y, dx, dy] of [[78, 78, 1, 1], [W - 78, 78, -1, 1], [78, H - 78, 1, -1], [W - 78, H - 78, -1, -1]]) {
+    ctx.beginPath();
+    ctx.moveTo(x, y + dy * 46);
+    ctx.lineTo(x, y);
+    ctx.lineTo(x + dx * 46, y);
+    ctx.stroke();
+  }
 
-  logoMark(ctx, cx - 40, 120, 80);
-  text(ctx, 'HELP DESK HERO', cx, 248, { size: 30, weight: 700, color: C.blue, align: 'center' });
-  text(ctx, 'Certificate of Completion', cx, 345, { size: 76, weight: 700, align: 'center' });
-  text(ctx, 'This is to certify that', cx, 430, { size: 32, color: C.muted, align: 'center' });
+  // header
+  ctx.save();
+  ctx.font = `700 22px ${FONT}`;
+  ctx.fillStyle = navy;
+  ctx.textAlign = 'center';
+  if ('letterSpacing' in ctx) ctx.letterSpacing = '8px';
+  ctx.fillText('HELP DESK HERO', cx, 168);
+  ctx.restore();
+  ctx.fillStyle = gold;
+  ctx.fillRect(cx - 200, 192, 140, 1.5);
+  ctx.fillRect(cx + 60, 192, 140, 1.5);
+  ctx.save();
+  ctx.translate(cx, 192.75);
+  ctx.rotate(Math.PI / 4);
+  ctx.fillRect(-5, -5, 10, 10);
+  ctx.restore();
 
-  text(ctx, data.name, cx, 535, { size: 84, weight: 700, color: C.ink, align: 'center', maxWidth: W - 300 });
-  ctx.fillStyle = C.gold;
-  ctx.fillRect(cx - 360, 566, 720, 3);
+  serif(ctx, 'Certificate of Completion', cx, 300, { size: 92, weight: 600, color: navy });
+  serif(ctx, 'This is to certify that', cx, 392, { size: 36, weight: 500, italic: true, color: C.muted });
 
-  text(ctx, 'completed the Help Desk Hero training game and reached the rank of', cx, 640, { size: 32, align: 'center', maxWidth: W - 300 });
-  text(ctx, data.rankName, cx, 700, { size: 44, weight: 700, color: C.blue, align: 'center' });
+  serif(ctx, data.name, cx, 500, { size: 96, weight: 700, color: navy, maxWidth: W - 380 });
+  ctx.fillStyle = gold;
+  ctx.fillRect(cx - 360, 528, 720, 1.5);
+
+  text(ctx, 'has completed the Help Desk Hero IT support training game and achieved the rank of', cx, 596, { size: 26, color: C.ink, align: 'center', maxWidth: W - 360 });
+  serif(ctx, data.rankName, cx, 664, { size: 54, weight: 700, color: navy });
 
   const facts = [
     `${data.solved} tickets solved`,
     `${data.firstTryRate}% right first time`,
     `${data.shifts} shift${data.shifts === 1 ? '' : 's'} worked`,
     `${data.mastered} topic${data.mastered === 1 ? '' : 's'} mastered`,
-  ].join('   ·   ');
-  text(ctx, facts, cx, 790, { size: 28, color: C.muted, align: 'center', maxWidth: W - 300 });
+  ].join('     |     ');
+  serif(ctx, facts, cx, 736, { size: 28, weight: 600, color: C.muted, maxWidth: W - 360 });
 
-  text(ctx, formatDate(data.date), 260, 920, { size: 30, weight: 700, align: 'center' });
-  ctx.fillStyle = C.line;
-  ctx.fillRect(140, 940, 240, 2);
-  text(ctx, 'Date', 260, 975, { size: 24, color: C.muted, align: 'center' });
+  // date, seal, signature
+  const rowY = 900;
+  serif(ctx, formatDate(data.date), 340, rowY, { size: 34, weight: 700, color: navy });
+  ctx.fillStyle = navy;
+  ctx.fillRect(200, rowY + 16, 280, 1.5);
+  text(ctx, 'Date', 340, rowY + 48, { size: 20, color: C.muted, align: 'center' });
 
-  // seal
-  ctx.fillStyle = C.gold;
-  ctx.beginPath();
-  ctx.arc(W - 260, 920, 70, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.strokeStyle = '#fff';
-  ctx.lineWidth = 3;
-  ctx.beginPath();
-  ctx.arc(W - 260, 920, 58, 0, Math.PI * 2);
-  ctx.stroke();
-  text(ctx, 'GAME', W - 260, 914, { size: 20, weight: 700, color: '#fff', align: 'center' });
-  text(ctx, 'COMPLETE', W - 260, 938, { size: 16, weight: 700, color: '#fff', align: 'center' });
+  seal(ctx, cx, rowY - 6);
 
-  text(ctx, DISCLAIMER, cx, 1030, { size: 26, weight: 700, color: C.muted, align: 'center' });
+  ctx.font = `600 54px ${SCRIPT_FONT}`;
+  ctx.fillStyle = navy;
+  ctx.textAlign = 'center';
+  ctx.fillText(CERT_SIGNER.signature, W - 340, rowY + 2);
+  ctx.fillStyle = navy;
+  ctx.fillRect(W - 490, rowY + 16, 300, 1.5);
+  text(ctx, CERT_SIGNER.caption, W - 340, rowY + 48, { size: 18, color: C.muted, align: 'center', maxWidth: 340 });
+
+  serif(ctx, `Certificate ID: ${certificateId(data)}`, cx, 1010, { size: 22, weight: 600, color: C.muted });
+  text(ctx, DISCLAIMER, cx, 1040, { size: 20, weight: 700, color: C.muted, align: 'center' });
   return canvas.toDataURL('image/png');
 }
 

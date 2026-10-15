@@ -15,9 +15,9 @@
 
 ## Phase 7: make it look and feel like a real game
 - [x] Game logo (designed by Ahtisham; in `game/assets/`)
-- [ ] Loading screen and main menu (Continue, New game, Daily challenge, My progress, Settings, How to play),
+- [x] Loading screen and main menu (Continue, New game, Daily challenge, My progress, Settings, How to play),
       player name stored only on the player's device, never sent to the AI or server
-- [ ] More professional certificate (logo, frame, signature-style line, certificate ID; still says it is a
+- [x] More professional certificate (formal serif design without the cartoon logo, frame, seal, signature line, certificate ID; still says it is a
       training game, not an accredited certification)
 - [ ] Bigger, realistic office:
   - [x] Every person who reports a PC problem sits at a real desk with a PC (no one standing in open space);

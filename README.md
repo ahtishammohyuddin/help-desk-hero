@@ -59,6 +59,10 @@ Badges are earned for things like a first fix, solving an urgent ticket in time,
 
 Game logic tests (optional, needs Node.js): `node --test game/tests/logic.test.mjs game/tests/tickets.test.mjs game/tests/shift.test.mjs game/tests/achievements.test.mjs game/tests/cards.test.mjs game/tests/jobs.test.mjs game/tests/handson.test.mjs`
 
+## Main menu and player name
+
+The game opens on a loading screen (logo, progress bar and game tips), then the main menu: Continue, Daily challenge, My progress, How to play, Settings (sound, graphics, random events) and New game. On the first visit it asks for the player's name. The name is stored only in the browser (`localStorage`), is used for greetings and as the default certificate name, and is never sent to the backend or the AI. If the game's files fail to load, the loading screen says so after 20 seconds and suggests Ctrl+F5.
+
 ## Run the backend
 ```
 pip install -r requirements-dev.txt

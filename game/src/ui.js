@@ -61,6 +61,89 @@ export function hideBoot() {
   $('boot').hidden = true;
 }
 
+/** Move the loading bar to a step: { label, at } from menu.js. */
+export function bootStep(step) {
+  $('boot').hidden = false;
+  $('boot').classList.remove('error');
+  $('load-fill').style.width = `${step.at}%`;
+  $('boot-title').textContent = step.id === 'ready' ? 'Ready!' : `${step.label}...`;
+  $('boot-detail').textContent = '';
+  $('boot-retry').hidden = true;
+}
+
+export function bootTip(text) {
+  $('boot-tip').innerHTML = `<b>Tip:</b> ${esc(text)}`;
+}
+
+// ---------- main menu ----------
+
+/**
+ * Draw the main menu. view: 'main', 'name', 'settings' or 'reset'.
+ * state: from menuState(); settings: { muted, quality, events }.
+ */
+export function renderMenu(state, view, settings, { error = '' } = {}) {
+  let body;
+  if (view === 'name' || state.needsName) {
+    body = `
+      <h1 class="menu-greeting">${state.needsName ? 'Welcome to the help desk!' : 'Change your name'}</h1>
+      <p class="menu-sub">${state.needsName ? 'What should everyone in the office call you?' : 'This is the name we greet you with and put on your certificate.'}</p>
+      <form data-menu-form="name">
+        <label class="menu-field"><span class="small"><b>Your name</b></span>
+          <input id="menu-name" maxlength="${NAME_MAX}" autocomplete="nickname" value="${esc(state.name)}" placeholder="For example, Ahtisham"></label>
+        ${error ? `<p class="menu-error">${esc(error)}</p>` : ''}
+        <p class="menu-note">🔒 Your name stays on this device. It is never sent to our server or the AI.</p>
+        <div class="menu-list"><button class="btn big" type="submit">${state.needsName ? 'Continue' : 'Save'}</button>
+        ${state.needsName ? '' : '<button class="btn ghost" type="button" data-menu="back">Back</button>'}</div>
+      </form>`;
+  } else if (view === 'settings') {
+    body = `
+      <h1 class="menu-greeting">Settings</h1>
+      <p class="menu-sub">Saved on this device.</p>
+      <div class="menu-settings">
+        <label class="setting"><span><b>Sound effects</b><small>Clicks, ticket alerts and results</small></span>
+          <input type="checkbox" class="switch" data-setting="sound" ${settings.muted ? '' : 'checked'}></label>
+        <div class="setting"><span><b>Graphics</b><small>Smooth runs faster on laptops</small></span>
+          <span class="seg"><button data-setting="smooth" class="${settings.quality === 'smooth' ? 'on' : ''}">Smooth</button><button data-setting="detailed" class="${settings.quality === 'detailed' ? 'on' : ''}">Detailed</button></span></div>
+        <label class="setting"><span><b>Random events</b><small>Power flickers, phishing waves, VIP requests</small></span>
+          <input type="checkbox" class="switch" data-setting="events" ${settings.events ? 'checked' : ''}></label>
+      </div>
+      <div class="menu-list"><button class="btn" data-menu="back">Back</button></div>`;
+  } else if (view === 'reset') {
+    body = `
+      <h1 class="menu-greeting">Start a new game?</h1>
+      <p class="menu-sub">This deletes your XP, rank, badges and daily challenge streak on this device. Your name and settings stay.</p>
+      <div class="menu-list">
+        <button class="btn danger-btn" data-menu="reset-yes">Yes, start over</button>
+        <button class="btn ghost" data-menu="back">Cancel</button>
+      </div>`;
+  } else {
+    body = `
+      <h1 class="menu-greeting">${esc(state.greeting)}</h1>
+      <p class="menu-sub">${esc(state.subtitle)}</p>
+      <div class="menu-list">
+        <button class="btn big" data-menu="play">${esc(state.primary)} ${key('Enter')}</button>
+        <button class="btn ghost" data-menu="daily">📅 Daily challenge</button>
+        <div class="menu-row">
+          <button class="btn ghost" data-menu="progress">📊 My progress</button>
+          <button class="btn ghost" data-menu="help">❓ How to play</button>
+        </div>
+        <button class="btn ghost" data-menu="settings">⚙️ Settings</button>
+      </div>
+      <div class="menu-links">
+        <button class="menu-link" data-menu="name">Not ${esc(state.name)}? Change name</button>
+        ${state.canReset ? '<button class="menu-link danger" data-menu="reset">New game</button>' : ''}
+      </div>`;
+  }
+  $('menu-body').innerHTML = body;
+  $('menu').hidden = false;
+  const focus = $('menu-name') ?? $('menu-body').querySelector('[data-menu="play"]');
+  setTimeout(() => focus?.focus(), 0);
+}
+
+export function hideMenu() {
+  $('menu').hidden = true;
+}
+
 // ---------- welcome / how to play ----------
 
 export function showHelp(firstTime) {

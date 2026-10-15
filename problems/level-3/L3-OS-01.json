@@ -1,0 +1,43 @@
+{
+  "id": "L3-OS-01",
+  "level": 3,
+  "category": "Windows and OS",
+  "title": "Boot loop after an update",
+  "character": {
+    "name": "Usman",
+    "department": "Operations",
+    "personality": "practical, impatient",
+    "gender": "male"
+  },
+  "symptom": "PC keeps restarting during startup after an update",
+  "user_description": "After last night's updates my PC just restarts over and over. It shows the logo, then goes black and starts again. I have a presentation at 2!",
+  "options": [
+    {
+      "text": "Reinstall Windows straight away",
+      "correct": false,
+      "why": "Wipes the PC and maybe his files, when recovery tools can often fix this without losing anything."
+    },
+    {
+      "text": "Keep switching it off and on until it starts",
+      "correct": false,
+      "why": "Repeated hard power-offs can make things worse and do not fix the cause."
+    },
+    {
+      "text": "Use the Windows Recovery Environment: try Startup Repair, uninstall the latest update or use System Restore, and recover his data before anything drastic",
+      "correct": true,
+      "why": "A bad update is the likely cause. Recovery tools can remove it or roll back, and keeping the data safe comes before any reinstall."
+    },
+    {
+      "text": "Take out the RAM to reset the PC",
+      "correct": false,
+      "why": "The timing points to the update, not the memory, and removing parts adds risk."
+    }
+  ],
+  "hints": [
+    "What changed just before this started?",
+    "Does Windows have tools that run before Windows starts?",
+    "What must be safe before you try anything drastic?"
+  ],
+  "real_world_tip": "After two or three failed starts, Windows usually opens the recovery screen by itself. From there, Advanced options has Startup Repair, Uninstall Updates and System Restore.",
+  "reviewed": true
+}

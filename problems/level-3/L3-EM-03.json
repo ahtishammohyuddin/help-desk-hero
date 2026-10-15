@@ -1,0 +1,43 @@
+{
+  "id": "L3-EM-03",
+  "level": 3,
+  "category": "Email and Outlook / M365",
+  "title": "No mail from one external sender",
+  "character": {
+    "name": "Farah",
+    "department": "Finance",
+    "personality": "anxious, rushed",
+    "gender": "female"
+  },
+  "symptom": "User is not receiving emails from one external supplier",
+  "user_description": "Our supplier says they've sent me three invoices this week but I haven't got any of them. Everyone else's emails arrive fine. Payment is due Friday!",
+  "options": [
+    {
+      "text": "Tell the supplier to use a different email address",
+      "correct": false,
+      "why": "This avoids the problem instead of finding why the mail is not arriving."
+    },
+    {
+      "text": "Turn off spam filtering for everyone",
+      "correct": false,
+      "why": "Exposes the whole company to spam and phishing to fix one sender."
+    },
+    {
+      "text": "Check Junk and the quarantine, run a message trace in the mail admin centre, check block lists and mail rules, and ask the sender for any bounce message",
+      "correct": true,
+      "why": "A message trace shows whether the mail arrived and what happened to it. Junk, quarantine, block lists and rules are the usual places it gets caught."
+    },
+    {
+      "text": "Reset her email password",
+      "correct": false,
+      "why": "Her password has nothing to do with incoming mail from one sender."
+    }
+  ],
+  "hints": [
+    "Did the emails reach the company at all?",
+    "Where can mail end up besides the inbox?",
+    "What can the sender tell you?"
+  ],
+  "real_world_tip": "Ask for the time each email was sent and the exact sender address. A message trace is much faster with those details.",
+  "reviewed": true
+}

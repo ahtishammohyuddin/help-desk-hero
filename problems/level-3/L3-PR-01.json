@@ -1,0 +1,43 @@
+{
+  "id": "L3-PR-01",
+  "level": 3,
+  "category": "Printers and scanners",
+  "title": "Print spooler keeps stopping",
+  "character": {
+    "name": "Nida",
+    "department": "Accounts",
+    "personality": "frustrated, busy",
+    "gender": "female"
+  },
+  "symptom": "Nothing prints from one PC and the Print Spooler service keeps stopping",
+  "user_description": "Nothing I send to the printer comes out. Imran says it's my PC because his prints fine. I've restarted twice and it worked for five minutes, then stopped again.",
+  "options": [
+    {
+      "text": "Reinstall Windows to fix the printing system",
+      "correct": false,
+      "why": "Far too drastic. The spooler can usually be fixed in a few minutes."
+    },
+    {
+      "text": "Stop the Print Spooler service, delete the stuck files in C:\\Windows\\System32\\spool\\PRINTERS, start the service again, and if it keeps stopping, update or remove the faulty printer driver",
+      "correct": true,
+      "why": "A corrupt stuck job can crash the spooler again and again. Clearing the queue folder removes it, and a bad driver is the other common cause."
+    },
+    {
+      "text": "Restart the PC every time it stops",
+      "correct": false,
+      "why": "Restarting only brings the spooler back until it meets the same stuck job or bad driver again."
+    },
+    {
+      "text": "Delete every printer for every user on the PC",
+      "correct": false,
+      "why": "Removes far more than needed and creates more work, while the stuck job may still be there."
+    }
+  ],
+  "hints": [
+    "What service handles printing in Windows?",
+    "Why might it crash again right after restarting?",
+    "Where does Windows keep jobs waiting to print?"
+  ],
+  "real_world_tip": "Check Event Viewer for spooler errors that name a driver. Updating that one driver often stops the crashes for good.",
+  "reviewed": true
+}

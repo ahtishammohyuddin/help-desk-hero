@@ -1,0 +1,43 @@
+{
+  "id": "L3-HW-02",
+  "level": 3,
+  "category": "Hardware",
+  "title": "Slow PC with disk health warnings",
+  "character": {
+    "name": "Ahmed",
+    "department": "Accounts",
+    "personality": "worried, careful",
+    "gender": "male"
+  },
+  "symptom": "PC has become very slow and shows warnings about the hard drive's health",
+  "user_description": "My PC takes ages to open anything now, and this morning a message popped up saying something about the disk and backing up. I have all my spreadsheets on it!",
+  "options": [
+    {
+      "text": "Back up his data first, then check the drive's health (SMART status in the manufacturer's tool or a SMART checker) and plan a replacement if it is failing",
+      "correct": true,
+      "why": "A drive warning means it may fail soon. Getting the data off comes first, then the health check confirms whether the drive needs replacing."
+    },
+    {
+      "text": "Defragment the drive several times to speed it up",
+      "correct": false,
+      "why": "Defragmenting puts heavy load on a drive that may be failing, and does nothing for a hardware fault."
+    },
+    {
+      "text": "Ignore the warning, since the PC still works",
+      "correct": false,
+      "why": "Drives that warn about their health can fail without more notice, and the data could be lost."
+    },
+    {
+      "text": "Run a disk repair first, before backing anything up",
+      "correct": false,
+      "why": "Repairs can stress a failing drive and sometimes make data harder to recover. Back up first."
+    }
+  ],
+  "hints": [
+    "What matters most if this drive stops working tomorrow?",
+    "Can a drive report its own health?",
+    "Will software tweaks fix a worn-out drive?"
+  ],
+  "real_world_tip": "SMART is the self-monitoring built into most drives. Treat a health warning as urgent: copy the data off today, then replace the drive.",
+  "reviewed": true
+}

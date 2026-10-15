@@ -1,0 +1,79 @@
+{
+  "id": "L3-SC-04",
+  "level": 3,
+  "category": "Security and phishing",
+  "title": "Antivirus alert on a user PC",
+  "character": {
+    "name": "Saima",
+    "department": "Reception",
+    "personality": "nervous, chatty",
+    "gender": "female"
+  },
+  "symptom": "The antivirus has shown a threat alert on a user's PC",
+  "user_description": "A red box popped up saying a threat was found in something I downloaded. It has a button that says Allow. The file is just a form from a website, can I click Allow?",
+  "options": [
+    {
+      "text": "Click Allow because she trusts the file",
+      "correct": false,
+      "why": "The antivirus flagged it for a reason. Allowing it could let malware run."
+    },
+    {
+      "text": "Turn off the antivirus to stop the pop-ups",
+      "correct": false,
+      "why": "Leaves the PC unprotected exactly when it may be under attack."
+    },
+    {
+      "text": "Ignore it since the antivirus probably dealt with it",
+      "correct": false,
+      "why": "You need to check whether it was really quarantined, and the security team needs to know."
+    },
+    {
+      "text": "Do not let her dismiss it. Read the alert: was the file quarantined or is it still active? If active or unclear, disconnect the PC from the network, then escalate",
+      "correct": true,
+      "why": "The alert details show how serious it is. Cutting the network contains anything still active, and the security team decides what happens next."
+    }
+  ],
+  "hints": [
+    "What does the alert itself tell you?",
+    "What if the threat is still active?",
+    "Who should know about threats found on company PCs?"
+  ],
+  "real_world_tip": "Take a photo of the alert before anything closes it. The exact threat name and file path help the security team a lot.",
+  "escalation": {
+    "team": "security",
+    "team_why": "Threats on company PCs are handled by the security team. They check whether it spread and whether others downloaded the same file.",
+    "details": [
+      {
+        "text": "The threat name shown in the alert",
+        "send": true,
+        "why": "Tells them what kind of malware it is."
+      },
+      {
+        "text": "The file path and the time of the alert",
+        "send": true,
+        "why": "Lets them find the file and the event in their tools."
+      },
+      {
+        "text": "Whether it was quarantined or is still active",
+        "send": true,
+        "why": "Shows how urgent it is."
+      },
+      {
+        "text": "What she was doing when it appeared (downloading a form from a website)",
+        "send": true,
+        "why": "Helps them find the source and warn others."
+      },
+      {
+        "text": "Her password, so they can sign in and check",
+        "send": false,
+        "why": "Never share passwords. The security team has its own access."
+      },
+      {
+        "text": "Her lunch break times",
+        "send": false,
+        "why": "Not related to the incident."
+      }
+    ]
+  },
+  "reviewed": true
+}

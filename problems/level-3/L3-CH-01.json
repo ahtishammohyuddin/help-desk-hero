@@ -1,0 +1,43 @@
+{
+  "id": "L3-CH-01",
+  "level": 3,
+  "category": "Customer handling",
+  "title": "VIP demands to skip the queue",
+  "character": {
+    "name": "Haroon",
+    "department": "Management",
+    "personality": "senior, impatient",
+    "gender": "male"
+  },
+  "symptom": "A senior manager wants their small issue fixed before everyone else's",
+  "user_description": "I'm the regional director. My second monitor is flickering and I need it fixed now, not after whoever else is in your queue.",
+  "options": [
+    {
+      "text": "Drop everyone else's urgent work and fix it immediately",
+      "correct": false,
+      "why": "Other tickets may affect whole teams. Priority should come from impact, not job title alone."
+    },
+    {
+      "text": "Tell him no and that he has to wait like everyone else",
+      "correct": false,
+      "why": "Being rude damages trust, and his issue may matter more than it seems."
+    },
+    {
+      "text": "Stay polite, check the real business impact, prioritise it if the company's policy or the impact justifies it, otherwise explain the queue honestly, give a time, and involve your lead if needed",
+      "correct": true,
+      "why": "This respects him and the other users. Many companies do have a VIP policy, so follow it, and let your lead decide on anything outside it."
+    },
+    {
+      "text": "Say yes, then work on it later anyway",
+      "correct": false,
+      "why": "A broken promise to a senior manager causes far more trouble than an honest answer."
+    }
+  ],
+  "hints": [
+    "What decides a ticket's priority?",
+    "Does your company have a rule for senior staff?",
+    "Who can help if you are unsure?"
+  ],
+  "real_world_tip": "Ask what he needs the monitor for right now. A meeting in ten minutes is real business impact, and a quick swap may solve it.",
+  "reviewed": true
+}

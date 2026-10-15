@@ -1,0 +1,43 @@
+{
+  "id": "L3-AC-02",
+  "level": 3,
+  "category": "Accounts and passwords",
+  "title": "Offboarding a leaver",
+  "character": {
+    "name": "Sana",
+    "department": "HR",
+    "personality": "organised, direct",
+    "gender": "female"
+  },
+  "symptom": "HR asks IT to remove access for an employee who is leaving today",
+  "user_description": "Kamran from Sales leaves today at 5. His manager wants his emails and files looked after. What do you need from me to close everything off properly?",
+  "options": [
+    {
+      "text": "Delete his account as soon as he leaves",
+      "correct": false,
+      "why": "Deleting straight away can lose his mailbox and files before the manager has what they need."
+    },
+    {
+      "text": "Leave his account active for a month in case he needs anything",
+      "correct": false,
+      "why": "An active account for someone who has left is a security risk."
+    },
+    {
+      "text": "Give his password to his manager so they can check his email",
+      "correct": false,
+      "why": "Never share passwords. Access to a leaver's mail is given properly, with approval."
+    },
+    {
+      "text": "Follow the offboarding checklist once HR confirms: disable the account (do not delete yet), reset the password, revoke sessions and MFA, remove group access, handle the mailbox as the manager approves, collect devices and hand over file ownership",
+      "correct": true,
+      "why": "Disabling stops access straight away while keeping the data. The checklist makes sure nothing is missed, from devices to shared files."
+    }
+  ],
+  "hints": [
+    "What is the risk of an account staying active?",
+    "Why might deleting it right away be a problem?",
+    "Who decides what happens to his email and files?"
+  ],
+  "real_world_tip": "Offboarding usually happens at the end of the leaver's last day. Many companies keep the disabled account for a set time before deleting it.",
+  "reviewed": true
+}

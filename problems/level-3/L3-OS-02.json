@@ -1,0 +1,43 @@
+{
+  "id": "L3-OS-02",
+  "level": 3,
+  "category": "Windows and OS",
+  "title": "Corrupted system files",
+  "character": {
+    "name": "Farah",
+    "department": "Finance",
+    "personality": "polite, stressed",
+    "gender": "female"
+  },
+  "symptom": "Windows features fail with odd errors that suggest damaged system files",
+  "user_description": "The Start menu won't open half the time and Settings closes on its own. Someone said my Windows files might be corrupt. Can you fix it without wiping everything?",
+  "options": [
+    {
+      "text": "Reinstall Microsoft Office",
+      "correct": false,
+      "why": "Office is not the problem. The errors are in Windows itself."
+    },
+    {
+      "text": "Delete the damaged-looking files from System32",
+      "correct": false,
+      "why": "Deleting system files can stop Windows starting at all."
+    },
+    {
+      "text": "Run a registry cleaner",
+      "correct": false,
+      "why": "Registry cleaners do not repair system files and can cause new problems."
+    },
+    {
+      "text": "In an admin Command Prompt, run DISM /Online /Cleanup-Image /RestoreHealth, then sfc /scannow, then restart",
+      "correct": true,
+      "why": "DISM repairs the Windows image that SFC uses as its source, then SFC checks and replaces damaged system files."
+    }
+  ],
+  "hints": [
+    "Does Windows have built-in tools to check its own files?",
+    "Do these tools need extra permissions?",
+    "Why might the order of the two tools matter?"
+  ],
+  "real_world_tip": "SFC writes a log you can check if it says it could not fix everything. Restart after the scans finish before you test again.",
+  "reviewed": true
+}

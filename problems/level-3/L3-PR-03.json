@@ -1,0 +1,43 @@
+{
+  "id": "L3-PR-03",
+  "level": 3,
+  "category": "Printers and scanners",
+  "title": "Printer lost its IP address",
+  "character": {
+    "name": "Saima",
+    "department": "Reception",
+    "personality": "friendly, chatty",
+    "gender": "female"
+  },
+  "symptom": "A network printer that worked yesterday now shows offline for everyone",
+  "user_description": "The reception printer is offline for everyone today. It's switched on and the screen looks normal. Did someone change something over the weekend?",
+  "options": [
+    {
+      "text": "Reinstall the printer driver on every PC",
+      "correct": false,
+      "why": "The drivers are fine. Every PC is looking for the printer at an address it no longer has."
+    },
+    {
+      "text": "Buy a new printer",
+      "correct": false,
+      "why": "The printer works. It has just moved to a different address on the network."
+    },
+    {
+      "text": "Print a configuration page from the printer's own panel to see its current IP, then give it a reserved or static address outside the DHCP range and update the printer port on the print queue",
+      "correct": true,
+      "why": "If the printer got a new address from DHCP, the PCs are sending jobs to the old one. A fixed address stops it changing again."
+    },
+    {
+      "text": "Connect every PC to the printer with a USB cable",
+      "correct": false,
+      "why": "Not practical for a shared printer, and it does not fix the network setup."
+    }
+  ],
+  "hints": [
+    "Is the printer broken, or just hard to find?",
+    "How can the printer tell you its own address?",
+    "How can you stop the address changing again?"
+  ],
+  "real_world_tip": "Printers and other shared devices should always have a fixed address, either a DHCP reservation or a static IP outside the range DHCP hands out.",
+  "reviewed": true
+}

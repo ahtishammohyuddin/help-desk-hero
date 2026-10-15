@@ -1,0 +1,43 @@
+{
+  "id": "L3-SV-02",
+  "level": 3,
+  "category": "Servers, backups, Active Directory",
+  "title": "Mapped drive access denied",
+  "character": {
+    "name": "Nida",
+    "department": "Accounts",
+    "personality": "patient, puzzled",
+    "gender": "female"
+  },
+  "symptom": "User gets access denied on a mapped drive right after being added to a group",
+  "user_description": "IT added me to the Payroll group an hour ago, but the P: drive still says access denied. Did it not work?",
+  "options": [
+    {
+      "text": "Give her full control on the server folder directly",
+      "correct": false,
+      "why": "Bypasses the group setup and gives more access than intended."
+    },
+    {
+      "text": "Remove and remap the drive over and over",
+      "correct": false,
+      "why": "The mapping is fine. Her sign-in has not picked up the new group yet."
+    },
+    {
+      "text": "Reset her password",
+      "correct": false,
+      "why": "Her password is not the problem, and a reset causes extra disruption."
+    },
+    {
+      "text": "Check she is really in the group, then ask her to sign out and back in (or restart), because new group membership usually only takes effect at sign-in, then test again",
+      "correct": true,
+      "why": "Windows reads a user's groups when they sign in. Until she signs in again, her session still has the old list."
+    }
+  ],
+  "hints": [
+    "When does Windows read which groups a user is in?",
+    "Has anything changed since she last signed in?",
+    "How can you confirm the group change was made?"
+  ],
+  "real_world_tip": "Running whoami /groups in a Command Prompt shows the groups the current session knows about. If the new group is missing, she needs to sign in again.",
+  "reviewed": true
+}

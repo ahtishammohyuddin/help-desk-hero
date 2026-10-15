@@ -1,0 +1,43 @@
+{
+  "id": "L3-AC-03",
+  "level": 3,
+  "category": "Accounts and passwords",
+  "title": "Shared folder permissions wrong",
+  "character": {
+    "name": "Imran",
+    "department": "Sales",
+    "personality": "impatient, friendly",
+    "gender": "male"
+  },
+  "symptom": "User cannot open a team folder on the file server they should have access to",
+  "user_description": "I moved to the Key Accounts team last week but I still can't open their folder on the shared drive. My manager already said yes by email. Can you just give me access?",
+  "options": [
+    {
+      "text": "Give Everyone full control of the folder",
+      "correct": false,
+      "why": "Lets every user change or delete the team's files. Far too much access."
+    },
+    {
+      "text": "Add him to the folder directly with full control",
+      "correct": false,
+      "why": "Individual permissions are hard to manage, and full control is more than he needs."
+    },
+    {
+      "text": "With the owner's approval, add him to the team's security group with the least access needed, and check both the share and NTFS permissions",
+      "correct": true,
+      "why": "Groups keep access tidy and easy to remove later. When share and NTFS permissions both apply, the stricter one wins, so both must allow access."
+    },
+    {
+      "text": "Make him a local administrator on his PC",
+      "correct": false,
+      "why": "Admin rights on his PC do not give access to a folder on the server, and add risk."
+    }
+  ],
+  "hints": [
+    "Who should approve access to a team's folder?",
+    "Is it better to give access to a person or to a group?",
+    "Which permissions apply on a network folder?"
+  ],
+  "real_world_tip": "Keep the manager's approval with the ticket. Group-based access also makes it easy to remove when he moves teams again.",
+  "reviewed": true
+}

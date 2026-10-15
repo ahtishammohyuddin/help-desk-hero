@@ -7,10 +7,11 @@
 - **Phase 6:** random events, AI coach (with a no-AI fallback), daily challenge.
 
 ## Now: Level 3
-- [x] Level 3, batch 1 (12 problems), awaiting review (`reviewed: false`)
+- [x] Level 3, batch 1 (12 problems, reviewed)
+- [x] Level 3, batch 2 (12 problems), awaiting review (`reviewed: false`)
 - [x] Escalation form: pick the right team and the right details to send (answers fixed in reviewed JSON)
 - [x] Repair bench in the IT room: carry the PC there and replace faulty RAM (for L3-HW-01)
-- [ ] More Level 3 problems (47 planned in `title_list.md`)
+- [ ] More Level 3 problems (23 of the 47 planned in `title_list.md` still to write)
 
 ## Phase 7: make it look and feel like a real game
 - [ ] Game logo

@@ -1,0 +1,74 @@
+{
+  "id": "L3-NW-06",
+  "level": 3,
+  "category": "Networking and Wi-Fi",
+  "title": "Switch port shut down by port security",
+  "character": {
+    "name": "Usman",
+    "department": "Operations",
+    "personality": "sheepish, practical",
+    "gender": "male"
+  },
+  "symptom": "A desk lost its network after the user plugged in a small personal switch",
+  "user_description": "I brought a little network switch from home so I could plug in my laptop and the PC at the same time. Now neither works and the wall port seems dead.",
+  "options": [
+    {
+      "text": "Keep trying the other wall ports until one works",
+      "correct": false,
+      "why": "The same rule will shut those ports too, and the cause is still plugged in."
+    },
+    {
+      "text": "Plug his switch into a different port instead",
+      "correct": false,
+      "why": "Personal network devices are not allowed and would just trigger the same protection."
+    },
+    {
+      "text": "Unplug the switch in the server room to reset it",
+      "correct": false,
+      "why": "Cuts off everyone connected to it and does not undo the port shutdown."
+    },
+    {
+      "text": "Remove the personal switch, explain the rule, and escalate to the network team so they can re-enable the port",
+      "correct": true,
+      "why": "Port security shuts a port when unknown devices appear on it. The device must go, and only the network team can turn the port back on."
+    }
+  ],
+  "hints": [
+    "What changed at this desk just before it stopped?",
+    "Why might a company block extra devices on a port?",
+    "Who can turn a shut-down switch port back on?"
+  ],
+  "real_world_tip": "If he needs two devices at the desk, raise a request for a second port or a dock. Never let users add their own network gear.",
+  "escalation": {
+    "team": "network",
+    "team_why": "The switch is run by the network team. Only they can check the port and switch it back on.",
+    "details": [
+      {
+        "text": "The desk and wall port number",
+        "send": true,
+        "why": "Tells them exactly which switch port to check."
+      },
+      {
+        "text": "What was plugged in (a small personal network switch)",
+        "send": true,
+        "why": "Explains why the port shut down, so they know it was not a fault."
+      },
+      {
+        "text": "When the network stopped",
+        "send": true,
+        "why": "Helps them find the event in the switch logs."
+      },
+      {
+        "text": "That the personal switch has been removed",
+        "send": true,
+        "why": "They should only re-enable the port once the cause is gone."
+      },
+      {
+        "text": "Ask them to turn off port security for this desk",
+        "send": false,
+        "why": "Port security protects the network. Turning it off for convenience would leave a gap."
+      }
+    ]
+  },
+  "reviewed": true
+}

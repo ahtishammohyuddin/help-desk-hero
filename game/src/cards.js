@@ -281,3 +281,47 @@ export async function drawCertificate(data) {
   text(ctx, DISCLAIMER, cx, 1030, { size: 26, weight: 700, color: C.muted, align: 'center' });
   return canvas.toDataURL('image/png');
 }
+
+// ---------- daily challenge card: 1200 x 627 ----------
+
+/**
+ * data: { dateLabel, correct, total, seconds, marks: [true/false], streak }
+ * Squares show right and wrong without giving any answer away. Returns a PNG data URL.
+ */
+export async function drawDailyCard(data) {
+  await fontsReady();
+  const W = 1200;
+  const H = 627;
+  const canvas = document.createElement('canvas');
+  canvas.width = W;
+  canvas.height = H;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#1f2a37';
+  ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = '#2b3a4d';
+  ctx.beginPath();
+  ctx.arc(W - 120, 110, 220, 0, Math.PI * 2);
+  ctx.fill();
+
+  logoMark(ctx, 72, 64, 56);
+  text(ctx, 'HELP DESK HERO', 144, 102, { size: 22, weight: 700, color: '#8fb4ff' });
+  text(ctx, 'Daily challenge', 72, 200, { size: 60, weight: 700, color: '#ffffff' });
+  text(ctx, data.dateLabel, 72, 248, { size: 28, color: '#c3cfdb' });
+
+  // one square per ticket
+  const size = 110;
+  const gap = 22;
+  const startX = 72;
+  data.marks.forEach((ok, i) => {
+    ctx.fillStyle = ok ? '#1f9d55' : '#d93b40';
+    roundRect(ctx, startX + i * (size + gap), 300, size, size, 18);
+    ctx.fill();
+    text(ctx, ok ? '✓' : '✕', startX + i * (size + gap) + size / 2, 300 + size / 2 + 22, { size: 60, weight: 700, color: '#ffffff', align: 'center' });
+  });
+
+  text(ctx, `${data.correct}/${data.total}`, 72, 520, { size: 72, weight: 700, color: '#ffffff' });
+  text(ctx, `right in ${clockTime(data.seconds)}`, 250, 520, { size: 34, color: '#c3cfdb' });
+  if (data.streak > 1) text(ctx, `${data.streak} days in a row`, W - 72, 520, { size: 34, weight: 700, color: '#ffd43b', align: 'right' });
+  text(ctx, 'A 3D browser game that teaches real IT support skills', 72, H - 40, { size: 24, color: '#8a97a5' });
+  return canvas.toDataURL('image/png');
+}

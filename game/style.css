@@ -476,3 +476,31 @@ kbd {
 .station .part:hover .hit, .station .part:focus-visible .hit { fill: rgba(47, 111, 235, 0.18); stroke: var(--blue); stroke-width: 2.5; stroke-dasharray: none; animation: none; }
 @keyframes part-glow { 50% { stroke-opacity: 0.25; fill-opacity: 0.03; } }
 @media (prefers-reduced-motion: reduce) { .station .part .hit { animation: none; } }
+
+/* ---------- end-of-shift coach ---------- */
+.coach { display: flex; gap: 12px; align-items: flex-start; margin: 0 0 16px; padding: 14px 16px; border-radius: 14px; background: linear-gradient(135deg, #eef4ff, #f6f0ff); box-shadow: inset 0 0 0 1px #dfe6fb; }
+.coach-face { flex: none; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: #fff; font-size: 24px; box-shadow: var(--shadow); }
+.coach b { font-size: 15px; }
+.coach p { margin: 4px 0 6px; font-size: 16px; line-height: 1.5; }
+.coach.loading p { color: var(--muted); }
+.coach-tips { margin: 0 0 6px; padding-left: 18px; font-size: 14px; line-height: 1.5; }
+.coach-tips li { margin-bottom: 4px; }
+
+/* ---------- daily challenge ---------- */
+.daily-pill { background: #fff3cc; }
+.daily-pill:hover { background: #ffe58a; color: var(--ink); }
+.daily-rules { margin: 0 0 16px; padding: 0; list-style: none; display: grid; gap: 8px; }
+.daily-rules li { padding: 10px 14px; border-radius: 12px; background: var(--wash); font-size: 15px; }
+.daily-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.daily-dots { display: flex; gap: 6px; }
+.dd { width: 14px; height: 14px; border-radius: 4px; background: var(--line); }
+.dd.now { background: var(--blue); }
+.dd.ok { background: var(--good); }
+.dd.bad { background: var(--bad); }
+.daily-head { position: static !important; margin: 0 0 12px !important; padding: 0 !important; }
+.daily-score { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; margin: 6px 0 16px; font-size: 20px; }
+.daily-squares { display: flex; gap: 8px; }
+.dsq { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 10px; color: #fff; font-weight: 700; font-size: 20px; }
+.dsq.ok { background: var(--good); }
+.dsq.bad { background: var(--bad); }
+.stat-row.three { grid-template-columns: repeat(3, 1fr); }

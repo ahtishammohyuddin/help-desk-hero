@@ -51,6 +51,24 @@ export function recordTopic(topics, category, outcome) {
 }
 
 /**
+ * What the end-of-shift coach is told: numbers, topic names and missed problem ids only.
+ * missed: problems answered wrong or on the second try, so tips can come from them.
+ */
+export function coachRequest(summary, records) {
+  const missed = [...new Set(records.filter((r) => r.outcome !== 'first' && r.problemId).map((r) => r.problemId))].slice(0, 20);
+  return {
+    handled: summary.handled,
+    solved: summary.solved,
+    first_try: summary.firstTry,
+    failed: summary.failed,
+    overdue: summary.overdue,
+    left_open: Math.min(summary.leftOpen, 50),
+    topics: Object.entries(summary.byCategory).map(([category, c]) => ({ category, total: c.total, first_try: c.firstTry })),
+    missed,
+  };
+}
+
+/**
  * Summary of one shift for the end-of-shift report.
  * records: finished tickets { category, outcome, overdue, seconds, xp }
  * leftOpen: how many tickets were still open when the shift ended

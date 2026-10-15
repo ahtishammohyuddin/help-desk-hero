@@ -162,3 +162,41 @@ class SeniorResponse(BaseModel):
     problem_id: str
     answer: str
     source: Source
+
+
+# ---------- the end-of-shift coach ----------
+# The game sends only numbers, topic names and problem ids: no names or personal data.
+
+class TopicStat(BaseModel):
+    category: str = Field(max_length=60)  # checked against the known categories
+    total: int = Field(ge=0, le=200)
+    first_try: int = Field(ge=0, le=200)
+
+
+class CoachRequest(BaseModel):
+    handled: int = Field(ge=0, le=200)
+    solved: int = Field(ge=0, le=200)
+    first_try: int = Field(ge=0, le=200)
+    failed: int = Field(ge=0, le=200)
+    overdue: int = Field(ge=0, le=200)
+    left_open: int = Field(ge=0, le=50)
+    topics: list[TopicStat] = Field(default_factory=list, max_length=20)
+    missed: list[str] = Field(default_factory=list, max_length=20)  # problems answered wrong or on the second try
+
+
+class DailyChallenge(BaseModel):
+    """Today's challenge: the same problems for everyone on that date, without answers."""
+
+    date: str
+    problems: list[ProblemPublic]
+
+
+class CoachTip(BaseModel):
+    problem_title: str
+    tip: str
+
+
+class CoachResponse(BaseModel):
+    message: str
+    tips: list[CoachTip]
+    source: Source

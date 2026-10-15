@@ -72,3 +72,23 @@ test('an empty shift has no averages or topics', () => {
   assert.equal(s.practise, null);
   assert.equal(s.leftOpen, 1);
 });
+
+test('the coach is sent numbers, topics and missed problem ids only', async () => {
+  const { coachRequest } = await import('../src/shift.js');
+  const records = [
+    R('Hardware', 'first', { problemId: 'L1-HW-01' }),
+    R('Hardware', 'second', { problemId: 'L1-HW-02' }),
+    R('Printers and scanners', 'failed', { problemId: 'L1-PR-01' }),
+    R('Printers and scanners', 'failed', { problemId: 'L1-PR-01' }),
+  ];
+  const body = coachRequest(summarizeShift(records, 1), records);
+  assert.deepEqual(body.missed, ['L1-HW-02', 'L1-PR-01']);
+  assert.equal(body.handled, 4);
+  assert.equal(body.first_try, 1);
+  assert.equal(body.left_open, 1);
+  assert.deepEqual(body.topics, [
+    { category: 'Hardware', total: 2, first_try: 1 },
+    { category: 'Printers and scanners', total: 2, first_try: 0 },
+  ]);
+  assert.deepEqual(Object.keys(body).sort(), ['failed', 'first_try', 'handled', 'left_open', 'missed', 'overdue', 'solved', 'topics']);
+});

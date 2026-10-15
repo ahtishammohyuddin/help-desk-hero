@@ -527,6 +527,7 @@ export function showReport(summary, { shiftNumber, rankBefore, rankAfter, badges
   $('report-card').innerHTML = `
     <h1 id="report-title">Shift ${shiftNumber} is over</h1>
     <p class="lead">It's 5 PM. Here is how your day at the help desk went.</p>
+    <section id="coach" class="coach loading" aria-live="polite"><span class="coach-face" aria-hidden="true">🧑‍🔧</span><div><b>Senior tech</b><p>Writing you a note about today<span class="dots"></span></p></div></section>
     ${body}
     ${eventList}
     <div class="report-actions">
@@ -645,6 +646,106 @@ export function showShare({ title, lead, imageUrl, fileName, text = '' }) {
 export function hideShare() {
   $('share').hidden = true;
   $('share-card').innerHTML = '';
+}
+
+// ---------- daily challenge ----------
+
+function dailyShow(html) {
+  $('daily-card').innerHTML = html;
+  $('daily').hidden = false;
+  $('daily-card').scrollTop = 0;
+  setTimeout(() => $('daily-card').querySelector('.btn.big')?.focus({ preventScroll: true }), 0);
+}
+
+export function hideDaily() {
+  $('daily').hidden = true;
+}
+
+export function showDailyIntro({ dateLabel, streak }) {
+  dailyShow(`
+    <h1 id="daily-title">📅 Daily challenge</h1>
+    <p class="lead">${esc(dateLabel)}. Everyone gets the same 5 tickets today.</p>
+    <ul class="daily-rules">
+      <li><b>5 tickets</b>, one try each</li>
+      <li><b>The clock</b> runs while you choose</li>
+      <li><b>One go per day</b>, so take your time to read</li>
+    </ul>
+    ${streak > 0 ? `<p class="callout good">🔥 ${streak} day${streak === 1 ? '' : 's'} in a row. Play today to keep it going.</p>` : ''}
+    <div class="report-actions">
+      <button class="link-btn" data-action="daily-close">Not now</button>
+      <button class="btn big" data-action="daily-start">Start</button>
+    </div>`);
+}
+
+export function showDailyLoading(message = 'Getting today\'s tickets') {
+  dailyShow(`<h1 id="daily-title">📅 Daily challenge</h1><p class="lead">${esc(message)}<span class="dots"></span></p>
+    <div class="report-actions"><button class="btn ghost" data-action="daily-close">Close</button></div>`);
+}
+
+/** state: { problems, index, marks, feedback: null | { correct, chosenWhy, rightText, rightWhy } } */
+export function showDailyQuestion(state) {
+  const p = state.problems[state.index];
+  const dots = state.problems.map((_, i) => {
+    const cls = i < state.marks.length ? (state.marks[i] ? 'ok' : 'bad') : i === state.index ? 'now' : '';
+    return `<span class="dd ${cls}"></span>`;
+  }).join('');
+  const f = state.feedback;
+  const options = p.options.map((o, i) => `<button class="opt" data-daily-option="${o.id}" ${f || state.answering ? 'disabled' : ''}>
+      <span class="num">${i + 1}</span><span>${esc(o.text)}</span></button>`).join('');
+  const feedback = f
+    ? `<div class="banner ${f.correct ? 'good' : 'bad'}"><span class="icon">${f.correct ? '✓' : '✕'}</span><div><b>${f.correct ? 'Right!' : 'Not this time.'}</b></div></div>
+       ${f.correct ? '' : `<div class="expl bad"><div class="expl-t">Why not</div><p>${esc(f.chosenWhy)}</p></div>`}
+       <div class="expl good"><div class="expl-t">The right fix: ${esc(f.rightText)}</div><p>${esc(f.rightWhy)}</p></div>`
+    : '';
+  const last = state.index === state.problems.length - 1;
+  dailyShow(`
+    <div class="daily-top"><span class="small">Ticket ${state.index + 1} of ${state.problems.length}</span><span class="daily-dots">${dots}</span></div>
+    <div class="tp-head daily-head">
+      <span class="avatar big" style="--c:#5b6b7c" aria-hidden="true">${esc(p.character.name[0])}</span>
+      <div class="tp-who"><div class="tp-name">${esc(p.character.name)}</div><div class="small">${esc(p.character.department)}, ${esc(p.category)}</div></div>
+    </div>
+    <div class="bubble">${esc(p.user_description)}</div>
+    ${f ? feedback : `<h3 class="ask">What would you do first?</h3><div class="opts">${options}</div>`}
+    ${state.error ? '<p class="notice bad">That answer did not reach the server. Pick it again.</p>' : ''}
+    <div class="report-actions">
+      ${f ? `<button class="btn big" data-action="daily-next">${last ? 'See my score' : 'Next ticket'}</button>` : ''}
+    </div>`);
+}
+
+export function showDailyDone({ dateLabel, result, streak, best, wait }) {
+  const squares = result.marks.map((ok) => `<span class="dsq ${ok ? 'ok' : 'bad'}">${ok ? '✓' : '✕'}</span>`).join('');
+  const m = Math.floor(result.seconds / 60);
+  const s = String(Math.round(result.seconds) % 60).padStart(2, '0');
+  dailyShow(`
+    <h1 id="daily-title">📅 ${esc(dateLabel)}</h1>
+    <div class="daily-score"><div class="daily-squares">${squares}</div>
+      <div><b>${result.correct}/${result.total}</b> right in <b>${m}:${s}</b></div></div>
+    <div class="stat-row three">
+      <div class="stat"><b>🔥 ${streak}</b><span>day${streak === 1 ? '' : 's'} in a row</span></div>
+      <div class="stat"><b>${best}</b><span>best streak</span></div>
+      <div class="stat"><b>${wait}</b><span>until the next challenge</span></div>
+    </div>
+    <div class="report-actions">
+      <button class="btn ghost" data-action="daily-close">Back to work</button>
+      <button class="btn big" data-action="daily-share">Share my score</button>
+    </div>`);
+}
+
+/** Fill in the senior tech's note on the shift report (null hides it if the server could not be reached). */
+export function setCoach(note) {
+  const el = $('coach');
+  if (!el) return;
+  if (!note) {
+    el.remove();
+    return;
+  }
+  el.classList.remove('loading');
+  const tips = note.tips.length
+    ? `<ul class="coach-tips">${note.tips.map((t) => `<li><b>${esc(t.problem_title)}:</b> ${esc(t.tip)}</li>`).join('')}</ul>`
+    : '';
+  const by = note.source === 'fallback' ? 'Written from your shift numbers.' : 'Worded by AI from your shift numbers and the ticket notes.';
+  el.innerHTML = `<span class="coach-face" aria-hidden="true">🧑‍🔧</span>
+    <div><b>Senior tech</b><p>${esc(note.message)}</p>${tips}<span class="small">${by}</span></div>`;
 }
 
 /** The banner for events that are running now: [{ id, left }]. */

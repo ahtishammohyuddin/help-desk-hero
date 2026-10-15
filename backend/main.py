@@ -19,8 +19,10 @@ Settings (environment variables, all optional):
 
 from __future__ import annotations
 
+import hashlib
 import os
 import random
+from datetime import date as Date
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Path as PathParam, Query, Request
@@ -48,7 +50,28 @@ from backend.schemas import (
     RephraseResponse,
     SeniorRequest,
     SeniorResponse,
+    CoachRequest,
+    CoachResponse,
+    CoachTip,
+    DailyChallenge,
 )
+from backend.ai_service import coach_facts
+from tools.validate_problems import CATEGORIES
+
+MAX_COACH_TIPS = 2
+DAILY_COUNT = 5
+DAILY_MAX_LEVEL = 2  # the daily challenge is for everyone, so it stays at levels 1 and 2
+
+
+def daily_problem_ids(problems: list[dict], day: str, count: int = DAILY_COUNT) -> list[str]:
+    """Pick the day's problems: the same for everyone on that date, different each day.
+
+    Each eligible problem gets a score from a hash of (date, id); the lowest scores win.
+    Only reviewed question tickets (not hands-on) at the daily levels are used.
+    """
+    eligible = [p["id"] for p in problems if "hands_on" not in p and p["level"] <= DAILY_MAX_LEVEL]
+    ranked = sorted(eligible, key=lambda pid: hashlib.sha256(f"{day}|{pid}".encode()).hexdigest())
+    return ranked[:count]
 
 DEFAULT_PROBLEMS_DIR = Path(__file__).resolve().parent.parent / "problems"
 DEFAULT_MODEL = "gemini-3.5-flash-lite"
@@ -134,7 +157,20 @@ def create_app(problems_dir: Path | None = None, ai_client: object = FROM_ENV) -
 
     @app.get("/problems/{problem_id}", response_model=ProblemPublic)
     def get_problem(request: Request, problem_id: str) -> ProblemPublic:
-        problem = find_or_404(request, problem_id)
+        return public_problem(find_or_404(request, problem_id))
+
+    @app.get("/daily/{day}", response_model=DailyChallenge)
+    def daily(request: Request, day: str = PathParam(..., pattern=r"^\d{4}-\d{2}-\d{2}$")) -> DailyChallenge:
+        """The daily challenge for a date (the player's own local date, YYYY-MM-DD)."""
+        try:
+            Date.fromisoformat(day)
+        except ValueError:
+            raise HTTPException(status_code=422, detail="Not a real date") from None
+        store = store_of(request)
+        ids = daily_problem_ids(store.list(), day)
+        return DailyChallenge(date=day, problems=[public_problem(store.get(pid)) for pid in ids])
+
+    def public_problem(problem: dict) -> ProblemPublic:
         # Shuffle so the correct answer is not always in the same place.
         # Each option keeps its original id so answers can still be checked.
         indexed = list(enumerate(problem["options"]))
@@ -264,6 +300,34 @@ def create_app(problems_dir: Path | None = None, ai_client: object = FROM_ENV) -
         problem = find_or_404(request, problem_id)
         text, source = request.app.state.ai.rephrase(problem, _client_id(request))
         return RephraseResponse(problem_id=problem["id"], user_description=text, source=source)
+
+    @app.post("/coach", response_model=CoachResponse)
+    def coach(request: Request, body: CoachRequest) -> CoachResponse:
+        """A short end-of-shift note. Facts are worked out here; the AI only words them,
+        and any advice comes from real-world tips in reviewed problems the player missed."""
+        for topic in body.topics:
+            if topic.category not in CATEGORIES:
+                raise HTTPException(status_code=422, detail="Unknown category")
+            if topic.first_try > topic.total:
+                raise HTTPException(status_code=422, detail="first_try cannot exceed total")
+        stats = body.model_dump()
+        facts = coach_facts(stats)
+
+        store = store_of(request)
+        tips: list[dict] = []
+        seen: set[str] = set()
+        candidates = [store.get(pid) for pid in body.missed]  # unknown or unreviewed ids give None
+        if facts["weakest"]:  # then a tip from the topic to practise
+            candidates += sorted(store.list(category=facts["weakest"]["category"]), key=lambda p: p["id"])
+        for problem in candidates:
+            if problem and problem.get("real_world_tip") and problem["id"] not in seen:
+                seen.add(problem["id"])
+                tips.append({"problem_title": problem["title"], "tip": problem["real_world_tip"]})
+            if len(tips) >= MAX_COACH_TIPS:
+                break
+
+        message, source = request.app.state.ai.coach(facts, tips, _client_id(request))
+        return CoachResponse(message=message, tips=[CoachTip(**t) for t in tips], source=source)
 
     @app.post("/problems/{problem_id}/ask", response_model=SeniorResponse)
     def ask_senior(request: Request, problem_id: str, body: SeniorRequest) -> SeniorResponse:

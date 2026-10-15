@@ -17,11 +17,14 @@ import { BOUNDS, buildOffice, PLAYER_START } from './office.js';
 import { makeAlertMarker } from './people.js';
 import { createPlayer } from './player.js';
 import { ACHIEVEMENTS, award, newlyEarned } from './achievements.js';
-import { cleanName, drawCertificate, drawResultCard, postText } from './cards.js';
+import { cleanName, drawCertificate, drawDailyCard, drawResultCard, postText } from './cards.js';
+import {
+  currentStreak, DAILY_XP_PER_RIGHT, dailyPostText, dateKey, dayLabel, emptyDaily, playedOn, recordDaily, untilTomorrow,
+} from './daily.js';
 import { confetti } from './confetti.js';
 import { effectsAt, EVENTS, eventsStarting, planEvents, runningEvents, VIP_XP } from './events.js';
 import { sound } from './sound.js';
-import { clockFor, recordTopic, SHIFT_SECONDS, summarizeShift, topicStatus } from './shift.js';
+import { clockFor, coachRequest, recordTopic, SHIFT_SECONDS, summarizeShift, topicStatus } from './shift.js';
 import { maxLevelFor, PRIORITIES, RANKS, rankFor, streakMultiplier, TicketQueue, xpFor } from './tickets.js';
 import * as ui from './ui.js';
 
@@ -257,8 +260,9 @@ function start() {
   let reportOpen = false;
   let progressOpen = false;
   let shareOpen = false;
+  let dailyOpen = false;
   let lastReport = null; // the most recent shift report, for the share card
-  const overlayOpen = () => helpOpen || reportOpen || progressOpen || shareOpen; // pauses the shift and the player
+  const overlayOpen = () => helpOpen || reportOpen || progressOpen || shareOpen || dailyOpen; // pauses the shift and the player
 
   // Badges already earned before badges existed (or on another version) are given quietly.
   const backfill = newlyEarned(progress, { type: 'load' });
@@ -490,6 +494,7 @@ function start() {
     const outcome = !result.is_correct ? 'failed' : result.attempt === 1 ? 'first' : 'second';
     progress.topics = recordTopic(progress.topics, ticket.category, outcome);
     shift.records.push({
+      problemId: ticket.problemId,
       category: ticket.category,
       outcome,
       overdue: ticket.secondsLeft <= 0,
@@ -524,6 +529,11 @@ function start() {
   }
 
   async function chooseOption(index) {
+    if (dailyOpen) {
+      const option = daily && !daily.feedback ? daily.problems[daily.index].options[index] : null;
+      if (option) answerDaily(option.id);
+      return;
+    }
     if (!activeTicket) return;
     const detail = details.get(activeTicket.number);
     if (detail?.sim) {
@@ -839,7 +849,150 @@ function start() {
       badges: shift.badges,
       events: shift.eventLog,
     });
+    // The senior tech's note: worked out from the numbers, worded by the AI when it is available.
+    const shown = shift.number;
+    api.coach(coachRequest(summary, shift.records))
+      .then((note) => { if (reportOpen && shift.number === shown) ui.setCoach(note); })
+      .catch(() => ui.setCoach(null));
   }
+
+  // ---------- daily challenge ----------
+  const DAILY_KEY = 'hdh-daily';
+  let dailyRecord = (() => {
+    try {
+      return { ...emptyDaily(), ...JSON.parse(localStorage.getItem(DAILY_KEY)) };
+    } catch {
+      return emptyDaily();
+    }
+  })();
+  let daily = null; // the run in progress: { key, problems, index, marks, feedback, seconds, shownAt, answering }
+
+  function openDaily() {
+    if (reportOpen || helpOpen) return;
+    if (talkingTo) closeConversation();
+    if (stationKind) closeSwitch();
+    dailyOpen = true;
+    const key = dateKey();
+    if (playedOn(dailyRecord, key)) return showDailyDone(key);
+    ui.showDailyIntro({ dateLabel: dayLabel(key), streak: currentStreak(dailyRecord, key) });
+  }
+
+  function showDailyDone(key) {
+    ui.showDailyDone({
+      dateLabel: dayLabel(key),
+      result: dailyRecord.results[key],
+      streak: currentStreak(dailyRecord, key),
+      best: dailyRecord.best,
+      wait: untilTomorrow(),
+    });
+  }
+
+  async function startDaily() {
+    const key = dateKey();
+    if (playedOn(dailyRecord, key)) return showDailyDone(key);
+    ui.showDailyLoading();
+    try {
+      const data = await api.daily(key);
+      if (!dailyOpen) return;
+      if (!data.problems.length) return ui.showDailyLoading('No tickets are ready for the daily challenge yet.');
+      daily = { key, problems: data.problems, index: 0, marks: [], feedback: null, seconds: 0, shownAt: performance.now(), answering: false };
+      ui.showDailyQuestion(daily);
+    } catch {
+      ui.showDailyLoading('Could not reach the help desk server. Check the backend is running, then try again.');
+    }
+  }
+
+  async function answerDaily(optionId) {
+    if (!daily || daily.feedback || daily.answering) return;
+    const problem = daily.problems[daily.index];
+    daily.answering = true;
+    daily.error = false;
+    const thinking = (performance.now() - daily.shownAt) / 1000; // only time spent choosing counts
+    try {
+      // One try each: asking as the last try reveals the answer straight away.
+      const result = await api.check(problem.id, optionId, 2, 1);
+      daily.seconds += thinking;
+      const right = result.explanations.find((e) => e.correct);
+      daily.marks.push(result.is_correct);
+      daily.feedback = { correct: result.is_correct, chosenWhy: result.chosen_why, rightText: right.text, rightWhy: right.why };
+      if (result.is_correct) sound.correct();
+      else sound.wrong();
+    } catch {
+      daily.error = true;
+    } finally {
+      daily.answering = false;
+      if (dailyOpen) ui.showDailyQuestion(daily);
+    }
+  }
+
+  function nextDaily() {
+    if (!daily?.feedback) return;
+    if (daily.index < daily.problems.length - 1) {
+      daily.index += 1;
+      daily.feedback = null;
+      daily.shownAt = performance.now();
+      return ui.showDailyQuestion(daily);
+    }
+    const correct = daily.marks.filter(Boolean).length;
+    const result = { correct, total: daily.problems.length, seconds: Math.round(daily.seconds), marks: daily.marks };
+    dailyRecord = recordDaily(dailyRecord, daily.key, result);
+    try {
+      localStorage.setItem(DAILY_KEY, JSON.stringify(dailyRecord));
+    } catch {
+      /* storage blocked: the result lasts until the tab closes */
+    }
+    const xp = correct * DAILY_XP_PER_RIGHT;
+    if (xp) {
+      progress.xp += xp;
+      saveProgress(progress);
+      ui.renderStatus(progress);
+      ui.toast(`Daily challenge: +${xp} XP`);
+    }
+    sound.rankUp();
+    if (correct === result.total) confetti();
+    showDailyDone(daily.key);
+    daily = null;
+  }
+
+  async function shareDaily() {
+    const key = dateKey();
+    const result = dailyRecord.results[key];
+    if (!result) return;
+    const streak = currentStreak(dailyRecord, key);
+    const imageUrl = await drawDailyCard({ dateLabel: dayLabel(key), ...result, streak });
+    shareOpen = true;
+    ui.showShare({
+      title: 'Your daily challenge score',
+      lead: 'Download the image and paste the text into a post. The squares show how you did without giving the answers away.',
+      imageUrl,
+      fileName: `help-desk-hero-daily-${key}.png`,
+      text: dailyPostText(key, result, streak),
+    });
+  }
+
+  function closeDaily() {
+    if (daily && daily.marks.length > 0 && daily.marks.length < daily.problems.length) {
+      if (!window.confirm('Leave the daily challenge? You only get one go per day, so it will count as finished.')) return;
+      while (daily.marks.length < daily.problems.length) daily.marks.push(false);
+      daily.index = daily.problems.length - 1;
+      daily.feedback = { correct: false };
+      nextDaily();
+    }
+    daily = null;
+    dailyOpen = false;
+    ui.hideDaily();
+  }
+
+  $('daily-btn').addEventListener('click', () => (dailyOpen ? closeDaily() : openDaily()));
+  $('daily').addEventListener('click', (e) => {
+    const option = e.target.closest('[data-daily-option]');
+    if (option) return answerDaily(Number(option.dataset.dailyOption));
+    const action = e.target.closest('[data-action]')?.dataset.action;
+    if (action === 'daily-start') startDaily();
+    else if (action === 'daily-next') nextDaily();
+    else if (action === 'daily-share') shareDaily();
+    else if (action === 'daily-close') closeDaily();
+  });
 
   // ---------- share card and certificate ----------
   async function shareResult() {
@@ -995,6 +1148,7 @@ function start() {
   input.onPress('Escape', () => {
     if (stationKind && !overlayOpen()) closeSwitch();
     else if (shareOpen) closeShare();
+    else if (dailyOpen) closeDaily();
     else if (progressOpen) closeProgress();
     else if (helpOpen) closeHelp();
     else if (!reportOpen) closeConversation();

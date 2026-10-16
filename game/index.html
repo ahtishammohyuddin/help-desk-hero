@@ -8,14 +8,55 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Cormorant+Garamond:ital,wght@0,600;0,700;1,500&family=Dancing+Script:wght@600&display=swap" rel="stylesheet">
   <link rel="icon" type="image/png" href="assets/favicon.png">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=ae05260bb9">
+  <!-- Where to find the backend online (empty = the local server while developing). -->
+  <script src="config.js?v=ebac7dac3b"></script>
   <!-- Import map: lets our code write `import * as THREE from 'three'`
-       and the browser fetches Three.js from a free CDN. No install or build step. -->
+       and the browser fetches Three.js from a free CDN. No install or build step.
+       The ./src/ entries add a version stamp to each game file (python -m tools.stamp_version),
+       so browsers always load the newest copy. -->
   <script type="importmap">
     {
       "imports": {
         "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
-        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/",
+        "./src/achievements.js": "./src/achievements.js?v=d61bb788dd",
+        "./src/api.js": "./src/api.js?v=fa1a3aa9d8",
+        "./src/arcade.js": "./src/arcade.js?v=e315209b23",
+        "./src/camera.js": "./src/camera.js?v=063665416f",
+        "./src/cards.js": "./src/cards.js?v=3f794e683f",
+        "./src/confetti.js": "./src/confetti.js?v=37e0a94df6",
+        "./src/custom.js": "./src/custom.js?v=f35da72122",
+        "./src/daily.js": "./src/daily.js?v=7d2b4fc562",
+        "./src/daylight.js": "./src/daylight.js?v=deb1250c30",
+        "./src/desk.js": "./src/desk.js?v=2b937bd13b",
+        "./src/door.js": "./src/door.js?v=8cc1db0c90",
+        "./src/employees.js": "./src/employees.js?v=bf0a26bf47",
+        "./src/escalation.js": "./src/escalation.js?v=287d7328f1",
+        "./src/events.js": "./src/events.js?v=82d88ca4b6",
+        "./src/handson.js": "./src/handson.js?v=c2913fb0d7",
+        "./src/input.js": "./src/input.js?v=50f1ba1120",
+        "./src/jobs.js": "./src/jobs.js?v=c3ab6664c2",
+        "./src/life.js": "./src/life.js?v=602cbdf468",
+        "./src/logic.js": "./src/logic.js?v=d9fd042188",
+        "./src/main.js": "./src/main.js?v=69e106f5ec",
+        "./src/menu.js": "./src/menu.js?v=7a4a0868dc",
+        "./src/minigames.js": "./src/minigames.js?v=159f7b1455",
+        "./src/minimap.js": "./src/minimap.js?v=0144e4e1f4",
+        "./src/music.js": "./src/music.js?v=1d1895778a",
+        "./src/nav.js": "./src/nav.js?v=f67861a3a6",
+        "./src/office.js": "./src/office.js?v=6960a82d7b",
+        "./src/people.js": "./src/people.js?v=e3b076a9f6",
+        "./src/perks.js": "./src/perks.js?v=2032d546b9",
+        "./src/player.js": "./src/player.js?v=f5f8be16d6",
+        "./src/resources.js": "./src/resources.js?v=1d97cf3181",
+        "./src/screens.js": "./src/screens.js?v=82c6731a16",
+        "./src/shift.js": "./src/shift.js?v=aaba8e3367",
+        "./src/sound.js": "./src/sound.js?v=778c4a8166",
+        "./src/staff.js": "./src/staff.js?v=3ce919bab5",
+        "./src/stations.js": "./src/stations.js?v=cddbd01af2",
+        "./src/tickets.js": "./src/tickets.js?v=8503d8a55c",
+        "./src/ui.js": "./src/ui.js?v=3d2c870d21"
       }
     }
   </script>
@@ -140,6 +181,6 @@
     </div>
   </div>
 
-  <script type="module" src="src/main.js"></script>
+  <script type="module" src="src/main.js?v=69e106f5ec"></script>
 </body>
 </html>

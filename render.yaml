@@ -1,0 +1,20 @@
+# Render blueprint for the backend (free plan). In Render: New > Blueprint > pick this repo.
+# The free plan sleeps after about 15 minutes without visits; the first visit then takes
+# up to a minute while it wakes. The game shows a "Waking up the office" message meanwhile.
+services:
+  - type: web
+    name: help-desk-hero-api
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.7"
+      # Only the game's own website may call the API from a browser.
+      - key: ALLOWED_ORIGINS
+        value: https://ahtishammohyuddin.github.io
+      # Optional: the AI features. Enter the key in the Render dashboard, never in this file.
+      - key: GEMINI_API_KEY
+        sync: false

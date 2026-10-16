@@ -1,9 +1,9 @@
 // Talks to the FastAPI backend.
-// The backend address defaults to the local server. Override it with ?api=https://...
-// in the page address (used later when the backend is hosted online).
+// The backend address: ?api=https://... in the page address, else config.js (set when the
+// backend is hosted online), else the local server.
 
 const params = new URLSearchParams(window.location.search);
-export const API_BASE = (params.get('api') || 'http://127.0.0.1:8000').replace(/\/+$/, '');
+export const API_BASE = (params.get('api') || window.HDH_CONFIG?.apiBase || 'http://127.0.0.1:8000').replace(/\/+$/, '');
 
 export class ApiError extends Error {
   constructor(message, status = 0) {
@@ -49,6 +49,7 @@ export const api = {
   coach: (stats) => request('/coach', { method: 'POST', body: stats, timeout: 20000 }),
   notes: (id) => request(`/problems/${enc(id)}/notes`),
   hint: (id, n) => request(`/problems/${enc(id)}/hints/${n}`),
+  match: (id, text) => request(`/problems/${enc(id)}/match`, { method: 'POST', body: { text }, timeout: 20000 }),
   ask: (id, question, history = []) =>
     request(`/problems/${enc(id)}/ask`, { method: 'POST', body: { question, history }, timeout: 20000 }),
 };

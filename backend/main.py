@@ -9,7 +9,7 @@ Settings (environment variables, all optional):
     ALLOWED_ORIGINS   comma-separated list of websites allowed to call the API
                       from a browser (default: * which means any site; the API
                       is read-only and has no logins, so this is acceptable
-                      for development. Set it to your Netlify URL in production.)
+                      for development. Set it to your GitHub Pages address in production.)
     GEMINI_API_KEY    turns on the AI features. Without it the game runs in
                       fallback mode using only pre-written text.
     GEMINI_MODEL      default: gemini-3.5-flash-lite (a free-tier Flash-Lite model)
@@ -61,6 +61,8 @@ from backend.schemas import (
     EscalationResult,
     EscalationReview,
     EscalationTeam,
+    MatchRequest,
+    MatchResponse,
 )
 from backend.ai_service import coach_facts
 from tools.validate_problems import CATEGORIES, ESCALATION_TEAMS
@@ -406,6 +408,20 @@ def create_app(problems_dir: Path | None = None, ai_client: object = FROM_ENV) -
 
         message, source = request.app.state.ai.coach(facts, tips, _client_id(request))
         return CoachResponse(message=message, tips=[CoachTip(**t) for t in tips], source=source)
+
+    @app.post("/problems/{problem_id}/match", response_model=MatchResponse)
+    def match_answer(request: Request, problem_id: str, body: MatchRequest) -> MatchResponse:
+        """Which option the player's own words sound like. This never says whether it is right:
+        the player confirms the option, then /check marks it against the reviewed file."""
+        problem = find_or_404(request, problem_id)
+        options = [(i, o["text"]) for i, o in enumerate(problem["options"])]
+        option_id, source = request.app.state.ai.match_answer(problem["id"], options, body.text, _client_id(request))
+        return MatchResponse(
+            problem_id=problem["id"],
+            option_id=option_id,
+            option_text=problem["options"][option_id]["text"] if option_id is not None else None,
+            source=source,
+        )
 
     @app.post("/problems/{problem_id}/ask", response_model=SeniorResponse)
     def ask_senior(request: Request, problem_id: str, body: SeniorRequest) -> SeniorResponse:

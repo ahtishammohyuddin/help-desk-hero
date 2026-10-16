@@ -196,6 +196,17 @@ class ChatTurn(BaseModel):
     text: str = Field(min_length=1, max_length=700)
 
 
+class MatchRequest(BaseModel):
+    text: str = Field(min_length=3, max_length=300)
+
+
+class MatchResponse(BaseModel):
+    problem_id: str
+    option_id: int | None  # the option the player's words sound like; None when unclear
+    option_text: str | None
+    source: Literal["ai", "cache", "keywords", "none"]
+
+
 class SeniorRequest(BaseModel):
     question: str = Field(min_length=2, max_length=300)
     history: list[ChatTurn] = Field(default_factory=list, max_length=6)

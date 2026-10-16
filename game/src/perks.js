@@ -9,15 +9,15 @@ export const SEEN_MAX = 400;
 export const emptyCoffee = () => ({ until: 0, readyAt: 0 });
 
 /** Make a coffee at time `now` (seconds). Returns { state, ok, message }. */
-export function drinkCoffee(state, now) {
+export function drinkCoffee(state, now, seconds = COFFEE_SECONDS) {
   if (now < state.readyAt) {
     const wait = Math.ceil(state.readyAt - now);
     return { state, ok: false, message: `The coffee machine is still heating up. Try again in ${wait} seconds.` };
   }
   return {
-    state: { until: now + COFFEE_SECONDS, readyAt: now + COFFEE_COOLDOWN },
+    state: { until: now + seconds, readyAt: now + COFFEE_COOLDOWN },
     ok: true,
-    message: `Coffee time! You walk ${Math.round((COFFEE_SPEED - 1) * 100)}% faster for ${COFFEE_SECONDS} seconds.`,
+    message: `Coffee time! You walk ${Math.round((COFFEE_SPEED - 1) * 100)}% faster for ${seconds} seconds.`,
   };
 }
 

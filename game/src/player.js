@@ -8,8 +8,9 @@ const RUN_SPEED = 6.0;
 const RADIUS = 0.35;
 const TURN_SPEED = 12; // radians per second
 
-export function createPlayer(scene, start) {
-  const group = makePerson({ shirt: 0x2563a8, hair: 0x1b1310, trousers: 0x232a33, badge: true });
+export function createPlayer(scene, start, colors = { shirt: 0x2563a8, hair: 0x1b1310 }) {
+  const body = (c) => makePerson({ ...c, trousers: 0x232a33, badge: true });
+  const group = body(colors);
   group.position.set(start.x, 0, start.z);
   scene.add(group);
 
@@ -18,6 +19,13 @@ export function createPlayer(scene, start) {
 
   return {
     group,
+    /** Change how the technician looks: swap in a freshly built body, keeping position and facing. */
+    setLook(c) {
+      const fresh = body(c);
+      group.clear();
+      group.add(...fresh.children);
+      group.userData.limbs = fresh.userData.limbs;
+    },
     onStep: null, // called once per footstep (for the footstep sound)
     speedMult: 1, // above 1 while the coffee boost lasts
     get position() {

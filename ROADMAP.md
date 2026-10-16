@@ -19,7 +19,7 @@
       player name stored only on the player's device, never sent to the AI or server
 - [x] More professional certificate (formal serif design without the cartoon logo, frame, seal, signature line, certificate ID; still says it is a
       training game, not an accredited certification)
-- [ ] Bigger, realistic office:
+- [x] Bigger, realistic office:
   - [x] Every person who reports a PC problem sits at a real desk with a PC (no one standing in open space);
         desk tickets only go to people who actually have a PC there
   - [x] Stage A: east wing built (kitchen, lounge with sofa and TV, game corner, meeting room, learning corner)
@@ -47,18 +47,22 @@
     - [x] Server room badge door (tap your badge to go in, exit sensor on the way out)
     - [x] Desk phone tickets: blank screen and no dial tone, caller can't hear me (awaiting review)
     - [x] New-starter laptop setup at the repair bench (awaiting review)
-  - [ ] Stage F: desk upgrades and technician customisation
+  - [x] Stage F: technician customisation (shirt, hair, skin tone, lanyard; saved on this device) and six desk
+        upgrades unlocked by total XP, shown on your help desk (only the mug has a small perk: a 60-second coffee boost)
 - [x] Three graphics modes: Smooth, Balanced, Realistic; the office is not redrawn behind full-screen cards
 - [x] Sound: realistic soft footsteps, background music made in code with 4 styles (Calm chords, Ambient,
       Soft piano, Lo-fi beat) and 3 volumes, separate switches, and a ♪ button that mutes everything
 
 ## Phase 8
-- [ ] Free-text answers graded against reviewed answers
-- [ ] Voice
+- [x] Answer in your own words: the AI (or a word match without AI) only says which option your words sound like;
+      you confirm it and the reviewed answer decides right or wrong
+- [x] Voice: speech-to-text answers (off by default, privacy note) and read-aloud of the person's message
 
 ## Phase 9: launch
-- [ ] Version numbers on game files so browsers always load the latest copy
-- [ ] Hosting, final README, LinkedIn launch post
+- [x] Version stamps on game files so browsers always load the latest copy (`tools/stamp_version.py`)
+- [x] Hosting setup: GitHub Pages workflow for the game, `render.yaml` for the backend (free plans), `game/config.js` for the online address
+- [ ] Go live (Ahtisham: enable Pages, create the Render service, put its address in config.js)
+- [ ] Final README pass and LinkedIn launch post
 
 ## After launch
 - [ ] Leaderboard

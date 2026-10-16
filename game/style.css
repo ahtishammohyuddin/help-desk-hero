@@ -676,3 +676,31 @@ kbd {
 .setup-step.trap.refused { background: #fdeeee; border-color: #e5484d; color: #8a1f22; }
 .setup-tick { width: 18px; font-weight: 700; text-align: center; }
 .setup-head { font-weight: 700; font-size: 13px; color: #5b6b7c; margin-top: 4px; }
+
+/* My technician / My desk */
+.look-wrap { display: flex; gap: 18px; align-items: center; margin: 6px 0 14px; }
+.avatar-preview { width: 110px; flex: none; background: #eef2f7; border-radius: 14px; padding: 8px; }
+.look-parts { display: grid; gap: 10px; }
+.look-row { display: grid; gap: 4px; }
+.swatches { display: flex; gap: 6px; flex-wrap: wrap; }
+.swatch { width: 28px; height: 28px; border-radius: 50%; border: 2px solid #fff; background: var(--sw); box-shadow: 0 0 0 1px #cfd6de; cursor: pointer; padding: 0; }
+.swatch.on { box-shadow: 0 0 0 3px #2f6feb; }
+.desk-list { display: grid; gap: 6px; margin: 6px 0 10px; }
+.desk-item { display: grid; grid-template-columns: 34px 1fr auto; gap: 10px; align-items: center; padding: 8px 12px; border-radius: 10px; background: #f3f5f8; color: #5b6b7c; }
+.desk-item.got { background: #ecf8f0; color: #1f2a37; }
+.desk-item small { display: block; }
+.desk-item em { font-style: normal; font-weight: 700; color: #1b5e37; }
+.desk-icon { font-size: 22px; text-align: center; }
+.desk-xp { font-size: 12px; font-weight: 700; }
+@media (max-width: 520px) { .look-wrap { flex-direction: column; } }
+.desk-item, .look-row { text-align: left; }
+
+/* answer in your own words */
+.own-words { margin-top: 10px; border: 1px solid #d5dde6; border-radius: 10px; padding: 8px 12px; background: #fafbfc; }
+.own-words summary { cursor: pointer; font-weight: 700; }
+.own-words textarea { width: 100%; box-sizing: border-box; margin-top: 8px; padding: 8px 10px; border-radius: 8px; border: 1px solid #cfd6de; font: inherit; resize: vertical; }
+.own-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+.own-note { font-size: 12px; color: #5b6b7c; margin: 6px 0 0; }
+.own-result { margin-top: 10px; padding: 8px 10px; border-radius: 8px; background: #eef4ff; }
+.btn.listening { border-color: #e5484d; color: #e5484d; }
+.bubble .speak { float: right; margin-left: 8px; border: 0; background: transparent; cursor: pointer; font-size: 16px; }

@@ -78,6 +78,21 @@ export function bootTip(text) {
 
 // ---------- main menu ----------
 
+/** A small front view of the technician for the "My technician" screen. */
+function avatarSvg(shirt, hair, skin, lanyard) {
+  return `<svg class="avatar-preview" viewBox="0 0 120 170" role="img" aria-label="Your technician">
+    <rect x="38" y="112" width="18" height="50" rx="4" fill="#232a33"/><rect x="64" y="112" width="18" height="50" rx="4" fill="#232a33"/>
+    <rect x="30" y="58" width="60" height="62" rx="22" fill="${shirt}"/>
+    <rect x="16" y="62" width="14" height="50" rx="7" fill="${shirt}"/><rect x="90" y="62" width="14" height="50" rx="7" fill="${shirt}"/>
+    <path d="M52 60 L62 86 L72 60" stroke="${lanyard}" stroke-width="4" fill="none"/>
+    <rect x="55" y="84" width="16" height="20" rx="2" fill="#ffffff" stroke="#cfd6de"/>
+    <circle cx="60" cy="36" r="22" fill="${skin}"/>
+    <path d="M38 34 A22 22 0 0 1 82 34 L82 28 A22 18 0 0 0 38 28 Z" fill="${hair}"/>
+    <circle cx="52" cy="38" r="2.5" fill="#1f252d"/><circle cx="68" cy="38" r="2.5" fill="#1f252d"/>
+    <path d="M53 47 Q60 52 67 47" stroke="#1f252d" stroke-width="2" fill="none"/>
+  </svg>`;
+}
+
 /**
  * Draw the main menu. view: 'main', 'name', 'settings' or 'reset'.
  * state: from menuState(); settings: { muted, quality, events }.
@@ -115,9 +130,37 @@ export function renderMenu(state, view, settings, { error = '' } = {}) {
           <span class="seg">${['low', 'medium', 'high'].map((v) => `<button data-music-volume="${v}" class="${settings.volume === v ? 'on' : ''}">${v[0].toUpperCase() + v.slice(1)}</button>`).join('')}</span></div>
         <div class="setting"><span><b>Graphics</b><small>Smooth runs fastest; Realistic looks best</small></span>
           <span class="seg">${['smooth', 'balanced', 'realistic'].map((q) => `<button data-setting="${q}" class="${settings.quality === q ? 'on' : ''}">${q[0].toUpperCase() + q.slice(1)}</button>`).join('')}</span></div>
+        <label class="setting"><span><b>Voice input</b><small>Speak your answer instead of typing. Your browser turns speech into text; in Chrome this sends the audio to Google. Off by default.</small></span>
+          <input type="checkbox" class="switch" data-setting="voice" ${settings.voice ? 'checked' : ''}></label>
         <label class="setting"><span><b>Random events</b><small>Power flickers, phishing waves, VIP requests</small></span>
           <input type="checkbox" class="switch" data-setting="events" ${settings.events ? 'checked' : ''}></label>
       </div>
+      <div class="menu-list"><button class="btn" data-menu="back">Back</button></div>`;
+  } else if (view === 'look') {
+    const hex = (c) => '#' + c.toString(16).padStart(6, '0');
+    const colorOf = (part) => settings.lookOptions[part].find((o) => o.id === settings.look[part]).color;
+    body = `
+      <h1 class="menu-greeting">My technician</h1>
+      <p class="menu-sub">Saved on this device only.</p>
+      <div class="look-wrap">
+        ${avatarSvg(hex(colorOf('shirt')), hex(colorOf('hair')), hex(colorOf('skin')), hex(colorOf('lanyard')))}
+        <div class="look-parts">${Object.entries(settings.lookParts).map(([part, label]) => `
+          <div class="look-row"><b>${esc(label)}</b><span class="swatches">${settings.lookOptions[part].map((o) => `
+            <button class="swatch${settings.look[part] === o.id ? ' on' : ''}" data-look="${part}:${o.id}" style="--sw:${hex(o.color)}" title="${esc(o.name)}" aria-label="${esc(label)}: ${esc(o.name)}"></button>`).join('')}</span></div>`).join('')}
+        </div>
+      </div>
+      <div class="menu-list"><button class="btn" data-menu="back">Done</button></div>`;
+  } else if (view === 'desk') {
+    body = `
+      <h1 class="menu-greeting">My desk</h1>
+      <p class="menu-sub">Upgrades appear on your help desk as your total XP grows. Nothing is spent, so your rank never drops.</p>
+      <div class="desk-list">${settings.upgrades.map((u) => {
+        const got = settings.unlocked.includes(u.id);
+        return `<div class="desk-item${got ? ' got' : ''}"><span class="desk-icon" aria-hidden="true">${got ? u.icon : '🔒'}</span>
+          <span><b>${esc(u.name)}</b><small>${esc(u.text)}${u.perk ? ` <em>${esc(u.perk)}</em>` : ''}</small></span>
+          <span class="desk-xp">${got ? 'Unlocked' : `${u.xp} XP`}</span></div>`;
+      }).join('')}</div>
+      <p class="menu-note">${settings.next ? `Next: <b>${esc(settings.next.name)}</b> in ${settings.next.needed} XP.` : 'Every upgrade unlocked. Great work!'}</p>
       <div class="menu-list"><button class="btn" data-menu="back">Back</button></div>`;
   } else if (view === 'reset') {
     body = `
@@ -137,6 +180,10 @@ export function renderMenu(state, view, settings, { error = '' } = {}) {
         <div class="menu-row">
           <button class="btn ghost" data-menu="progress">📊 My progress</button>
           <button class="btn ghost" data-menu="help">❓ How to play</button>
+        </div>
+        <div class="menu-row">
+          <button class="btn ghost" data-menu="look">🧑‍🔧 My technician</button>
+          <button class="btn ghost" data-menu="desk">🖥️ My desk</button>
         </div>
         <button class="btn ghost" data-menu="settings">⚙️ Settings</button>
       </div>
@@ -517,6 +564,48 @@ export function setCarrying(item) {
   $('carry').innerHTML = item ? `Carrying: <b>${esc(CARRY_NAMES[item] ?? item)}</b>` : '';
 }
 
+// Voice input (speech to text) is off unless the player switches it on in Settings.
+let voiceInput = false;
+export function setVoiceInput(on) {
+  voiceInput = on;
+}
+export const canListen = () => typeof window !== 'undefined' && Boolean(window.SpeechRecognition || window.webkitSpeechRecognition);
+export const canSpeak = () => typeof window !== 'undefined' && 'speechSynthesis' in window;
+
+/** "Answer in your own words": type (or say) a fix, see which option it sounds like, then confirm it. */
+function ownWordsHtml(detail) {
+  const own = detail.own ?? {};
+  const p = detail.problem;
+  const ruledOut = new Set(detail.wrong.map((w) => w.id));
+  let result = '';
+  if (own.matching) {
+    result = '<p class="own-result">Reading your answer<span class="dots"></span></p>';
+  } else if (own.match && own.match.option_id !== null) {
+    const index = p.options.findIndex((o) => o.id === own.match.option_id);
+    const out = ruledOut.has(own.match.option_id);
+    result = `<div class="own-result"><div>That sounds like option <b>${index + 1}</b>: ${esc(own.match.option_text)}</div>
+      ${out ? '<div class="small">You already tried that one. Pick another option.</div>' : `<div class="own-actions">
+        <button class="btn" data-action="own-confirm" ${detail.answering ? 'disabled' : ''}>Yes, that's my answer</button>
+        <button class="btn ghost" data-action="own-reject">No, let me rethink</button></div>`}</div>`;
+  } else if (own.match) {
+    result = '<p class="own-result">I could not match that to one of the options. Try other words, or pick an option above.</p>';
+  } else if (own.error) {
+    result = '<p class="own-result">Could not reach the server. Try again, or pick an option above.</p>';
+  }
+  const mic = voiceInput && canListen()
+    ? `<button class="btn ghost${own.listening ? ' listening' : ''}" type="button" data-action="own-mic">${own.listening ? '🎙️ Listening…' : '🎙️ Speak'}</button>`
+    : '';
+  return `<details class="own-words"${own.open ? ' open' : ''}>
+    <summary data-action="own-toggle">✍️ Or answer in your own words</summary>
+    <form data-form="own">
+      <textarea id="own-input" maxlength="300" rows="2" placeholder="What would you do? For example: check the cable is plugged in at both ends">${esc(own.text ?? '')}</textarea>
+      <div class="own-actions">${mic}<button class="btn" type="submit" ${own.matching ? 'disabled' : ''}>Match my answer</button></div>
+      <p class="own-note">Please don't type personal details. Your words are only used to find the matching option, and the reviewed answer still decides if it is right.</p>
+    </form>
+    ${result}
+  </details>`;
+}
+
 function questionHtml(person, detail) {
   const p = detail.problem;
   const ruledOut = new Set(detail.wrong.map((w) => w.id));
@@ -532,11 +621,13 @@ function questionHtml(person, detail) {
     ? `<div class="notice warn"><b>Not quite.</b> ${esc(lastWrong.why)}<br>Try once more. A right answer now still earns half the XP.</div>`
     : '';
   const hints = detail.hints.map((h) => `<div class="hint"><b>Hint:</b> ${esc(h)}</div>`).join('');
+  const speak = canSpeak() ? '<button class="speak" data-action="speak" aria-label="Read the message aloud" title="Read aloud">🔊</button>' : '';
   return `
-    <div class="bubble">${esc(detail.description)}</div>
+    <div class="bubble">${esc(detail.description)}${speak}</div>
     ${retry}${hints}
     <h3 class="ask">${lastWrong ? 'Which fix would you try instead?' : 'What would you do first?'}</h3>
     <div class="opts">${options}</div>
+    ${ownWordsHtml(detail)}
     ${detail.answerError ? '<p class="notice bad">Your answer did not reach the server. Pick it again.</p>' : ''}`;
 }
 

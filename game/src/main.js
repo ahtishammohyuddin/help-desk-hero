@@ -38,7 +38,9 @@ import { BADGE_OPEN_SECONDS, DOOR_BLOCK, DOORWAY, doorShouldOpen, knockAnswer, S
 import { daylight } from './daylight.js';
 import { animateCallAgent } from './people.js';
 import { drawSlides, drawTv } from './screens.js';
-import { addSeen, coffeeLeft, drinkCoffee, emptyCoffee, libraryTopics, speedFor } from './perks.js';
+import { addSeen, COFFEE_SECONDS, coffeeLeft, drinkCoffee, emptyCoffee, libraryTopics, speedFor } from './perks.js';
+import { coffeeSecondsFor, DESK_UPGRADES, LOOK_KEY, LOOK_OPTIONS, LOOK_PARTS, lookColors, newlyUnlocked, nextUpgrade, parseLook, setLookPart, unlockedUpgrades } from './custom.js';
+import { createDeskUpgrades } from './desk.js';
 import { hasSave, loadingStep, menuState, PLAYER_NAME_KEY, tipAt } from './menu.js';
 
 const TALK_RADIUS = 1.8; // how close you must be to talk to someone
@@ -178,7 +180,9 @@ function start() {
   const serverDoor = { open: false, slide: 0, openUntil: 0 };
   const employees = createEmployees(scene, colliders, $('labels'));
   const byName = new Map(employees.map((e) => [e.name, e]));
-  const player = createPlayer(scene, PLAYER_START);
+  let look = parseLook(readSetting(LOOK_KEY)); // how the technician looks, saved only on this device
+  const player = createPlayer(scene, PLAYER_START, lookColors(look));
+  const deskUpgrades = createDeskUpgrades(scene);
   player.onStep = () => sound.step();
   // Browsers only allow audio after a click or key press, so the music starts on the first one.
   const startMusic = () => {
@@ -284,6 +288,16 @@ function start() {
 
   // ---------- game state ----------
   const progress = loadProgress();
+  deskUpgrades.update(unlockedUpgrades(progress.xp));
+  /** After XP goes up: show any desk upgrade it unlocked. */
+  function checkUpgrades(xpBefore) {
+    const fresh = newlyUnlocked(xpBefore, progress.xp);
+    if (!fresh.length) return;
+    deskUpgrades.update(unlockedUpgrades(progress.xp));
+    for (const u of fresh) {
+      setTimeout(() => ui.toast(`<span aria-hidden="true">${u.icon}</span> Desk upgrade: <b>${ui.esc(u.name)}</b>! It is on your help desk now.${u.perk ? ` ${ui.esc(u.perk)}` : ''}`, 'big'), 1200);
+    }
+  }
   const queue = new TicketQueue();
   const details = new Map(); // ticket number -> what we fetched for it
   const queueLabel = (t) => {
@@ -404,6 +418,9 @@ function start() {
 
   // ---------- random events ----------
   const EVENTS_KEY = 'hdh-events';
+  const VOICE_KEY = 'hdh-voice'; // speech-to-text answers, off by default
+  let voiceOn = readSetting(VOICE_KEY) === 'on';
+  ui.setVoiceInput(voiceOn);
   let eventsOn = readSetting(EVENTS_KEY) !== 'off';
   let flicker = 0; // seconds left of the power-flicker light dip
 
@@ -510,7 +527,8 @@ function start() {
         return;
       } catch {
         const waited = Math.round((performance.now() - started) / 1000);
-        ui.bootMessage('Waking up the office...', `Connecting to the help desk server${waited > 3 ? ` (${waited}s)` : ''}`);
+        const slow = waited > 8 ? '<br><small>The free online server sleeps when no one is playing. Waking it can take up to a minute.</small>' : '';
+        ui.bootMessage('Waking up the office...', `Connecting to the help desk server${waited > 3 ? ` (${waited}s)` : ''}${slow}`);
         await sleep(2000);
       }
     }
@@ -576,7 +594,13 @@ function start() {
   }
 
   function refreshTicketPanel() {
+    const typing = document.activeElement?.id === 'own-input';
     if (activeTicket && talkingTo) ui.renderTicketPanel(talkingTo, activeTicket, details.get(activeTicket.number));
+    if (typing) {
+      const box = document.getElementById('own-input');
+      box?.focus();
+      box?.setSelectionRange(box.value.length, box.value.length);
+    }
     ui.renderQueue(queue.open, byName, queueLabel);
   }
 
@@ -623,7 +647,9 @@ function start() {
     const extra = [ticket.vip ? 'VIP ×2' : '', eventMult / (ticket.vip ? VIP_XP : 1) > 1 ? 'manager bonus ×1.5' : ''].filter(Boolean).join(', ');
 
     const before = rankFor(progress.xp);
+    const xpBefore = progress.xp;
     progress.xp += xp;
+    checkUpgrades(xpBefore);
     progress.attempts += 1;
     if (result.is_correct) progress.solved += 1;
     if (result.is_correct && result.attempt === 1) progress.firstTry += 1;
@@ -945,8 +971,75 @@ function start() {
     setTimeout(() => document.getElementById('ask-input')?.focus(), 0);
   }
 
+  // ---------- answer in your own words (Phase 8) ----------
+  const ownOf = () => {
+    const detail = activeTicket && details.get(activeTicket.number);
+    if (!detail || detail.result || !detail.problem) return null;
+    detail.own ??= { open: false, text: '' };
+    return detail;
+  };
+  async function matchOwnWords() {
+    const detail = ownOf();
+    if (!detail) return;
+    const text = (detail.own.text ?? '').trim();
+    if (text.length < 3 || detail.own.matching) return;
+    const ticket = activeTicket;
+    detail.own = { ...detail.own, matching: true, match: null, error: false };
+    refreshTicketPanel();
+    try {
+      const match = await api.match(ticket.problemId, text);
+      detail.own = { ...detail.own, matching: false, match };
+    } catch {
+      detail.own = { ...detail.own, matching: false, error: true };
+    }
+    if (activeTicket === ticket) {
+      refreshTicketPanel();
+      document.querySelector('#ticket .own-result')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+  }
+  let recognizer = null;
+  function listenOwnWords() {
+    const detail = ownOf();
+    const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!detail || !Rec || !voiceOn) return;
+    if (recognizer) return recognizer.stop();
+    recognizer = new Rec();
+    recognizer.lang = 'en-US';
+    recognizer.interimResults = false;
+    recognizer.onresult = (ev) => {
+      const said = Array.from(ev.results).map((r) => r[0].transcript).join(' ').trim();
+      if (said) detail.own = { ...detail.own, text: `${detail.own.text ? `${detail.own.text} ` : ''}${said}`.slice(0, 300) };
+    };
+    recognizer.onend = () => {
+      recognizer = null;
+      detail.own = { ...detail.own, listening: false };
+      refreshTicketPanel();
+    };
+    recognizer.onerror = () => ui.toast('Voice input did not work here. You can type your answer instead.');
+    detail.own = { ...detail.own, listening: true };
+    refreshTicketPanel();
+    recognizer.start();
+  }
+  function speakMessage() {
+    const detail = activeTicket && details.get(activeTicket.number);
+    if (!detail?.description || !('speechSynthesis' in window)) return;
+    speechSynthesis.cancel();
+    const line = new SpeechSynthesisUtterance(detail.description);
+    // Prefer a voice built into this computer, so the text stays on the device.
+    const local = speechSynthesis.getVoices().find((v) => v.localService && v.lang.startsWith('en'));
+    if (local) line.voice = local;
+    line.rate = 0.95;
+    speechSynthesis.speak(line);
+  }
+  $('ticket').addEventListener('input', (e) => {
+    if (e.target.id !== 'own-input') return;
+    const detail = ownOf();
+    if (detail) detail.own.text = e.target.value;
+  });
+
   $('ticket').addEventListener('submit', (e) => {
     e.preventDefault();
+    if (e.target.dataset?.form === 'own') return matchOwnWords();
     const box = document.getElementById('ask-input');
     const question = box?.value.trim() ?? '';
     if (question.length >= 2) askSenior(question);
@@ -979,7 +1072,11 @@ function start() {
       e.target.closest('.part').dispatchEvent(new MouseEvent('click', { bubbles: true }));
       return;
     }
-    if (e.target.id === 'ask-input' && e.key === 'Escape') e.target.blur(); // back to game keys
+    if ((e.target.id === 'ask-input' || e.target.id === 'own-input') && e.key === 'Escape') e.target.blur(); // back to game keys
+    if (e.target.id === 'own-input' && e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      matchOwnWords();
+    }
   });
 
   // ---------- talking ----------
@@ -1139,7 +1236,9 @@ function start() {
     }
     const xp = correct * DAILY_XP_PER_RIGHT;
     if (xp) {
+      const xpBefore = progress.xp;
       progress.xp += xp;
+      checkUpgrades(xpBefore);
       saveProgress(progress);
       ui.renderStatus(progress);
       ui.toast(`Daily challenge: +${xp} XP`);
@@ -1490,7 +1589,7 @@ function start() {
   let coffee = emptyCoffee();
   const now = () => performance.now() / 1000;
   function makeCoffee() {
-    const r = drinkCoffee(coffee, now());
+    const r = drinkCoffee(coffee, now(), coffeeSecondsFor(progress.xp, COFFEE_SECONDS));
     coffee = r.state;
     if (r.ok) sound.correct();
     else sound.click();
@@ -1603,7 +1702,9 @@ function start() {
   let menuError = '';
   const menuSettings = () => ({
     allMuted: sound.allMuted, muted: sound.muted, footsteps: sound.footsteps, music: music.on,
-    style: music.style, volume: music.volume, styles: MUSIC_STYLES, quality, events: eventsOn,
+    style: music.style, volume: music.volume, styles: MUSIC_STYLES, quality, events: eventsOn, voice: voiceOn,
+    look, lookOptions: LOOK_OPTIONS, lookParts: LOOK_PARTS,
+    xp: progress.xp, upgrades: DESK_UPGRADES, unlocked: unlockedUpgrades(progress.xp), next: nextUpgrade(progress.xp),
   });
   function renderMenu() {
     ui.renderMenu(menuState(progress, readSetting(PLAYER_NAME_KEY), new Date(), { inShift: shiftStarted }), menuView, menuSettings(), { error: menuError });
@@ -1692,6 +1793,15 @@ function start() {
       setQuality(setting);
       return renderMenu();
     }
+    const lookPick = e.target.closest('[data-look]')?.dataset.look;
+    if (lookPick) {
+      const [part, id] = lookPick.split(':');
+      look = setLookPart(look, part, id);
+      writeSetting(LOOK_KEY, JSON.stringify(look));
+      player.setLook(lookColors(look));
+      sound.click();
+      return renderMenu();
+    }
     const action = e.target.closest('[data-menu]')?.dataset.menu;
     if (!action) return;
     sound.click();
@@ -1700,7 +1810,7 @@ function start() {
     else if (action === 'progress') fromMenu(openProgress);
     else if (action === 'help') fromMenu(() => openHelp(false));
     else if (action === 'back') { menuView = 'main'; menuError = ''; renderMenu(); }
-    else if (['settings', 'name', 'reset'].includes(action)) { menuView = action; menuError = ''; renderMenu(); }
+    else if (['settings', 'name', 'reset', 'look', 'desk'].includes(action)) { menuView = action; menuError = ''; renderMenu(); }
     else if (action === 'reset-yes') newGame();
   });
   $('menu').addEventListener('change', (e) => {
@@ -1715,6 +1825,10 @@ function start() {
       sound.setFootsteps(e.target.checked);
     } else if (setting === 'music') {
       music.set(e.target.checked);
+    } else if (setting === 'voice') {
+      voiceOn = e.target.checked;
+      writeSetting(VOICE_KEY, voiceOn ? 'on' : 'off');
+      ui.setVoiceInput(voiceOn);
     }
   });
   $('menu-btn').addEventListener('click', () => (menuOpen ? (shiftStarted && closeMenu()) : openMenu()));
@@ -1766,6 +1880,29 @@ function start() {
     const option = e.target.closest('.opt');
     if (option) return chooseOption(Number(option.dataset.index));
     const action = e.target.closest('[data-action]')?.dataset.action;
+    if (action === 'own-toggle') {
+      e.preventDefault();
+      const detail = ownOf();
+      if (detail) {
+        detail.own.open = !detail.own.open;
+        refreshTicketPanel();
+        if (detail.own.open) setTimeout(() => document.getElementById('own-input')?.focus(), 0);
+      }
+      return;
+    }
+    if (action === 'own-confirm') {
+      const detail = ownOf();
+      if (detail?.own.match?.option_id != null) chooseOptionById(detail.own.match.option_id);
+      return;
+    }
+    if (action === 'own-reject') {
+      const detail = ownOf();
+      if (detail) detail.own = { ...detail.own, match: null };
+      refreshTicketPanel();
+      return;
+    }
+    if (action === 'own-mic') return listenOwnWords();
+    if (action === 'speak') return speakMessage();
     if (action === 'inspect') return setDeskView('desk');
     if (action === 'talk-view') return setDeskView('talk');
     if (action === 'test') return runTest();

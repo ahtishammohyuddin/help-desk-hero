@@ -69,6 +69,26 @@ The game opens on a loading screen (logo, progress bar and game tips), then the 
 
 Sound is all made in code with the Web Audio API, so there are no audio files and nothing to license: sound effects, soft footsteps while walking, and very quiet background music (a slow loop of soft chords, `game/src/music.js`). Each has its own switch in Settings.
 
+## Answer in your own words, and voice
+
+Under the options on a question ticket, **Or answer in your own words** lets you type (or say) what you would do. `POST /problems/{id}/match` finds which listed option your words sound like: the AI is only given the option texts, never which one is correct, and without the AI a simple word match is used. You confirm the option, and `/check` marks it against the reviewed answer as usual, so the AI never decides what is right. Emails and long numbers are removed before matching. **Voice input** (Settings, off by default) uses the browser's speech-to-text; in Chrome that sends the audio to Google. The 🔊 button reads the person's message aloud, preferring a voice built into your computer.
+
+## Where players' progress is saved
+
+Everything a player does is saved **in their own browser, on their own device** (browser storage): XP, rank, badges, streaks, the daily challenge, settings, their name, their look and the notes they have unlocked. Coming back days later on the same browser continues where they left off. It does not follow them to another browser or device, and it is lost if they clear their browsing data or play in a private/incognito window. The server keeps no accounts and no personal data.
+
+## Put it online (free)
+
+1. **Game on GitHub Pages:** push to GitHub, then on GitHub open *Settings > Pages* and set *Source* to **GitHub Actions**. The `Publish game` workflow (`.github/workflows/pages.yml`) stamps the file versions and publishes the `game` folder on every push to `main`.
+2. **Backend on Render (free plan):** in Render choose *New > Blueprint* and pick this repo; `render.yaml` sets everything up. Optionally add `GEMINI_API_KEY` in the Render dashboard (never in a file). The free plan sleeps when unused, so the first visit can take up to a minute; the game shows *Waking up the office* meanwhile.
+3. Put the Render address in `game/config.js` (`apiBase`) and push. `ALLOWED_ORIGINS` in `render.yaml` only lets the game's own GitHub Pages site call the API.
+
+Before pushing changes to game files, run `python -m tools.stamp_version` (or `--check`) so browsers load the newest copies; the publish workflow also does it.
+
+## Your technician and desk
+
+From the main menu, **My technician** changes your shirt, hair, skin tone and lanyard colour (saved only on this device), and **My desk** shows the help desk upgrades you earn as your total XP grows: a plant, a mug, a lamp, a third monitor, an ergonomic chair and a trophy. Nothing is spent, so your rank never drops. Only the mug changes play, and only a little: the coffee boost lasts 60 seconds instead of 45. No upgrade changes answers or ticket XP.
+
 ## The office
 
 The office has the main open-plan area, the server room, the IT corner (help desk, parts cabinet, repair bench, notice board), and an east wing with a kitchen (coffee machine boost), a lounge with a TV, a game corner arcade (5 mini-games, no XP), a meeting room, a learning hub under a purple archway (notes unlocked from the problems you have worked on, plus free course links), a manager's office and a call team (people on calls with headsets, in the phone booths and at a row of desks). The manager's door stays shut: knock (E) and Haroon says come in if he is at his desk, or it opens by itself when he has asked for help. Haroon is the manager, so he never reports a problem that staff would take to their manager (approvals, "ask your manager"); the backend marks those problems with `involves_manager`. The light follows the shift clock (morning sun from the east, warm late-afternoon light, windows that glow with it), and the server room has a sliding glass door: tap your badge on the reader outside (E) to open it; from inside it opens as you walk up to it.

@@ -9,7 +9,7 @@ function mat(color) {
   return shared.get(color);
 }
 
-export function makePerson({ shirt, hair, skin = 0xd9a77e, trousers = 0x2f3640, badge = false }) {
+export function makePerson({ shirt, hair, skin = 0xd9a77e, trousers = 0x2f3640, badge = false, lanyard = 0x2f6feb }) {
   const g = new THREE.Group();
   const parts = [];
   const add = (mesh, x, y, z) => {
@@ -51,6 +51,11 @@ export function makePerson({ shirt, hair, skin = 0xd9a77e, trousers = 0x2f3640, 
   if (badge) {
     // A lanyard badge for the IT technician
     add(new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.16, 0.02), mat(0xffffff)), 0.08, 1.05, 0.24);
+    // the lanyard strap, from the neck down to the badge
+    for (const side of [-1, 1]) {
+      const strap = add(new THREE.Mesh(new THREE.BoxGeometry(0.025, 0.3, 0.015), mat(lanyard)), 0.08 + side * 0.05, 1.27, 0.235);
+      strap.rotation.z = side * -0.18;
+    }
   }
   return g;
 }

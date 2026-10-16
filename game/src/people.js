@@ -90,6 +90,39 @@ export function standUp(person) {
   person.userData.seated = false;
 }
 
+/** A call-centre headset: a band over the head, two ear cups and a microphone boom. */
+export function addHeadset(person) {
+  const dark = mat(0x1b1f24);
+  const band = new THREE.Mesh(new THREE.TorusGeometry(0.215, 0.022, 6, 18, Math.PI), dark);
+  band.position.set(0, 1.6, 0);
+  // The torus arc lies in the XY plane from +X to -X: ear to ear over the top of the head.
+  const cupGeo = new THREE.CylinderGeometry(0.065, 0.065, 0.05, 12);
+  const left = new THREE.Mesh(cupGeo, dark);
+  left.rotation.z = Math.PI / 2;
+  left.position.set(-0.2, 1.58, 0);
+  const right = left.clone();
+  right.position.x = 0.2;
+  const boom = new THREE.Mesh(new THREE.BoxGeometry(0.018, 0.018, 0.2), dark);
+  boom.position.set(-0.17, 1.51, 0.1);
+  boom.rotation.y = 0.35;
+  const mic = new THREE.Mesh(new THREE.SphereGeometry(0.026, 8, 6), dark);
+  mic.position.set(-0.13, 1.5, 0.2);
+  for (const m of [band, left, right, boom, mic]) {
+    m.castShadow = true;
+    person.add(m);
+  }
+}
+
+/** Small movements for someone on a call: typing hands and a slight turn now and then. */
+export function animateCallAgent(agent, t) {
+  const { group, base, phase } = agent;
+  const { leftArm, rightArm } = group.userData.limbs;
+  const typing = Math.sin(t * 0.4 + phase) > 0.2; // types for a while, then talks
+  leftArm.rotation.x = -0.7 + (typing ? Math.sin(t * 14 + phase) * 0.06 : 0);
+  rightArm.rotation.x = -0.7 + (typing ? Math.sin(t * 14 + phase + 1.5) * 0.06 : -0.25);
+  group.rotation.y = base + Math.sin(t * 0.3 + phase) * 0.12;
+}
+
 /** A floating "!" shown above someone who needs help. */
 export function makeAlertMarker() {
   const g = new THREE.Group();

@@ -93,6 +93,18 @@ function shuffle(items, rng) {
  * - employees: people in the office ({ name, gender }). Each can have one open ticket.
  * Problems are not repeated until every allowed problem has been used.
  */
+/**
+ * Can this employee report this problem?
+ * - Answer texts say he/she, so a problem about a woman goes to a female employee and vice versa.
+ * - The manager never reports a problem that a staff member would take to their manager
+ *   (approvals, "ask your manager"), unless he is that problem's own character.
+ */
+export function canOwn(employee, problem) {
+  if (problem.gender && employee.gender !== problem.gender) return false;
+  if (employee.department === 'Management' && problem.involves_manager && problem.character_name !== employee.name) return false;
+  return true;
+}
+
 export class TicketQueue {
   constructor({ rng = Math.random, maxOpen = 3, firstDelay = 4, minGap = 28, maxGap = 42 } = {}) {
     this.rng = rng;
@@ -148,14 +160,12 @@ export class TicketQueue {
     const free = employees.filter((e) => !busy.has(e.name));
     if (free.length === 0) return null;
 
-    // Only pick problems that a free employee can "own": answer texts say he/she,
-    // so a problem about a woman goes to a female employee and vice versa.
-    const freeGenders = new Set(free.map((e) => e.gender));
-    const fits = (p) => (!p.gender || freeGenders.has(p.gender)) && (!category || p.category === category);
+    // Only pick problems that a free employee can "own" (see canOwn).
+    const fits = (p) => (!category || p.category === category) && free.some((e) => canOwn(e, p));
     const problem = this.#drawProblem(maxLevel, fits);
     if (!problem) return null;
 
-    const matching = free.filter((e) => !problem.gender || e.gender === problem.gender);
+    const matching = free.filter((e) => canOwn(e, problem));
     // If the problem's character works in this office (same name), they report it themselves.
     const owner =
       matching.find((e) => e.name === problem.character_name) ??

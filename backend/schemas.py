@@ -26,6 +26,7 @@ class ProblemSummary(BaseModel):
     character_name: str  # lets the game send the ticket to the matching employee
     gender: str
     hands_on: bool = False  # solved by investigating in the office instead of picking an option
+    involves_manager: bool = False  # staff would take it to their manager, so the manager never reports it
 
 
 class Character(BaseModel):

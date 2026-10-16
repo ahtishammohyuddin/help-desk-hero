@@ -998,7 +998,7 @@ export function renderLibrary(topics, selected, notes, tab = 'notes') {
       <div class="lib-list">${list}</div></div>`;
   }
   $('library-card').innerHTML = `
-    <h1 id="library-title">📚 Learning corner</h1>
+    <h1 id="library-title">📚 Learning hub</h1>
     <p class="lead">Notes on every ticket you have worked on, written by the senior team. ${done} of ${total} unlocked.</p>
     <div class="lib-tabs"><button data-libtab="notes" class="${tab === 'notes' ? 'on' : ''}">My notes</button><button data-libtab="links" class="${tab === 'links' ? 'on' : ''}">Free courses and roadmap</button></div>
     ${body}

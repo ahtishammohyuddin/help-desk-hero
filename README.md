@@ -69,7 +69,7 @@ Sound is all made in code with the Web Audio API, so there are no audio files an
 
 ## The office
 
-The office has the main open-plan area, the server room, the IT corner (help desk, parts cabinet, repair bench, notice board), and an east wing with a kitchen (coffee machine boost), a lounge with a TV, a game corner arcade (5 mini-games, no XP), a meeting room, a learning corner (notes unlocked from the problems you have worked on), a manager's office and phone booths.
+The office has the main open-plan area, the server room, the IT corner (help desk, parts cabinet, repair bench, notice board), and an east wing with a kitchen (coffee machine boost), a lounge with a TV, a game corner arcade (5 mini-games, no XP), a meeting room, a learning hub under a purple archway (notes unlocked from the problems you have worked on, plus free course links), a manager's office and a call team (people on calls with headsets, in the phone booths and at a row of desks). The manager's door stays shut: knock (E) and Haroon says come in if he is at his desk, or it opens by itself when he has asked for help. Haroon is the manager, so he never reports a problem that staff would take to their manager (approvals, "ask your manager"); the backend marks those problems with `involves_manager`.
 
 Staff take breaks when they do not need help: they get a coffee, watch the lounge TV, play at the arcade, or hold meetings with slides on the projector. Routes are planned on a grid with A* search (`game/src/nav.js`); who goes where is decided in `game/src/life.js`. Anyone with an open ticket walks back to their desk.
 

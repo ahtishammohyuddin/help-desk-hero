@@ -92,7 +92,7 @@ def test_list_rejects_bad_level(client):
 
 def test_list_summary_has_no_answers(client):
     first = client.get("/problems").json()[0]
-    assert set(first) == {"id", "level", "category", "title", "character_name", "gender", "hands_on"}
+    assert set(first) == {"id", "level", "category", "title", "character_name", "gender", "hands_on", "involves_manager"}
     assert first["character_name"] == "Ahmed" and first["gender"] == "male"
 
 
@@ -320,3 +320,15 @@ def test_hands_on_endpoints_404_without_a_scenario(hands_client):
     assert hands_client.get("/problems/L1-HW-04/hands-on").status_code == 404
     assert hands_client.post("/problems/L1-HW-04/hands-on/finish", json={"attempt": 1}).status_code == 404
     assert hands_client.post("/problems/L1-HW-03/hands-on/finish", json={"attempt": 3}).status_code == 422
+
+
+def test_involves_manager_flag():
+    from backend.main import involves_manager
+    assert involves_manager({"user_description": "Can my manager approve this?", "options": []})
+    assert involves_manager({"user_description": "Hi", "options": [{"text": "Ask for approval", "why": "x"}]})
+    assert not involves_manager({"user_description": "My mouse is frozen", "options": [{"text": "Replug it", "why": "Loose"}]})
+
+
+def test_problem_list_carries_the_manager_flag(client):
+    rows = client.get("/problems").json()
+    assert all("involves_manager" in r for r in rows)

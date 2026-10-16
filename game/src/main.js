@@ -34,6 +34,8 @@ import { emptyBest } from './minigames.js';
 import { createArcade } from './arcade.js';
 import { buildGrid } from './nav.js';
 import { createStaffLife } from './staff.js';
+import { DOOR_BLOCK, DOORWAY, doorShouldOpen, knockAnswer } from './door.js';
+import { animateCallAgent } from './people.js';
 import { drawSlides, drawTv } from './screens.js';
 import { addSeen, coffeeLeft, drinkCoffee, emptyCoffee, libraryTopics, speedFor } from './perks.js';
 import { hasSave, loadingStep, menuState, PLAYER_NAME_KEY, tipAt } from './menu.js';
@@ -141,8 +143,22 @@ function start() {
   scene.add(sun);
 
   // ---------- world ----------
-  const { colliders, blinkers, screens } = buildOffice(scene);
+  const { colliders, blinkers, screens, callAgents } = buildOffice(scene);
   const navGrid = buildGrid(colliders, BOUNDS); // walking routes for staff (furniture only, before people are added)
+  // The manager's door: a wooden door on a hinge, and a block in the doorway while it is shut.
+  // Added after the walking routes, so staff (and Haroon himself) can still route through it.
+  const doorBlock = { ...DOOR_BLOCK };
+  colliders.push(doorBlock);
+  const doorHinge = new THREE.Group();
+  doorHinge.position.set(DOORWAY.x, 0, DOORWAY.minZ);
+  const doorPanel = new THREE.Mesh(new THREE.BoxGeometry(0.07, 2.15, 1.76), new THREE.MeshStandardMaterial({ color: 0x5a3a26, roughness: 0.7 }));
+  doorPanel.position.set(0, 1.075, 0.9);
+  doorPanel.castShadow = true;
+  const doorHandle = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.04, 0.1), new THREE.MeshStandardMaterial({ color: 0xc9a227, metalness: 0.6, roughness: 0.3 }));
+  doorHandle.position.set(0, 1.0, 1.6);
+  doorHinge.add(doorPanel, doorHandle);
+  scene.add(doorHinge);
+  const managerDoor = { open: false, angle: 0, permitUntil: 0, knockAt: null };
   const employees = createEmployees(scene, colliders, $('labels'));
   const byName = new Map(employees.map((e) => [e.name, e]));
   const player = createPlayer(scene, PLAYER_START);
@@ -321,11 +337,13 @@ function start() {
   const useAt = (kind, place, action) => ({ ticket: null, kind, quiet: true, job: { steps: [{ place, action }], index: 0, finished: false } });
   const OFFICE_ITEMS = [
     useAt('coffee', 'coffee_machine', 'Make a coffee'),
-    useAt('library', 'learning_pc', 'Open the learning corner'),
+    useAt('library', 'learning_pc', 'Open the learning hub'),
     useAt('board', 'notice_board', 'Read the notice board'),
     useAt('arcade', 'game_corner', 'Play a game at the game corner'),
   ];
-  const allPlaces = () => [...activeJobs(), CABINET, ...OFFICE_ITEMS];
+  const KNOCK = useAt('knock', 'manager_door', "Knock on the manager's door");
+  // The knock is only offered while the door is shut and no knock is waiting for an answer.
+  const allPlaces = () => [...activeJobs(), CABINET, ...OFFICE_ITEMS, ...(managerDoor.open || managerDoor.knockAt !== null ? [] : [KNOCK])];
   let working = null; // { ticket, step, place, t }: the player is doing a step at a place
   let nearPlace = null; // a place in reach with a step waiting
   let backendReady = false;
@@ -1270,10 +1288,42 @@ function start() {
     if (target.kind === 'library') return openLibrary();
     if (target.kind === 'board') return openBoard();
     if (target.kind === 'arcade') return openArcade();
+    if (target.kind === 'knock') return knockOnDoor();
     if (['switch', 'printer', 'bench', 'projector', 'tv'].includes(target.kind)) return openSwitch(target.ticket, target.kind);
     working = { ...target, t: 0 };
     player.face(target.place.markX, target.place.markZ);
     sound.click();
+  }
+
+  function knockOnDoor() {
+    sound.knock();
+    managerDoor.knockAt = clock.elapsedTime; // he answers a moment later (updateManagerDoor)
+  }
+
+  function updateManagerDoor(dt, time) {
+    const haroon = byName.get('Haroon');
+    if (managerDoor.knockAt !== null && time - managerDoor.knockAt > 0.9) {
+      const answer = knockAnswer({ managerAtDesk: staffLife.doing(haroon) === null, now: time, pick: Math.floor(time) });
+      managerDoor.permitUntil = answer.permitUntil;
+      managerDoor.knockAt = null;
+      ui.toast(ui.esc(answer.line));
+    }
+    const p = player.position;
+    if (managerDoor.open && (p.x > 36.3 && p.z < -1)) managerDoor.permitUntil = Math.max(managerDoor.permitUntil, time + 4); // linger after leaving
+    const managerNear = Math.hypot(haroon.group.position.x - DOORWAY.x, haroon.group.position.z - (DOORWAY.minZ + DOORWAY.maxZ) / 2) < 2;
+    managerDoor.open = doorShouldOpen({
+      called: Boolean(queue.forEmployee('Haroon')),
+      permitUntil: managerDoor.permitUntil,
+      now: time,
+      player: p,
+      managerNear,
+      wasOpen: managerDoor.open,
+    });
+    Object.assign(doorBlock, managerDoor.open ? { minX: 1e9, maxX: 1e9, minZ: 1e9, maxZ: 1e9 } : DOOR_BLOCK);
+    // Swing the door (into the office) towards open or shut.
+    const target = managerDoor.open ? 1.45 : 0;
+    managerDoor.angle += (target - managerDoor.angle) * Math.min(1, dt * 6);
+    doorHinge.rotation.y = managerDoor.angle;
   }
 
   function updateWork(dt) {
@@ -1710,6 +1760,8 @@ function start() {
 
     const shiftRunning = backendReady && shiftStarted && !overlayOpen() && !shift.ended;
     if (backendReady && !overlayOpen()) staffLife.update(dt);
+    updateManagerDoor(dt, time);
+    for (const agent of callAgents) animateCallAgent(agent, time);
     screenTimer -= dt;
     if (screenTimer <= 0) {
       screenTimer = 0.2;

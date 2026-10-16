@@ -40,6 +40,8 @@
   - [x] Server room tickets: UPS alarm, room too hot, amber disk light, server not responding, tailgating
         (escalation to the server or security team; written, awaiting review)
   - [x] Free course and roadmap links approved and shown in the learning corner
+  - [x] Learning hub archway and signs, call team with headsets in the phone booths area, manager's door that you
+        knock on (opens by itself when Haroon asks for help), the manager never gets "ask your manager" tickets
   - [ ] Stage E: windows and light that follow the shift clock, server room badge door, desk phone tickets,
         new-starter laptop setup at the bench
   - [ ] Stage F: desk upgrades and technician customisation

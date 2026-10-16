@@ -80,6 +80,22 @@ def daily_problem_ids(problems: list[dict], day: str, count: int = DAILY_COUNT) 
     ranked = sorted(eligible, key=lambda pid: hashlib.sha256(f"{day}|{pid}".encode()).hexdigest())
     return ranked[:count]
 
+MANAGER_WORDS = ("manager", "management", "approval", "approve")
+
+
+def involves_manager(problem: dict) -> bool:
+    """Does the problem's text involve a manager or an approval?
+
+    Such a ticket is something a staff member would take to their manager, so the game never
+    gives it to the manager himself (unless he is the problem's own character).
+    """
+    text = " ".join(
+        [problem.get("user_description", ""), problem.get("real_world_tip", "")]
+        + [f"{o.get('text', '')} {o.get('why', '')}" for o in problem.get("options", [])]
+    ).lower()
+    return any(word in text for word in MANAGER_WORDS)
+
+
 DEFAULT_PROBLEMS_DIR = Path(__file__).resolve().parent.parent / "problems"
 DEFAULT_MODEL = "gemini-3.5-flash-lite"
 FROM_ENV = object()  # marker: "build the AI client from environment variables"
@@ -158,6 +174,7 @@ def create_app(problems_dir: Path | None = None, ai_client: object = FROM_ENV) -
                 "character_name": p["character"]["name"],
                 "gender": p["character"]["gender"],
                 "hands_on": "hands_on" in p,
+                "involves_manager": involves_manager(p),
             }
             for p in store_of(request).list(level=level, category=category)
         ]

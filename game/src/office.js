@@ -8,6 +8,7 @@
 
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { addHeadset, makePerson, sitDown } from './people.js';
 
 export const BOUNDS = { minX: -20, maxX: 46, minZ: -14, maxZ: 14 };
 export const WING_MAX_X = 36; // the wall between the east wing and the manager's office / phone booths
@@ -267,14 +268,24 @@ export function buildOffice(scene) {
       box(0.3, 0.32, 0.36, colors[(i + row) % 5], 20.75, 0.12 + row * 0.47, 9.6 + i * 0.45);
     }
   }
-  sign('LEARNING CORNER', 2.2, 0.45, 0x5a4a8a, '#ffffff', 23.2, 2.4, 13.84, Math.PI);
+  sign('LEARNING HUB', 2.2, 0.45, 0x5a4a8a, '#ffffff', 23.2, 2.4, 13.84, Math.PI);
+  // An archway over the way in, so you can see from across the office what this area is.
+  box(0.14, 2.75, 0.14, 0x5a4a8a, 20.75, 0, 6.15, { collide: true });
+  box(0.14, 2.75, 0.14, 0x5a4a8a, 25.6, 0, 6.15, { collide: true });
+  box(5.0, 0.12, 0.16, 0x5a4a8a, 23.17, 2.75, 6.15);
+  sign('LEARNING HUB', 3.0, 0.5, 0x5a4a8a, '#ffffff', 23.17, 2.42, 6.06, Math.PI); // seen from the north (the way in)
+  sign('LEARNING HUB', 3.0, 0.5, 0x5a4a8a, '#ffffff', 23.17, 2.42, 6.24, 0); // seen from inside
+  sign('Free courses · Notes · IT roadmaps', 2.6, 0.24, 0xefe9ff, '#3d2f73', 23.17, 2.05, 6.06, Math.PI);
+  // A pull-up banner by the learning PC.
+  box(0.7, 0.06, 0.25, 0x2b313a, 24.7, 0, 12.4);
+  sign('LEARN HERE', 0.66, 1.5, 0x5a4a8a, '#ffffff', 24.7, 0.85, 12.3, Math.PI);
 
   // ---------- manager's office ----------
   // An executive desk facing the door, leather chair, guest chairs, bookshelf, sofa corner and a big window.
   box(2.6, 0.78, 1.1, 0x4a3022, 43.2, 0, -8, { collide: true }); // desk
   box(2.7, 0.05, 1.2, 0x2b1a12, 43.2, 0.78, -8); // desk top (darker wood)
   box(1.2, 0.78, 0.7, 0x4a3022, 44.2, 0, -6.6, { collide: true }); // return of the L-shaped desk
-  monitor(43.6, -8.2, -Math.PI / 2);
+  monitor(43.6, -8.2, Math.PI / 2); // screen faces Haroon (he sits east of it, looking west)
   box(0.35, 0.03, 0.25, 0xf4f4f4, 42.6, 0.81, -7.7); // papers
   box(0.12, 0.2, 0.12, 0x2f6feb, 42.4, 0.81, -8.4); // pen pot
   executiveChair(44.2, -8, -Math.PI / 2);
@@ -300,12 +311,25 @@ export function buildOffice(scene) {
   sign("MANAGER'S OFFICE", 1.8, 0.4, 0x2b1a12, '#e9d39b', 41.1, 2.4, -1.16, Math.PI);
 
   // ---------- phone booths and lockers ----------
+  // Call team: people on support calls with headsets, in the two booths and at a row of desks.
+  const callSeats = []; // [x, z]: a seated person facing east, towards their screen
   for (const bz of [3, 8]) {
     box(0.1, 2.3, 3, COLORS.glass, 42, 0, bz + 1.5, glass); // booth front glass, door gap on the west side
     box(4, 2.3, 0.1, COLORS.glass, 44, 0, bz, glass);
     box(0.9, 0.75, 0.6, COLORS.desk, 45.3, 0, bz + 1.5, { collide: true });
     chair(44.6, bz + 1.5, Math.PI / 2);
+    monitor(45.5, bz + 1.5, -Math.PI / 2);
+    callSeats.push([44.6, bz + 1.5]);
   }
+  for (const cz of [6.2, 8.0, 9.8]) {
+    box(0.65, 0.75, 1.3, COLORS.desk, 40.75, 0, cz, { collide: true });
+    box(0.65, 0.4, 0.05, COLORS.divider, 40.75, 0.75, cz - 0.67); // low divider between desks
+    monitor(40.95, cz, -Math.PI / 2);
+    box(0.12, 0.03, 0.4, 0x2b313a, 40.62, 0.76, cz); // keyboard
+    chair(40.05, cz, Math.PI / 2);
+    callSeats.push([40.05, cz]);
+  }
+  sign('CALL TEAM', 1.4, 0.3, 0x2c3e50, '#ffffff', 41.9, 2.2, 8.0, -Math.PI / 2);
   box(4, 2.3, 0.1, COLORS.glass, 44, 0, 13, glass);
   for (let i = 0; i < 5; i++) box(0.75, 1.9, 0.5, i % 2 ? 0x5b7fa6 : 0x4a6a8f, 37.2 + i * 0.8, 0, 13.6, { collide: true }); // lockers
   sign('PHONE BOOTHS', 1.6, 0.36, 0x2c3e50, '#ffffff', 41.5, 2.4, -0.84, 0);
@@ -334,7 +358,29 @@ export function buildOffice(scene) {
   }
 
   mergeStatic(root, scene);
-  return { colliders, blinkers, screens: { tv: tvScreen, projector: projectorScreen } };
+  const callAgents = makeCallAgents(callSeats);
+  return { colliders, blinkers, screens: { tv: tvScreen, projector: projectorScreen }, callAgents };
+
+  /** Seated people on calls, wearing headsets. They are scenery: they never raise tickets. */
+  function makeCallAgents(seats) {
+    const looks = [
+      { shirt: 0x2f6feb, hair: 0x1a1110, skin: 0xc68a5f },
+      { shirt: 0x9b4dca, hair: 0x2b1d14, skin: 0xd9a77e },
+      { shirt: 0x1f9d55, hair: 0x15100c, skin: 0xb07a52 },
+      { shirt: 0xd35400, hair: 0x3a2a1c, skin: 0xe0b48f },
+      { shirt: 0x34495e, hair: 0x23160f, skin: 0xc99a6e },
+    ];
+    return seats.map(([x, z], i) => {
+      const person = makePerson(looks[i % looks.length]);
+      addHeadset(person);
+      person.position.set(x, 0, z);
+      person.rotation.y = Math.PI / 2; // facing east, towards the screen
+      sitDown(person);
+      scene.add(person);
+      colliders.push({ minX: x - 0.3, maxX: x + 0.3, minZ: z - 0.3, maxZ: z + 0.3 });
+      return { group: person, base: person.rotation.y, phase: i * 1.7 };
+    });
+  }
 
   // ---------- small furniture helpers ----------
 

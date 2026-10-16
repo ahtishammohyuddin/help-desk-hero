@@ -1,7 +1,7 @@
 // Run with: node --test game/tests/tickets.test.mjs
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { choosePriority, maxLevelFor, PRIORITIES, rankFor, streakMultiplier, TicketQueue, xpFor } from '../src/tickets.js';
+import { canOwn, choosePriority, maxLevelFor, PRIORITIES, rankFor, streakMultiplier, TicketQueue, xpFor } from '../src/tickets.js';
 
 // Repeatable "random" numbers so tests always behave the same.
 function seeded(seed = 42) {
@@ -192,4 +192,15 @@ test('no tickets when everyone is busy or the pool is empty', () => {
 test('an escalation with mistakes earns half XP', () => {
   assert.equal(xpFor({ ...base, level: 3, escalationMissed: true }), 15);
   assert.equal(xpFor({ ...base, level: 3, escalationMissed: false }), 30);
+});
+
+test('the manager never gets a ticket that staff would take to their manager', () => {
+  const haroon = { name: 'Haroon', gender: 'male', department: 'Management' };
+  const imran = { name: 'Imran', gender: 'male', department: 'Sales' };
+  const approval = { gender: 'male', involves_manager: true, character_name: 'Talha' };
+  assert.equal(canOwn(haroon, approval), false);
+  assert.equal(canOwn(imran, approval), true);
+  assert.equal(canOwn(haroon, { ...approval, character_name: 'Haroon' }), true); // written for him
+  assert.equal(canOwn(haroon, { gender: 'male', involves_manager: false }), true);
+  assert.equal(canOwn(haroon, { gender: 'female' }), false);
 });

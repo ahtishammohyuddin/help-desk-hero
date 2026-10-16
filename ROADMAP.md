@@ -60,8 +60,8 @@
 
 ## Phase 9: launch
 - [x] Version stamps on game files so browsers always load the latest copy (`tools/stamp_version.py`)
-- [x] Hosting setup: GitHub Pages workflow for the game, `render.yaml` for the backend (free plans), `game/config.js` for the online address
-- [ ] Go live (Ahtisham: enable Pages, create the Render service, put its address in config.js)
+- [x] Hosting setup: GitHub Pages workflow for the game, `app.py` for Vercel (free Hobby plan, no card); `render.yaml` kept as an alternative, `game/config.js` for the online address
+- [x] Live: game on GitHub Pages (https://ahtishammohyuddin.github.io/help-desk-hero/), backend on Vercel's free Hobby plan (https://help-desk-hero-nine.vercel.app)
 - [ ] Final README pass and LinkedIn launch post
 
 ## After launch

@@ -1,9 +1,11 @@
 // Talks to the FastAPI backend.
-// The backend address: ?api=https://... in the page address, else config.js (set when the
-// backend is hosted online), else the local server.
+// The backend address: ?api=https://... in the page address, else config.js when the game is
+// opened from its website, else the local server.
 
 const params = new URLSearchParams(window.location.search);
-export const API_BASE = (params.get('api') || window.HDH_CONFIG?.apiBase || 'http://127.0.0.1:8000').replace(/\/+$/, '');
+const onThisComputer = ['localhost', '127.0.0.1', ''].includes(window.location.hostname);
+// On your own computer the game always uses the local backend; online it uses config.js.
+export const API_BASE = (params.get('api') || (onThisComputer ? '' : window.HDH_CONFIG?.apiBase) || 'http://127.0.0.1:8000').replace(/\/+$/, '');
 
 export class ApiError extends Error {
   constructor(message, status = 0) {

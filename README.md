@@ -1,5 +1,7 @@
 # Help Desk Hero
 
+**Play it online:** https://ahtishammohyuddin.github.io/help-desk-hero/
+
 A third-person 3D browser game that teaches IT technical support, from basic to advanced.
 Built with Three.js, a FastAPI backend and a reviewed, data-driven problem bank.
 

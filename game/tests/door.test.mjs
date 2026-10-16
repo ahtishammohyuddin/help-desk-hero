@@ -37,3 +37,20 @@ test('knocking: he says come in when at his desk, no answer when away', () => {
   assert.equal(no.allowed, false);
   assert.match(no.line, /not in his office/);
 });
+
+import { BADGE_OPEN_SECONDS, insideServerRoom, serverDoorShouldOpen } from '../src/door.js';
+
+test('server room door: shut until you tap your badge, then open for a few seconds', () => {
+  const outside = { x: 14, z: -4.5 };
+  assert.equal(serverDoorShouldOpen({ openUntil: 0, now: 10, player: outside }), false);
+  assert.equal(serverDoorShouldOpen({ openUntil: 10 + BADGE_OPEN_SECONDS, now: 12, player: outside }), true);
+  assert.equal(serverDoorShouldOpen({ openUntil: 15, now: 16, player: outside }), false);
+});
+
+test('server room door: opens when walking out from inside, and never shuts on someone in it', () => {
+  assert.equal(insideServerRoom({ x: 14, z: -11 }), true);
+  assert.equal(serverDoorShouldOpen({ openUntil: 0, now: 10, player: { x: 14, z: -7 } }), true); // exit sensor
+  assert.equal(serverDoorShouldOpen({ openUntil: 0, now: 10, player: { x: 14, z: -11 } }), false); // deep inside
+  assert.equal(serverDoorShouldOpen({ openUntil: 0, now: 10, player: { x: 14, z: -5.9 }, wasOpen: true }), true);
+  assert.equal(serverDoorShouldOpen({ openUntil: 0, now: 10, player: { x: 14, z: -5.9 }, wasOpen: false }), false);
+});

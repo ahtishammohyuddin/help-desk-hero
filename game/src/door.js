@@ -38,3 +38,29 @@ export function knockAnswer({ managerAtDesk, now, pick = 0 }) {
   }
   return { allowed: true, permitUntil: now + PERMIT_SECONDS, line: `Haroon: "${COME_IN[pick % COME_IN.length]}"` };
 }
+
+// ---------- the server room badge door ----------
+
+/** The sliding glass door in the server room's south wall (x 13..15 at z -6). The reader is outside, at x 15.1. */
+export const SERVER_DOORWAY = { z: -6, minX: 13, maxX: 15 };
+export const SERVER_DOOR_BLOCK = { minX: 13, maxX: 15, minZ: -6.15, maxZ: -5.85 };
+export const BADGE_OPEN_SECONDS = 5;
+
+export function insideServerRoom(p) {
+  return p.x > 10 && p.x < 20 && p.z > -14 && p.z < -6;
+}
+
+function nearServerDoor(p, reach) {
+  return p.x > SERVER_DOORWAY.minX - 0.5 && p.x < SERVER_DOORWAY.maxX + 0.5 && Math.abs(p.z - SERVER_DOORWAY.z) < reach;
+}
+
+/**
+ * Should the server room door be open?
+ * Outside, it opens only for a badge tap (openUntil). Inside, walking up to it opens it
+ * (like a real exit sensor). It never shuts on someone standing in it.
+ */
+export function serverDoorShouldOpen({ openUntil, now, player, wasOpen = false }) {
+  if (now < openUntil) return true;
+  if (insideServerRoom(player) && nearServerDoor(player, 1.6)) return true;
+  return wasOpen && nearServerDoor(player, 0.6);
+}

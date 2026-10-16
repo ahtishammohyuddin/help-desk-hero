@@ -21,6 +21,7 @@ export const PLACES = {
   learning_pc: { name: 'Learning hub PC', x: 23.2, z: 11.2, markX: 23.2, markZ: 13 },
   notice_board: { name: 'Notice board', x: -18.8, z: 3.5, markX: -19.8, markZ: 3.5 },
   game_corner: { name: 'Game corner', x: 33.6, z: -1.3, markX: 33.6, markZ: -2.6 },
+  server_door: { name: 'Server room door', x: 15.1, z: -4.8, markX: 15.1, markZ: -5.92 },
   manager_door: { name: "Manager's door", x: 35.2, z: -3.5, markX: 36.15, markZ: -3.5 },
   // Wi-Fi survey spots (hands-on Wi-Fi tickets)
   wifi_front: { name: 'Front of office', x: 2, z: 11, markX: 2, markZ: 11 },

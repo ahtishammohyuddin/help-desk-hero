@@ -34,7 +34,8 @@ import { emptyBest } from './minigames.js';
 import { createArcade } from './arcade.js';
 import { buildGrid } from './nav.js';
 import { createStaffLife } from './staff.js';
-import { DOOR_BLOCK, DOORWAY, doorShouldOpen, knockAnswer } from './door.js';
+import { BADGE_OPEN_SECONDS, DOOR_BLOCK, DOORWAY, doorShouldOpen, knockAnswer, SERVER_DOOR_BLOCK, SERVER_DOORWAY, serverDoorShouldOpen } from './door.js';
+import { daylight } from './daylight.js';
 import { animateCallAgent } from './people.js';
 import { drawSlides, drawTv } from './screens.js';
 import { addSeen, coffeeLeft, drinkCoffee, emptyCoffee, libraryTopics, speedFor } from './perks.js';
@@ -143,7 +144,7 @@ function start() {
   scene.add(sun);
 
   // ---------- world ----------
-  const { colliders, blinkers, screens, callAgents } = buildOffice(scene);
+  const { colliders, blinkers, screens, callAgents, windowGlass } = buildOffice(scene);
   const navGrid = buildGrid(colliders, BOUNDS); // walking routes for staff (furniture only, before people are added)
   // The manager's door: a wooden door on a hinge, and a block in the doorway while it is shut.
   // Added after the walking routes, so staff (and Haroon himself) can still route through it.
@@ -159,6 +160,22 @@ function start() {
   doorHinge.add(doorPanel, doorHandle);
   scene.add(doorHinge);
   const managerDoor = { open: false, angle: 0, permitUntil: 0, knockAt: null };
+  // The server room's sliding glass door, opened by tapping your badge on the reader outside.
+  const serverBlock = { ...SERVER_DOOR_BLOCK };
+  colliders.push(serverBlock);
+  const serverPanel = new THREE.Mesh(
+    new THREE.BoxGeometry(2, 2.75, 0.05),
+    new THREE.MeshStandardMaterial({ color: 0xa9d6e8, transparent: true, opacity: 0.35, roughness: 0.1 }),
+  );
+  serverPanel.position.set((SERVER_DOORWAY.minX + SERVER_DOORWAY.maxX) / 2, 1.375, SERVER_DOORWAY.z - 0.09);
+  const serverHandle = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.5, 0.06), new THREE.MeshStandardMaterial({ color: 0x9aa4ae, metalness: 0.6 }));
+  serverHandle.position.set(-0.85, -0.3, 0.05);
+  serverPanel.add(serverHandle);
+  scene.add(serverPanel);
+  const readerLight = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.06, 0.02), new THREE.MeshStandardMaterial({ color: 0x3a0b0b, emissive: 0xe5484d, emissiveIntensity: 0.9 }));
+  readerLight.position.set(15.1, 1.15, -5.88);
+  scene.add(readerLight);
+  const serverDoor = { open: false, slide: 0, openUntil: 0 };
   const employees = createEmployees(scene, colliders, $('labels'));
   const byName = new Map(employees.map((e) => [e.name, e]));
   const player = createPlayer(scene, PLAYER_START);
@@ -342,8 +359,9 @@ function start() {
     useAt('arcade', 'game_corner', 'Play a game at the game corner'),
   ];
   const KNOCK = useAt('knock', 'manager_door', "Knock on the manager's door");
+  const BADGE = useAt('badge', 'server_door', 'Tap your badge on the server room reader');
   // The knock is only offered while the door is shut and no knock is waiting for an answer.
-  const allPlaces = () => [...activeJobs(), CABINET, ...OFFICE_ITEMS, ...(managerDoor.open || managerDoor.knockAt !== null ? [] : [KNOCK])];
+  const allPlaces = () => [...activeJobs(), CABINET, ...OFFICE_ITEMS, ...(managerDoor.open || managerDoor.knockAt !== null ? [] : [KNOCK]), ...(serverDoor.open ? [] : [BADGE])];
   let working = null; // { ticket, step, place, t }: the player is doing a step at a place
   let nearPlace = null; // a place in reach with a step waiting
   let backendReady = false;
@@ -1289,10 +1307,37 @@ function start() {
     if (target.kind === 'board') return openBoard();
     if (target.kind === 'arcade') return openArcade();
     if (target.kind === 'knock') return knockOnDoor();
+    if (target.kind === 'badge') return tapBadge();
     if (['switch', 'printer', 'bench', 'projector', 'tv'].includes(target.kind)) return openSwitch(target.ticket, target.kind);
     working = { ...target, t: 0 };
     player.face(target.place.markX, target.place.markZ);
     sound.click();
+  }
+
+  function tapBadge() {
+    sound.badgeBeep();
+    serverDoor.openUntil = clock.elapsedTime + BADGE_OPEN_SECONDS;
+  }
+
+  function updateServerDoor(dt, time) {
+    serverDoor.open = serverDoorShouldOpen({ openUntil: serverDoor.openUntil, now: time, player: player.position, wasOpen: serverDoor.open });
+    Object.assign(serverBlock, serverDoor.open ? { minX: 1e9, maxX: 1e9, minZ: 1e9, maxZ: 1e9 } : SERVER_DOOR_BLOCK);
+    serverDoor.slide += ((serverDoor.open ? 1 : 0) - serverDoor.slide) * Math.min(1, dt * 7);
+    serverPanel.position.x = (SERVER_DOORWAY.minX + SERVER_DOORWAY.maxX) / 2 + serverDoor.slide * 1.9; // slides behind the glass wall
+    readerLight.material.emissive.setHex(serverDoor.open ? 0x33d17a : 0xe5484d);
+  }
+
+  // Daylight follows the shift clock: sun direction, colour and strength, sky, and the glow of the windows.
+  let daylightTimer = 0;
+  let light = daylight(0);
+  function applyDaylight(fraction) {
+    light = daylight(fraction);
+    sun.position.set(light.sun.x, light.sun.y, light.sun.z);
+    sun.color.setHex(light.sunColor);
+    sun.intensity = light.sunIntensity;
+    hemi.intensity = light.skyIntensity;
+    scene.background.setHex(light.background);
+    windowGlass.emissive.setHex(light.windowGlow);
   }
 
   function knockOnDoor() {
@@ -1761,6 +1806,12 @@ function start() {
     const shiftRunning = backendReady && shiftStarted && !overlayOpen() && !shift.ended;
     if (backendReady && !overlayOpen()) staffLife.update(dt);
     updateManagerDoor(dt, time);
+    updateServerDoor(dt, time);
+    daylightTimer -= dt;
+    if (daylightTimer <= 0 && flicker <= 0) {
+      daylightTimer = 1; // the light changes slowly, once a second is plenty
+      applyDaylight(shift ? Math.min(1, shift.elapsed / SHIFT_SECONDS) : 0);
+    }
     for (const agent of callAgents) animateCallAgent(agent, time);
     screenTimer -= dt;
     if (screenTimer <= 0) {
@@ -1880,8 +1931,8 @@ function start() {
     if (flicker > 0) {
       flicker -= dt;
       const dip = flicker > 0 && Math.floor(flicker * 20) % 2 === 0 ? 0.25 : 1;
-      hemi.intensity = 1.4 * dip;
-      sun.intensity = 2.2 * dip;
+      hemi.intensity = light.skyIntensity * dip;
+      sun.intensity = light.sunIntensity * dip;
     }
 
     for (const led of blinkers) {

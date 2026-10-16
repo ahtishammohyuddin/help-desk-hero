@@ -56,6 +56,7 @@ export function buildOffice(scene) {
   // Drawing 30 merged meshes is far faster than drawing 350 small ones, which is what made the game lag.
   const root = new THREE.Group();
   const colliders = [];
+  const windowGlass = new THREE.MeshStandardMaterial({ color: 0xa9d6e8, emissive: 0xcfe9ff, emissiveIntensity: 0.6, roughness: 0.2 });
   const blinkers = []; // server LEDs
 
   // Material cache so identical colours share one material (faster to draw).
@@ -298,7 +299,7 @@ export function buildOffice(scene) {
       box(0.3, 0.34, 0.3, colors[(i * 2 + row) % 5], 40.2 + i * 0.42, 0.15 + row * 0.5, -13.45);
     }
   }
-  box(0.08, 1.6, 4.5, 0xa9d6e8, 45.92, 0.7, -7.5, { extra: { emissive: 0xcfe9ff, emissiveIntensity: 0.5 } }); // window
+  addWindow(45.92, -7.5, 4.5, -Math.PI / 2); // big window behind the manager's desk
   box(0.1, 1.7, 0.1, 0xffffff, 45.9, 0.65, -9.8); box(0.1, 1.7, 0.1, 0xffffff, 45.9, 0.65, -5.2);
   box(2.2, 0.42, 0.85, COLORS.leather, 38.2, 0, -12.6, { collide: true }); // leather sofa
   box(2.2, 0.5, 0.22, 0x2a170f, 38.2, 0.42, -13.0);
@@ -341,7 +342,6 @@ export function buildOffice(scene) {
   box(0.04, 1.0, 1.6, 0xc8a06b, -19.83, 1.2, 3.5); // IT notice board (cork)
   sign('NOTICE BOARD', 1.4, 0.25, 0x14335a, '#ffffff', -19.8, 1.85, 3.5, Math.PI / 2);
   box(0.12, 0.2, 0.06, 0x2b313a, 15.1, 1.1, -5.92); // badge reader by the server room door
-  box(0.06, 0.06, 0.02, 0x33d17a, 15.1, 1.15, -5.88, { extra: { emissive: 0x33d17a, emissiveIntensity: 0.8 } });
   // new-starter laptop boxes waiting near the repair bench
   box(0.6, 0.12, 0.45, 0xf4f4f4, -17.6, 0, 13.4); box(0.6, 0.12, 0.45, 0xf4f4f4, -17.6, 0.12, 13.4); box(0.6, 0.12, 0.45, 0xf4f4f4, -17.5, 0.24, 13.38);
   // desk phones on every staff desk
@@ -357,9 +357,26 @@ export function buildOffice(scene) {
     plant(px, pz);
   }
 
+  // Windows along the north and west walls of the main office (their glass glows with the daylight).
+  for (const wx of [-12, -8.6, 2.2, 5.8]) addWindow(wx, -13.96, 1.8, 0);
+  for (const wz of [-7, -2.5]) addWindow(-19.96, wz, 1.8, Math.PI / 2);
   mergeStatic(root, scene);
   const callAgents = makeCallAgents(callSeats);
-  return { colliders, blinkers, screens: { tv: tvScreen, projector: projectorScreen }, callAgents };
+  return { colliders, blinkers, screens: { tv: tvScreen, projector: projectorScreen }, callAgents, windowGlass };
+
+  /** A window on a wall: white frame and glowing glass. facing: 0 = on the north wall, facing into the room. */
+  function addWindow(x, z, width, facing) {
+    const g = new THREE.Group();
+    const frame = new THREE.Mesh(new THREE.BoxGeometry(width + 0.12, 1.42, 0.05), mat(0xffffff));
+    const glassPane = new THREE.Mesh(new THREE.PlaneGeometry(width, 1.3), windowGlass);
+    glassPane.position.z = 0.03;
+    const bar = new THREE.Mesh(new THREE.BoxGeometry(0.05, 1.3, 0.02), mat(0xffffff));
+    bar.position.z = 0.04;
+    g.add(frame, glassPane, bar);
+    g.position.set(x, 1.55, z);
+    g.rotation.y = facing;
+    scene.add(g);
+  }
 
   /** Seated people on calls, wearing headsets. They are scenery: they never raise tickets. */
   function makeCallAgents(seats) {

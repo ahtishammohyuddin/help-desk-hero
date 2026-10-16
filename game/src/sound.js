@@ -150,6 +150,7 @@ export const sound = {
   correct() { tone(523, 0, 0.12); tone(659, 0.1, 0.12); tone(784, 0.2, 0.25); },
   wrong() { tone(220, 0, 0.18, 'sawtooth', 0.06); tone(165, 0.16, 0.3, 'sawtooth', 0.06); },
   click() { tone(660, 0, 0.05, 'triangle', 0.06); },
+  badgeBeep() { tone(1320, 0, 0.07, 'square', 0.035); tone(1760, 0.09, 0.09, 'square', 0.035); }, // badge accepted
   knock() { [0, 0.18, 0.36].forEach((t) => tone(110, t, 0.07, 'sine', 0.12)); }, // three knocks on a wooden door
   badge() { tone(784, 0, 0.1, 'triangle', 0.1); tone(1175, 0.1, 0.1, 'triangle', 0.1); tone(1568, 0.2, 0.3, 'triangle', 0.08); },
   rankUp() { [523, 659, 784, 1047].forEach((f, i) => tone(f, i * 0.11, 0.3, 'triangle', 0.1)); },

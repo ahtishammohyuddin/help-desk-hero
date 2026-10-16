@@ -2,13 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Help Desk Hero</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Cormorant+Garamond:ital,wght@0,600;0,700;1,500&family=Dancing+Script:wght@600&display=swap" rel="stylesheet">
   <link rel="icon" type="image/png" href="assets/favicon.png">
-  <link rel="stylesheet" href="style.css?v=ae05260bb9">
+  <link rel="stylesheet" href="style.css?v=bef37ad8ba">
   <!-- Where to find the backend online (empty = the local server while developing). -->
   <script src="config.js?v=17b0c73e27"></script>
   <!-- Import map: lets our code write `import * as THREE from 'three'`
@@ -35,11 +35,11 @@
         "./src/escalation.js": "./src/escalation.js?v=287d7328f1",
         "./src/events.js": "./src/events.js?v=82d88ca4b6",
         "./src/handson.js": "./src/handson.js?v=c2913fb0d7",
-        "./src/input.js": "./src/input.js?v=50f1ba1120",
+        "./src/input.js": "./src/input.js?v=96b14d71e8",
         "./src/jobs.js": "./src/jobs.js?v=c3ab6664c2",
         "./src/life.js": "./src/life.js?v=602cbdf468",
-        "./src/logic.js": "./src/logic.js?v=d9fd042188",
-        "./src/main.js": "./src/main.js?v=a2ff3af375",
+        "./src/logic.js": "./src/logic.js?v=91481cac3d",
+        "./src/main.js": "./src/main.js?v=df0b613fee",
         "./src/menu.js": "./src/menu.js?v=7a4a0868dc",
         "./src/minigames.js": "./src/minigames.js?v=159f7b1455",
         "./src/minimap.js": "./src/minimap.js?v=0144e4e1f4",
@@ -56,6 +56,7 @@
         "./src/staff.js": "./src/staff.js?v=3ce919bab5",
         "./src/stations.js": "./src/stations.js?v=cddbd01af2",
         "./src/tickets.js": "./src/tickets.js?v=8503d8a55c",
+        "./src/touch.js": "./src/touch.js?v=d8b1e474f7",
         "./src/ui.js": "./src/ui.js?v=3d2c870d21"
       }
     }
@@ -120,15 +121,15 @@
       <p class="lead">You are the office IT technician. People will ask you for help. Fix their problems to earn XP and get promoted.</p>
       <ol class="steps">
         <li><b>Watch the list on the right.</b> When someone needs help, their name appears there and a <span class="mark">!</span> floats above them.</li>
-        <li><b>Walk over to them.</b> Use <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or the arrow keys. Hold <kbd>Shift</kbd> to walk faster.</li>
-        <li><b>Press <kbd>E</kbd> to help.</b> Read their problem and pick the fix a good technician would try first.</li>
+        <li><b>Walk over to them.</b> <span class="keys-only">Use <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or the arrow keys. Hold <kbd>Shift</kbd> to walk faster.</span><span class="touch-only">Drag the joystick at the bottom left. Push it to the edge to walk faster.</span></li>
+        <li><b><span class="keys-only">Press <kbd>E</kbd></span><span class="touch-only">Tap the blue <kbd>E</kbd> button</span> to help.</b> Read their problem and pick the fix a good technician would try first.</li>
       </ol>
       <div class="help-grid">
         <div><b>Wrong answer?</b> You get a hint and one more try, worth half the XP.</div>
         <div><b>Stuck?</b> Get a hint before answering. It costs 25% of the XP.</div>
         <div><b>Be quick.</b> Each request has a timer. Urgent ones are worth double.</div>
         <div><b>Some fixes need you there.</b> Follow the blue marker to the printer or parts cabinet, then go back to the person.</div>
-        <div><b>Camera:</b> drag with the mouse to turn, scroll to zoom.</div>
+        <div><b>Camera:</b> <span class="keys-only">drag with the mouse to turn, scroll to zoom.</span><span class="touch-only">swipe on the office to turn.</span></div>
       </div>
       <label class="toggle"><input type="checkbox" id="events-toggle" checked> Random events during shifts (power flickers, phishing waves, VIP requests and more)</label>
       <button id="help-start" class="btn big">Start my shift</button>
@@ -181,6 +182,6 @@
     </div>
   </div>
 
-  <script type="module" src="src/main.js?v=a2ff3af375"></script>
+  <script type="module" src="src/main.js?v=df0b613fee"></script>
 </body>
 </html>

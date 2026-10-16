@@ -69,3 +69,12 @@ test('a footstep lands each time the stride passes the middle', async () => {
   assert.equal(stepsBetween(6.2, 6.4), 1); // passes 2 pi
   assert.equal(stepsBetween(5, 5), 0);
 });
+
+test('the on-screen joystick moves relative to the camera, like the keys', () => {
+  const keys = moveDirection({ forward: true }, 0);
+  const stick = moveDirection({ stickX: 0, stickY: 1 }, 0);
+  assert.ok(Math.abs(keys.x - stick.x) < 1e-9 && Math.abs(keys.z - stick.z) < 1e-9);
+  const diag = moveDirection({ stickX: 0.5, stickY: 0.5 }, 0);
+  assert.ok(Math.abs(Math.hypot(diag.x, diag.z) - 1) < 1e-9);
+  assert.deepEqual(moveDirection({ stickX: 0, stickY: 0 }, 0), { x: 0, z: 0 });
+});

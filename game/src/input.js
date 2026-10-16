@@ -15,7 +15,7 @@ function isTyping(e) {
 
 export class Input {
   constructor(target = window) {
-    this.state = { forward: false, back: false, left: false, right: false, run: false };
+    this.state = { forward: false, back: false, left: false, right: false, run: false, stickX: 0, stickY: 0 };
     this.pressHandlers = new Map();
 
     target.addEventListener('keydown', (e) => {
@@ -33,8 +33,13 @@ export class Input {
     });
     // If the window loses focus while a key is held, release everything.
     window.addEventListener('blur', () => {
-      for (const key of Object.keys(this.state)) this.state[key] = false;
+      for (const key of Object.keys(this.state)) this.state[key] = typeof this.state[key] === 'number' ? 0 : false;
     });
+  }
+
+  /** Act as if a key was pressed (used by the on-screen touch buttons). */
+  press(code) {
+    this.pressHandlers.get(code)?.();
   }
 
   /** Run `handler` once each time `code` (e.g. 'KeyE') is pressed. */

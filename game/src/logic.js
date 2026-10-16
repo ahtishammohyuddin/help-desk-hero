@@ -46,8 +46,10 @@ export function nearestWithin(pos, items, radius) {
  * Returns a vector of length 0 or 1.
  */
 export function moveDirection(input, yaw) {
-  const forward = (input.forward ? 1 : 0) - (input.back ? 1 : 0);
-  const right = (input.right ? 1 : 0) - (input.left ? 1 : 0);
+  // The on-screen joystick (phones) gives stickX/stickY from -1 to 1; keys give on/off.
+  const stick = Boolean(input.stickX || input.stickY);
+  const forward = stick ? input.stickY : (input.forward ? 1 : 0) - (input.back ? 1 : 0);
+  const right = stick ? input.stickX : (input.right ? 1 : 0) - (input.left ? 1 : 0);
   if (forward === 0 && right === 0) return { x: 0, z: 0 };
 
   const sin = Math.sin(yaw);

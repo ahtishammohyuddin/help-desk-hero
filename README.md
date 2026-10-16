@@ -75,6 +75,10 @@ Sound is all made in code with the Web Audio API, so there are no audio files an
 
 Under the options on a question ticket, **Or answer in your own words** lets you type (or say) what you would do. `POST /problems/{id}/match` finds which listed option your words sound like: the AI is only given the option texts, never which one is correct, and without the AI a simple word match is used. You confirm the option, and `/check` marks it against the reviewed answer as usual, so the AI never decides what is right. Emails and long numbers are removed before matching. **Voice input** (Settings, off by default) uses the browser's speech-to-text; in Chrome that sends the audio to Google. The 🔊 button reads the person's message aloud, preferring a voice built into your computer.
 
+## Phones and tablets
+
+On a touch screen the game shows a joystick (bottom left) to walk, pushed to the edge to walk faster, and a blue **E** button (bottom right) to talk, use and close; the *Tap E to...* prompt can be tapped too. Swipe on the office to turn the camera. Add `?touch=1` to the address to see the touch controls on a computer.
+
 ## Where players' progress is saved
 
 Everything a player does is saved **in their own browser, on their own device** (browser storage): XP, rank, badges, streaks, the daily challenge, settings, their name, their look and the notes they have unlocked. Coming back days later on the same browser continues where they left off. It does not follow them to another browser or device, and it is lost if they clear their browsing data or play in a private/incognito window. The server keeps no accounts and no personal data.

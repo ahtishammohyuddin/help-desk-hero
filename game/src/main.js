@@ -41,6 +41,7 @@ import { drawSlides, drawTv } from './screens.js';
 import { addSeen, COFFEE_SECONDS, coffeeLeft, drinkCoffee, emptyCoffee, libraryTopics, speedFor } from './perks.js';
 import { coffeeSecondsFor, DESK_UPGRADES, LOOK_KEY, LOOK_OPTIONS, LOOK_PARTS, lookColors, newlyUnlocked, nextUpgrade, parseLook, setLookPart, unlockedUpgrades } from './custom.js';
 import { createDeskUpgrades } from './desk.js';
+import { createTouchControls } from './touch.js';
 import { hasSave, loadingStep, menuState, PLAYER_NAME_KEY, tipAt } from './menu.js';
 
 const TALK_RADIUS = 1.8; // how close you must be to talk to someone
@@ -194,6 +195,8 @@ function start() {
   window.addEventListener('keydown', startMusic);
   const followCam = new FollowCamera(camera, renderer.domElement);
   const input = new Input();
+  // Phones and tablets get an on-screen joystick and E button (?touch=1 shows them anywhere, for testing).
+  createTouchControls(input, { force: new URLSearchParams(window.location.search).get('touch') === '1' });
   const minimap = new Minimap($('minimap-canvas'), BOUNDS, colliders);
 
   // A blue marker above each place, and a ring on the floor where to stand.
@@ -1415,6 +1418,9 @@ function start() {
   });
 
   // ---------- physical fixes ----------
+  // "Press E" on a keyboard, "Tap E" on a touch screen (the blue E button).
+  const pressE = () => (document.body.classList.contains('touch') ? 'Tap <kbd>E</kbd>' : 'Press <kbd>E</kbd>');
+
   function startWork(target) {
     if (target.kind === 'cabinet') return openCabinet();
     if (target.kind === 'coffee') return makeCoffee();
@@ -1951,6 +1957,7 @@ function start() {
     const dt = Math.min(rawDt, 0.05); // cap so a slow frame can't teleport the player
     const time = clock.elapsedTime;
 
+    document.body.classList.toggle('covered', menuOpen || overlayOpen() || !$('ticket').hidden);
     player.speedMult = speedFor(coffee, now());
     ui.setBoost(coffeeLeft(coffee, now()));
     player.update(dt, input.state, followCam.yaw, colliders, talkingTo !== null || overlayOpen() || working !== null || stationKind !== null);
@@ -2026,13 +2033,13 @@ function start() {
     } else if (working) {
       // the prompt shows the progress bar (updateWork)
     } else if (nearPlace) {
-      $('prompt').innerHTML = `Press <kbd>E</kbd> to ${ui.esc(nearPlace.step.action.charAt(0).toLowerCase() + nearPlace.step.action.slice(1))}`;
+      $('prompt').innerHTML = `${pressE()} to ${ui.esc(nearPlace.step.action.charAt(0).toLowerCase() + nearPlace.step.action.slice(1))}`;
       $('prompt').hidden = false;
     } else if (nearby) {
       const ticket = queue.forEmployee(nearby.name);
       const stage = ticket ? jobStage(details.get(ticket.number)?.job) : 'finished';
       const verb = !ticket ? 'talk to' : stage === 'return' ? 'finish the fix for' : 'help';
-      $('prompt').innerHTML = `Press <kbd>E</kbd> to ${verb} <b>${ui.esc(nearby.name)}</b>`;
+      $('prompt').innerHTML = `${pressE()} to ${verb} <b>${ui.esc(nearby.name)}</b>`;
       $('prompt').hidden = false;
     } else {
       $('prompt').hidden = true;

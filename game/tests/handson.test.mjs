@@ -6,6 +6,7 @@ import {
   reportCoverage, reportPort, reseat, spotsLeft, stationFor, surveyDone, takeToner,
   test as tryIt, benchAction, benchReadings, badStickFound, CARRY_NAMES,
   projectorAction, projectorReadings, reseatSwitchPort, tvAction, tvReadings,
+  phoneAction, phoneReadings, setupAction, setupReadings, SETUP_STEPS,
 } from '../src/handson.js';
 
 const sim = (faults, goal, required = [], desk = 4) => createSim({ faults, goal, required }, desk);
@@ -131,6 +132,7 @@ const VALIDATOR_FAULTS = {
   laptop_vent_dusty: 'cooling', wifi_weak_corner: 'wifi_report', ram_faulty: 'stable',
   projector_wrong_input: 'projector', projector_hdmi_loose: 'projector', projector_pc_only: 'projector',
   tv_cable_loose: 'tv_online', tv_wifi_dropped: 'tv_online',
+  phone_cable_loose: 'phone', phone_muted: 'phone_audio', handset_cord_loose: 'phone_audio', new_laptop_setup: 'laptop_ready',
 };
 
 test('every fault the validator allows really breaks its goal in the simulation', () => {
@@ -139,6 +141,8 @@ test('every fault the validator allows really breaks its goal in the simulation'
     const works = s.station === 'bench' ? benchReadings(s).works[goal]
       : s.station === 'projector' ? projectorReadings(s).works[goal]
       : s.station === 'tv' ? tvReadings(s).works[goal]
+      : s.station === 'phone' ? phoneReadings(s).works[goal]
+      : s.station === 'setup' ? setupReadings(s).works[goal]
       : s.station === 'printer' ? printerReadings(s).works
       : s.station === 'laptop' ? laptopReadings(s).works[goal]
         : s.station === 'survey' ? s.survey.reported
@@ -562,4 +566,54 @@ test('TV Wi-Fi: the staff network is refused, the devices network works', () => 
   assert.equal(tvReadings(s).online, true);
   assert.deepEqual(placesNeeded(s), []);
   assert.equal(tryIt(s, 'Saima').solved, true);
+});
+
+// ---------- desk phone ----------
+
+const phone = (faults, goal) => createSim({ faults, goal }, 1);
+const phAct = (s, ...a) => a.reduce((cur, x) => phoneAction(cur, x).sim, s);
+
+test('desk phone: a loose network cable means no power and no dial tone, until reseated', () => {
+  let s = phone(['phone_cable_loose'], 'phone');
+  assert.equal(s.station, 'phone');
+  assert.equal(phoneReadings(s).screen, '');
+  assert.match(phoneAction(s, 'call').message, /no dial tone/);
+  assert.equal(phoneAction(s, 'mute').changed, false); // no power, nothing happens
+  s = phAct(s, 'net');
+  assert.equal(phoneReadings(s).screen, 'Ready');
+  assert.equal(tryIt(s, 'Ahmed').solved, true);
+  assert.deepEqual(placesNeeded(s), []);
+});
+
+test('desk phone: the caller hears nothing until mute is off and the handset cord is in', () => {
+  let s = phone(['phone_muted', 'handset_cord_loose'], 'phone_audio');
+  assert.equal(phoneReadings(s).muteLight, true);
+  assert.match(phoneAction(s, 'call').message, /cannot hear you/);
+  s = phAct(s, 'mute');
+  assert.equal(tryIt(s, 'Ahmed').solved, false);
+  s = phAct(s, 'cord');
+  assert.equal(tryIt(s, 'Ahmed').solved, true);
+  assert.equal(phoneAction(s, 'call').sim.phone.lastCall, 'ok');
+});
+
+// ---------- new-starter laptop ----------
+
+test('new-starter laptop: steps need the ones before them, shortcuts are refused', () => {
+  let s = createSim({ faults: ['new_laptop_setup'], goal: 'laptop_ready' }, 4);
+  assert.equal(s.station, 'setup');
+  assert.deepEqual(placesNeeded(s), ['repair_bench']);
+  assert.match(setupAction(s, 'updates').message, /Not yet: first connect it to the office network/);
+  assert.match(setupAction(s, 'network').message, /Not yet: first unbox/);
+  const trap = setupAction(s, 'admin');
+  assert.equal(trap.changed, false);
+  assert.match(trap.message, /their own account/);
+  assert.equal(trap.sim.setup.refused.admin, true);
+  for (const k of ['unbox', 'network', 'updates', 'apps', 'encryption']) s = setupAction(s, k).sim;
+  assert.equal(tryIt(s, 'Sana').solved, false);
+  assert.match(tryIt(s, 'Sana').message, /1 step/);
+  s = setupAction(s, 'asset').sim;
+  assert.equal(setupReadings(s).ready, true);
+  assert.deepEqual(placesNeeded(s), []);
+  assert.equal(tryIt(s, 'Sana').solved, true);
+  assert.equal(Object.keys(SETUP_STEPS).length, 6);
 });

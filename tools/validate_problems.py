@@ -81,11 +81,17 @@ HANDS_ON_FAULTS: dict[str, str] = {
     # lounge TV
     "tv_cable_loose": "tv_online",  # wired TV, network cable loose at the back
     "tv_wifi_dropped": "tv_online",  # Wi-Fi TV, dropped off the devices network
+    # desk phone (VoIP, powered through its network cable)
+    "phone_cable_loose": "phone",  # network cable loose at the wall: no power, no dial tone
+    "phone_muted": "phone_audio",  # mute button on
+    "handset_cord_loose": "phone_audio",  # coiled handset cord loose in the handset
+    # new-starter laptop set up at the repair bench
+    "new_laptop_setup": "laptop_ready",
 }
 HANDS_ON_GOALS = (
     "internet", "display", "power", "keyboard", "mouse", "print",
     "charging", "phone_charging", "second_screen", "dock", "cooling", "wifi_report", "stable",
-    "projector", "tv_online",
+    "projector", "tv_online", "phone", "phone_audio", "laptop_ready",
 )
 HANDS_ON_REQUIRED = {"report_port": "switch_port_dead"}  # required action -> fault it needs
 # Teams a ticket can be escalated to (id -> name shown in the game).

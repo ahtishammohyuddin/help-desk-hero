@@ -11,7 +11,7 @@ import { missionStep, needsServerRoom, placesNeeded, SURVEY_SPOTS, surveyDone } 
 import { jobStage, PLACES } from './jobs.js';
 import {
   benchSummary, benchSvg, cabinetSvg, chipsHtml, deskSummary, deskSvg, displayModeHtml, laptopSummary, laptopSvg, pcDeskSummary, pcDeskSvg,
-  printerSummary, printerSvg, projectorModesHtml, projectorSummary, projectorSvg, switchSvg, tvNetworksHtml, tvSummary, tvSvg,
+  phoneSummary, phoneSvg, printerSummary, printerSvg, projectorModesHtml, setupHtml, projectorSummary, projectorSvg, switchSvg, tvNetworksHtml, tvSummary, tvSvg,
 } from './stations.js';
 import { benchReadings, CARRY_NAMES, projectorReadings, tvReadings } from './handson.js';
 import { topicStatus } from './shift.js';
@@ -264,6 +264,8 @@ export function renderTicketPanel(person, ticket, detail) {
         main = `${testBtn(false)}<button class="btn" data-action="later">Go to the repair bench ${key('E')}</button>`;
       } else if (station === 'printer') {
         main = `${testBtn(false)}<button class="btn" data-action="later">Go to the printer ${key('E')}</button>`;
+      } else if (station === 'setup') {
+        main = `${testBtn(false)}<button class="btn" data-action="later">Go to the repair bench ${key('E')}</button>`;
       } else if (station === 'projector') {
         main = `${testBtn(false)}<button class="btn" data-action="later">Go to the meeting room ${key('E')}</button>`;
       } else if (station === 'tv') {
@@ -312,6 +314,7 @@ function missionHtml(person, detail) {
   const step = missionStep(sim);
   const where = sim.station === 'bench' ? `Check Desk ${person.desk}'s PC`
     : sim.station === 'printer' ? 'Go to the printer'
+    : sim.station === 'setup' ? 'Go to the repair bench'
     : sim.station === 'projector' ? 'Go to the meeting room'
     : sim.station === 'tv' ? 'Go to the lounge TV'
     : sim.station === 'survey' ? 'Measure Wi-Fi at 3 spots'
@@ -337,6 +340,7 @@ function nextPlaceHtml(person, detail) {
     if (sim.bench.where === 'carried') return `<div class="next-place"><span aria-hidden="true">📍</span> Next: take the PC back to <b>Desk ${person.desk}</b> and plug it in.</div>`;
     return '';
   }
+  if (sim.station === 'setup' && placesNeeded(sim).length) return `<div class="next-place"><span aria-hidden="true">📍</span> Next: the <b>repair bench</b> in the IT room, where the new laptop boxes are. Follow the blue marker.</div>`;
   if (sim.station === 'projector' && placesNeeded(sim).length) return `<div class="next-place"><span aria-hidden="true">📍</span> Next: the <b>projector</b> in the meeting room. Follow the blue marker.</div>`;
   if (sim.station === 'tv' && placesNeeded(sim).length) return `<div class="next-place"><span aria-hidden="true">📍</span> Next: the <b>TV</b> in the lounge. Follow the blue marker.</div>`;
   if (needsServerRoom(sim)) return `<div class="next-place"><span aria-hidden="true">📍</span> Next: the <b>server room</b>. Follow the blue marker.</div>`;
@@ -381,6 +385,14 @@ const HOVER_HINT = 'Point at anything that glows, then click it.';
 /** The close-up at the person's desk (PC desk or laptop desk). */
 function deskHtml(person, detail) {
   const laptop = detail.sim.station === 'laptop';
+  if (detail.sim.station === 'phone') {
+    return `
+    <div id="station-hint" class="station-hint">${HOVER_HINT}</div>
+    ${phoneSvg(detail.sim)}
+    ${chipsHtml(phoneSummary(detail.sim))}
+    ${latestHtml(detail)}
+    ${hintsAndRetry(detail)}`;
+  }
   if (detail.sim.station === 'bench') {
     return `
     <div id="station-hint" class="station-hint">${HOVER_HINT}</div>
@@ -1089,6 +1101,20 @@ export function renderTvPanel(person, ticket, detail) {
       ${tvSvg(sim)}
       ${tvNetworksHtml(sim)}
       ${chipsHtml(tvSummary(sim))}
+      ${done}${latestHtml(detail)}
+    </div>
+    <footer class="tp-actions"><button class="btn ghost" data-action="close-station">Close ${key('E')}</button></footer>`);
+}
+
+/** The new-starter laptop at the repair bench, opened by walking there and pressing E. */
+export function renderSetupPanel(person, ticket, detail) {
+  const done = placesNeeded(detail.sim).length === 0
+    ? `<div class="next-place"><span aria-hidden="true">📍</span> All done. Go back to <b>${esc(person.name)}</b> and tell them it is ready.</div>`
+    : '';
+  showStation(`${stationHead('N', '#2f6feb', "New starter's laptop", person, ticket)}
+    <div class="tp-body">
+      <div id="station-hint" class="station-hint">Set it up in a sensible order. A step that is not ready yet will tell you what comes first.</div>
+      ${setupHtml(detail.sim)}
       ${done}${latestHtml(detail)}
     </div>
     <footer class="tp-actions"><button class="btn ghost" data-action="close-station">Close ${key('E')}</button></footer>`);

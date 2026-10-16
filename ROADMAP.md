@@ -42,11 +42,11 @@
   - [x] Free course and roadmap links approved and shown in the learning corner
   - [x] Learning hub archway and signs, call team with headsets in the phone booths area, manager's door that you
         knock on (opens by itself when Haroon asks for help), the manager never gets "ask your manager" tickets
-  - [ ] Stage E:
+  - [x] Stage E:
     - [x] Windows and daylight that follow the shift clock
     - [x] Server room badge door (tap your badge to go in, exit sensor on the way out)
-    - [ ] Desk phone tickets (content to be approved first)
-    - [ ] New-starter laptop setup at the repair bench (content to be approved first)
+    - [x] Desk phone tickets: blank screen and no dial tone, caller can't hear me (awaiting review)
+    - [x] New-starter laptop setup at the repair bench (awaiting review)
   - [ ] Stage F: desk upgrades and technician customisation
 - [x] Three graphics modes: Smooth, Balanced, Realistic; the office is not redrawn behind full-screen cards
 - [x] Sound: realistic soft footsteps, background music made in code with 4 styles (Calm chords, Ambient,

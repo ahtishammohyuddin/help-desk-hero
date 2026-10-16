@@ -1,0 +1,49 @@
+{
+  "id": "L1-HW-09",
+  "level": 1,
+  "category": "Hardware",
+  "title": "Desk phone screen is blank, no dial tone",
+  "character": {
+    "name": "Ahmed",
+    "department": "Accounts",
+    "personality": "friendly, chatty",
+    "gender": "male"
+  },
+  "symptom": "The desk phone has a blank screen and no dial tone",
+  "user_description": "My desk phone is dead. The screen is black and when I pick it up there's no dial tone at all. I moved my desk things around this morning, if that matters.",
+  "options": [
+    {
+      "text": "Order a new phone",
+      "correct": false,
+      "why": "A dead screen usually means no power, not a broken phone. Check the cable first."
+    },
+    {
+      "text": "Restart his PC",
+      "correct": false,
+      "why": "The desk phone works on its own. Restarting the PC does not change the phone."
+    },
+    {
+      "text": "Tell him to use his mobile for now",
+      "correct": false,
+      "why": "That leaves the problem unfixed, and his callers still cannot reach his desk number."
+    },
+    {
+      "text": "Check the phone's network cable at the phone and at the wall port, and push it back in if it is loose",
+      "correct": true,
+      "why": "This office's phones are internet (VoIP) phones that get their power through the network cable. A loose cable means no power, so a blank screen and no dial tone."
+    }
+  ],
+  "hints": [
+    "Does the phone show any lights at all?",
+    "How does this office's phone get its power?",
+    "He moved things on his desk this morning."
+  ],
+  "real_world_tip": "Many office phones are VoIP phones powered through the network cable (called PoE, Power over Ethernet). Others use a separate power adapter, so check which kind your office has.",
+  "hands_on": {
+    "faults": [
+      "phone_cable_loose"
+    ],
+    "goal": "phone"
+  },
+  "reviewed": true
+}

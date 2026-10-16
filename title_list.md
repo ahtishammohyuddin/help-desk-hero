@@ -1,10 +1,10 @@
 # Help Desk Hero: planned problem titles
 
-Total: 211 problems. Review each level and tell me what to change.
+Total: 214 problems. Review each level and tell me what to change.
 
-## Level 1 (36)
+## Level 1 (38)
 
-**Hardware** (8)
+**Hardware** (10)
 - `L1-HW-01` Keyboard not typing
 - `L1-HW-02` Mouse pointer frozen
 - `L1-HW-03` Black screen, PC running
@@ -13,6 +13,8 @@ Total: 211 problems. Review each level and tell me what to change.
 - `L1-HW-06` No sound from speakers
 - `L1-HW-07` Laptop not charging
 - `L1-HW-08` USB drive not recognised
+- `L1-HW-09` Desk phone screen is blank, no dial tone
+- `L1-HW-10` Caller can't hear me on the desk phone
 
 **Printers and scanners** (4)
 - `L1-PR-01` Printer shows offline
@@ -60,9 +62,9 @@ Total: 211 problems. Review each level and tell me what to change.
 - `L1-CH-01` Angry user raising their voice
 - `L1-CH-02` User does not understand technical terms
 
-## Level 2 (58)
+## Level 2 (59)
 
-**Hardware** (7)
+**Hardware** (8)
 - `L2-HW-01` Laptop overheating and shutting down
 - `L2-HW-02` Second monitor not detected
 - `L2-HW-03` Docking station not working
@@ -70,6 +72,7 @@ Total: 211 problems. Review each level and tell me what to change.
 - `L2-HW-05` Headset microphone not picked up
 - `L2-HW-06` Beeping sound at startup
 - `L2-HW-07` Meeting room projector shows no signal
+- `L2-HW-08` Set up a laptop for a new starter
 
 **Printers and scanners** (5)
 - `L2-PR-01` Wrong printer set as default

@@ -48,17 +48,17 @@ def test_render_shows_cells_and_missing(tmp_path):
     counts, _ = count_problems(tmp_path)
     text = render(counts)
     assert "drafted / target" in text
-    assert "1/8" in text  # Hardware L1
-    assert "1/211" in text  # grand total
-    assert "Still missing: L1 35, L2 58, L3 49, L4 38, L5 30" in text
+    assert "1/10" in text  # Hardware L1
+    assert "1/214" in text  # grand total
+    assert "Still missing: L1 37, L2 59, L3 49, L4 38, L5 30" in text
 
 
 def test_render_marks_over_target(tmp_path):
-    for n in range(1, 10):  # 9 hardware L1 problems, target is 8
+    for n in range(1, 12):  # 11 hardware L1 problems, target is 10
         write(tmp_path, make(id=f"L1-HW-{n:02d}", title=f"Title {n}"))
     counts, _ = count_problems(tmp_path)
     text = render(counts)
-    assert "9/8+" in text
+    assert "11/10+" in text
     assert "Over target: Hardware L1 (+1)" in text
 
 
@@ -67,7 +67,7 @@ def test_main_output_and_exit_code(tmp_path, capsys):
     assert main([str(tmp_path), "--reviewed"]) == 0
     out = capsys.readouterr().out
     assert "reviewed / target" in out
-    assert "0/211" in out
+    assert "0/214" in out
 
 
 def test_main_missing_folder(tmp_path):

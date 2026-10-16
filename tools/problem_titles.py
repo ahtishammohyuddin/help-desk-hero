@@ -13,7 +13,7 @@ from tools.validate_problems import CATEGORIES
 
 # Target counts per level (L1, L2, L3, L4, L5), straight from the brief.
 TARGETS: dict[str, tuple[int, int, int, int, int]] = {
-    "Hardware": (8, 7, 4, 2, 1),
+    "Hardware": (10, 8, 4, 2, 1),
     "Printers and scanners": (4, 5, 4, 2, 1),
     "Windows and OS": (5, 7, 6, 4, 2),
     "Accounts and passwords": (4, 6, 4, 4, 3),
@@ -37,6 +37,8 @@ TITLES: dict[str, dict[int, list[str]]] = {
             "No sound from speakers",
             "Laptop not charging",
             "USB drive not recognised",
+            "Desk phone screen is blank, no dial tone",
+            "Caller can't hear me on the desk phone",
         ],
         2: [
             "Laptop overheating and shutting down",
@@ -46,6 +48,7 @@ TITLES: dict[str, dict[int, list[str]]] = {
             "Headset microphone not picked up",
             "Beeping sound at startup",
             "Meeting room projector shows no signal",
+            "Set up a laptop for a new starter",
         ],
         3: [
             "Random blue screens, suspect faulty RAM",

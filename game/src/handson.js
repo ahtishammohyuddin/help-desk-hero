@@ -102,8 +102,36 @@ const BENCH_FAULTS = {
 };
 export const RAM_SLOTS = ['A', 'B'];
 
-/** Which close-up a scenario uses: 'desk', 'printer', 'laptop', 'survey' or 'bench'. */
+// Desk phone: an internet (VoIP) phone powered through its network cable, like this office's phones.
+const PHONE_FAULTS = {
+  phone_cable_loose: "the phone's network cable is loose at the wall, so the phone has no power",
+  phone_muted: 'the mute button is on',
+  handset_cord_loose: 'the coiled handset cord is loose in the handset',
+};
+// New-starter laptop: a boxed laptop to set up at the repair bench before someone's first day.
+const SETUP_FAULTS = {
+  new_laptop_setup: 'a new laptop in its box, not set up yet',
+};
+/** The setup steps, in a sensible order. needs: steps that must be done first. */
+export const SETUP_STEPS = {
+  unbox: { label: 'Unbox it, plug in the charger and switch it on', needs: [] },
+  network: { label: 'Connect it to the office network', needs: ['unbox'] },
+  updates: { label: 'Run Windows Update', needs: ['network'] },
+  apps: { label: 'Install the standard apps from the company portal', needs: ['network'] },
+  encryption: { label: 'Check drive encryption (BitLocker) is on', needs: ['unbox'] },
+  asset: { label: 'Stick on the asset tag and record the serial number in the asset list', needs: ['unbox'] },
+};
+/** Shortcuts that look quicker but are wrong. The game refuses them and says why. */
+export const SETUP_TRAPS = {
+  admin: { label: 'Set it up under your own admin account', why: 'The new starter must sign in with their own account. Setting it up as you mixes your profile, files and access into their laptop.' },
+  sticky: { label: 'Write their password on a sticky note on the laptop', why: 'Anyone who picks up the laptop could sign in. Passwords are given privately and changed at first sign-in.' },
+  skip: { label: 'Skip Windows Update to save time', why: 'An unpatched laptop starts its life with known security holes, and updates will interrupt their first day anyway.' },
+};
+
+/** Which close-up a scenario uses: 'desk', 'printer', 'laptop', 'survey', 'bench', 'phone', 'setup'... */
 export function stationFor(scenario) {
+  if (scenario.faults.some((f) => f in SETUP_FAULTS)) return 'setup';
+  if (scenario.faults.some((f) => f in PHONE_FAULTS)) return 'phone';
   if (scenario.faults.some((f) => f in BENCH_FAULTS)) return 'bench';
   if (scenario.faults.some((f) => f in PROJECTOR_FAULTS)) return 'projector';
   if (scenario.faults.some((f) => f in TV_FAULTS)) return 'tv';
@@ -186,10 +214,16 @@ export function createSim(scenario, deskNumber) {
   const tv = station === 'tv'
     ? { wired: has('tv_cable_loose'), cable: has('tv_cable_loose') ? 'loose' : 'in', network: has('tv_wifi_dropped') ? null : 'Office-Devices', video: null }
     : null;
+  const phone = station === 'phone'
+    ? { net: has('phone_cable_loose') ? 'loose' : 'in', muted: has('phone_muted'), cord: has('handset_cord_loose') ? 'loose' : 'in', lastCall: null }
+    : null;
+  const setup = station === 'setup' ? { done: {}, refused: {} } : null;
   return {
     goal: scenario.goal,
     projector,
     tv,
+    phone,
+    setup,
     required: [...(scenario.required ?? [])],
     deskNumber,
     station,
@@ -413,6 +447,7 @@ export function takeToner(sim) {
 /** Places this ticket needs right now, for markers: 'printer', 'parts_cabinet'. */
 export function placesNeeded(sim) {
   if (sim?.station === 'bench') return benchPlaces(sim);
+  if (sim?.station === 'setup') return setupReadings(sim).ready ? [] : ['repair_bench'];
   if (sim?.station === 'projector') return projectorReadings(sim).works.projector ? [] : ['meeting_projector'];
   if (sim?.station === 'tv') return tvReadings(sim).online ? [] : ['lounge_tv'];
   if (sim?.station === 'laptop') {
@@ -748,6 +783,79 @@ export function tvAction(sim, action, arg) {
   }
 }
 
+// ---------- the desk phone ----------
+
+export function phoneReadings(sim) {
+  const ph = sim.phone;
+  const powered = ph.net === 'in'; // powered through the network cable (PoE)
+  const callerHears = powered && !ph.muted && ph.cord === 'in';
+  return {
+    powered,
+    screen: powered ? 'Ready' : '',
+    muteLight: powered && ph.muted,
+    callerHears,
+    works: { phone: powered, phone_audio: callerHears },
+  };
+}
+
+export function phoneAction(sim, action) {
+  const ph = sim.phone;
+  const looked = (k) => ({ ...sim.looked, [k]: true });
+  const changed = (patch, message, k) => ({ sim: { ...sim, looked: looked(k), phone: { ...ph, ...patch } }, message, changed: true });
+  const powered = ph.net === 'in';
+  switch (action) {
+    case 'net':
+      if (ph.net === 'in') return same({ ...sim, looked: looked('net') }, "The phone's network cable is firmly in at the phone and at the wall port.");
+      return changed({ net: 'in' }, "The phone's network cable was loose at the wall port. You push it in until it clicks. The phone screen lights up as it starts.", 'net');
+    case 'screen':
+      return same({ ...sim, looked: looked('screen') }, powered ? 'The phone screen shows the time and "Ready".' : 'The phone screen is completely blank, with no lights at all.');
+    case 'mute':
+      if (!powered) return same(sim, 'Nothing happens: the phone has no power.');
+      return changed({ muted: !ph.muted }, ph.muted ? 'You press the mute button. Its red light goes off.' : 'You press the mute button. Its red light comes on: callers cannot hear you now.', 'mute');
+    case 'cord':
+      if (ph.cord === 'in') return same({ ...sim, looked: looked('cord') }, 'The coiled handset cord clicks firmly into the handset and the phone.');
+      return changed({ cord: 'in' }, 'The coiled cord was loose in the bottom of the handset. You push it in until it clicks.', 'cord');
+    case 'call': {
+      const r = phoneReadings(sim);
+      const message = !r.powered ? 'You lift the handset: no dial tone, and the screen stays blank.'
+        : r.callerHears ? 'You make a test call to the help desk line: you hear each other clearly.'
+          : 'You make a test call: you can hear the other side, but they cannot hear you.';
+      return { sim: { ...sim, looked: looked('call'), phone: { ...ph, lastCall: r.callerHears ? 'ok' : 'bad' } }, message, changed: true };
+    }
+    default:
+      return same(sim, '');
+  }
+}
+
+// ---------- the new-starter laptop ----------
+
+export function setupReadings(sim) {
+  const done = sim.setup.done;
+  const left = Object.keys(SETUP_STEPS).filter((k) => !done[k]);
+  return { left, ready: left.length === 0, works: { laptop_ready: left.length === 0 } };
+}
+
+export function setupAction(sim, action) {
+  const st = sim.setup;
+  if (action in SETUP_TRAPS) {
+    return { sim: { ...sim, setup: { ...st, refused: { ...st.refused, [action]: true } } }, message: `You don't do that. ${SETUP_TRAPS[action].why}`, changed: false };
+  }
+  const step = SETUP_STEPS[action];
+  if (!step) return same(sim, '');
+  if (st.done[action]) return same(sim, 'Already done.');
+  const missing = step.needs.filter((n) => !st.done[n]);
+  if (missing.length) return same(sim, `Not yet: first ${SETUP_STEPS[missing[0]].label.charAt(0).toLowerCase()}${SETUP_STEPS[missing[0]].label.slice(1)}.`);
+  const messages = {
+    unbox: 'You unbox the laptop, plug in the charger and switch it on. Windows starts its first-time setup.',
+    network: 'You connect it to the office network. It can now reach the company portal and Windows Update.',
+    updates: 'Windows Update downloads and installs the latest updates, then restarts.',
+    apps: 'You install the standard apps from the company portal: Office, the browser and the security tools.',
+    encryption: 'You check the drive encryption: BitLocker is on, so the data is safe if the laptop is lost.',
+    asset: 'You stick on the asset tag and record the serial number against the new starter in the asset list.',
+  };
+  return { sim: { ...sim, setup: { ...st, done: { ...st.done, [action]: true } } }, message: messages[action], changed: true };
+}
+
 const GOAL_WORDS = {
   internet: ['the internet works again', 'there is still no internet'],
   display: ['the picture is back on the monitor', 'the monitor still shows no picture'],
@@ -764,6 +872,9 @@ const GOAL_WORDS = {
   stable: ['the PC runs all morning with no more blue screens', null], // failures come from benchFailure()
   projector: ['the slides show on the projector screen', 'the projector screen still shows no picture'],
   tv_online: ['videos play on the lounge TV again', 'the TV still says no internet connection'],
+  phone: ['the phone screen shows "Ready" and there is a dial tone', 'the phone is still blank, with no dial tone'],
+  phone_audio: ['the caller can hear them clearly now', 'the caller still cannot hear them'],
+  laptop_ready: ["the new starter's laptop is ready for their first day", 'the laptop is not ready yet'],
 };
 
 function benchFailure(sim) {
@@ -780,6 +891,17 @@ function benchFailure(sim) {
  * A failed test can give a clue about where to look next.
  */
 export function test(sim, name) {
+  if (sim.station === 'phone') {
+    const ok = phoneReadings(sim).works[sim.goal];
+    return { sim, ok, solved: ok, message: `${name} tries again: ${GOAL_WORDS[sim.goal][ok ? 0 : 1]}.` };
+  }
+  if (sim.station === 'setup') {
+    const r = setupReadings(sim);
+    const message = r.ready
+      ? `${name} checks: ${GOAL_WORDS.laptop_ready[0]}.`
+      : `${name} checks: ${GOAL_WORDS.laptop_ready[1]}. Still to do at the repair bench: ${r.left.length} step${r.left.length === 1 ? '' : 's'}.`;
+    return { sim, ok: r.ready, solved: r.ready, message };
+  }
   if (sim.station === 'projector' || sim.station === 'tv') {
     const ok = sim.station === 'projector' ? projectorReadings(sim).works.projector : tvReadings(sim).works.tv_online;
     let why = GOAL_WORDS[sim.goal][1];
@@ -840,6 +962,8 @@ export function needsServerRoom(sim) {
 /** Is the person's problem fixed (and every required action done)? The survey counts once measured. */
 export function isFixed(sim) {
   if (sim.station === 'bench') return benchReadings(sim).works.stable;
+  if (sim.station === 'phone') return Boolean(phoneReadings(sim).works[sim.goal]);
+  if (sim.station === 'setup') return setupReadings(sim).ready;
   if (sim.station === 'projector') return projectorReadings(sim).works.projector;
   if (sim.station === 'tv') return tvReadings(sim).works.tv_online;
   if (sim.station === 'printer') return printerReadings(sim).works;

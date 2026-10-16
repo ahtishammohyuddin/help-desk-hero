@@ -15,8 +15,8 @@ def test_counts_match_targets_per_cell():
 
 def test_target_totals_match_brief():
     per_level = [sum(TARGETS[c][i] for c in TARGETS) for i in range(5)]
-    assert per_level == [36, 58, 49, 38, 30]
-    assert len(all_entries()) == 211
+    assert per_level == [38, 59, 49, 38, 30]
+    assert len(all_entries()) == 214
 
 
 def test_titles_unique_ignoring_case():

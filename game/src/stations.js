@@ -5,7 +5,7 @@
 import {
   benchReadings,
   DISPLAY_MODES, ITEM_NAMES, ITEMS, LAPTOP_PARTS, laptopReadings, PARTS, printerReadings, projectorReadings, readings, SPARE_PORTS, SWITCH_PORTS,
-  TV_NETWORKS, tvReadings,
+  TV_NETWORKS, tvReadings, phoneReadings, setupReadings, SETUP_STEPS, SETUP_TRAPS,
 } from './handson.js';
 
 const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
@@ -700,4 +700,70 @@ export function tvSummary(sim) {
     { label: 'Connection', value: sim.tv.wired ? 'Cable' : 'Wi-Fi', ok: null },
     { label: 'Internet', value: r.online ? 'Connected' : 'No connection', ok: r.online },
   ];
+}
+
+// ---------- the desk phone ----------
+
+function phPart(action, label, inner, hit) {
+  return `<g class="part" data-part="${action}" tabindex="0" role="button" aria-label="${esc(label)}"><title>${esc(label)}</title>
+    <rect x="${hit[0]}" y="${hit[1]}" width="${hit[2]}" height="${hit[3]}" rx="6" class="hit"/>${inner}</g>`;
+}
+
+/** A VoIP desk phone on the desk, its handset cord, and its network cable to the wall port. */
+export function phoneSvg(sim) {
+  const ph = sim.phone;
+  const r = phoneReadings(sim);
+  const netIn = ph.net === 'in';
+  const cordIn = ph.cord === 'in';
+  return `<svg class="station" viewBox="0 0 600 270" role="img" aria-label="Desk phone, handset cord and network cable">
+    <rect x="0" y="0" width="600" height="270" rx="12" fill="#dfe4ea"/>
+    <rect x="0" y="170" width="600" height="100" fill="#c9a87a"/>
+    ${phPart('screen', 'Look at the phone screen', `<rect x="150" y="70" width="220" height="140" rx="14" fill="#2b313a"/>
+      <rect x="250" y="86" width="104" height="46" rx="4" fill="${r.powered ? '#bfe3c9' : '#11161c'}"/>
+      ${r.powered ? fitText('Ready', 302, 114, 90, { size: 14, cls: 'tiny ink', weight: 700 }) : ''}
+      ${[0, 1, 2].map((row) => [0, 1, 2].map((col) => `<rect x="${262 + col * 28}" y="${142 + row * 20}" width="20" height="13" rx="3" fill="#4a525c"/>`).join('')).join('')}`, [144, 64, 232, 152])}
+    ${phPart('call', 'Lift the handset and make a test call', `<rect x="160" y="80" width="78" height="120" rx="20" fill="#1f252d" stroke="#4a525c"/>
+      ${fitText('Handset', 199, 145, 70, { size: 10, cls: 'tiny light' })}`, [156, 76, 86, 128])}
+    ${phPart('mute', ph.muted ? 'Press mute (it is on)' : 'Press mute', `<rect x="334" y="182" width="30" height="18" rx="4" fill="#4a525c"/>
+      <circle cx="349" cy="176" r="4" fill="${r.muteLight ? '#e5484d' : '#3a3f46'}"/>`, [328, 166, 42, 38])}
+    ${fitText(r.muteLight ? 'Mute (on)' : 'Mute', 349, 220, 60, { size: 10, cls: 'tiny ink', weight: r.muteLight ? 700 : 400 })}
+    ${phPart('cord', 'Check the coiled handset cord', `<path d="M168 ${cordIn ? 196 : 206} C 120 210, 110 160, 90 190 S 120 240, 150 205" stroke="#1f252d" stroke-width="4" fill="none" stroke-dasharray="3 2"/>
+      ${cordIn ? '' : '<circle cx="168" cy="206" r="5" fill="#e5484d"/>'}`, [80, 150, 96, 100])}
+    ${fitText(cordIn ? 'Handset cord' : 'Handset cord (loose)', 120, 258, 120, { size: 10, cls: 'tiny ink', weight: cordIn ? 400 : 700 })}
+    ${phPart('net', "Check the phone's network cable at both ends", `<path d="M370 120 C 430 120, 460 90, 506 ${netIn ? 96 : 110}" stroke="${CABLE}" stroke-width="5" fill="none"/>
+      <rect x="500" y="80" width="40" height="34" rx="4" fill="#f4f4f4" stroke="#b7c2cd"/><rect x="510" y="90" width="20" height="14" fill="#1f252d"/>
+      <rect x="${netIn ? 506 : 496}" y="${netIn ? 92 : 104}" width="14" height="10" fill="#2f6feb"/>`, [366, 70, 182, 60])}
+    ${fitText(netIn ? 'Network cable to wall port' : 'Network cable (loose at the wall)', 500, 150, 170, { size: 10, cls: 'tiny ink', weight: netIn ? 400 : 700 })}
+  </svg>`;
+}
+
+export function phoneSummary(sim) {
+  const r = phoneReadings(sim);
+  return [
+    { label: 'Phone screen', value: r.powered ? 'Ready' : 'Blank', ok: r.powered },
+    { label: 'Mute', value: r.muteLight ? 'On' : 'Off', ok: r.powered ? !r.muteLight : null },
+    { label: 'Last test call', value: sim.phone.lastCall === 'ok' ? 'Clear both ways' : sim.phone.lastCall === 'bad' ? 'Problem' : 'Not tried', ok: sim.phone.lastCall === null ? null : sim.phone.lastCall === 'ok' },
+  ];
+}
+
+// ---------- the new-starter laptop ----------
+
+/** The setup checklist at the repair bench: steps (in order) and tempting shortcuts. */
+export function setupHtml(sim) {
+  const done = sim.setup.done;
+  const r = setupReadings(sim);
+  const steps = Object.entries(SETUP_STEPS).map(([k, st]) => {
+    const ok = Boolean(done[k]);
+    const ready = !ok && st.needs.every((n) => done[n]);
+    return `<button class="setup-step${ok ? ' done' : ready ? ' ready' : ''}" data-setup="${k}">
+      <span class="setup-tick" aria-hidden="true">${ok ? '✓' : '○'}</span><span>${esc(st.label)}</span></button>`;
+  }).join('');
+  const traps = Object.entries(SETUP_TRAPS).map(([k, t]) =>
+    `<button class="setup-step trap${sim.setup.refused[k] ? ' refused' : ''}" data-setup="${k}"><span class="setup-tick" aria-hidden="true">${sim.setup.refused[k] ? '✕' : '?'}</span><span>${esc(t.label)}</span></button>`).join('');
+  return `<div class="setup">
+    <div class="setup-laptop" aria-hidden="true">💻 <b>${r.ready ? 'Ready for day one' : `${Object.keys(done).length} of ${Object.keys(SETUP_STEPS).length} steps done`}</b></div>
+    <div class="setup-list">${steps}</div>
+    <div class="setup-head">Quicker ideas: are they a good idea?</div>
+    <div class="setup-list">${traps}</div>
+  </div>`;
 }

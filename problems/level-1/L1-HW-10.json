@@ -1,0 +1,50 @@
+{
+  "id": "L1-HW-10",
+  "level": 1,
+  "category": "Hardware",
+  "title": "Caller can't hear me on the desk phone",
+  "character": {
+    "name": "Farah",
+    "department": "Finance",
+    "personality": "organised, polite",
+    "gender": "female"
+  },
+  "symptom": "On desk phone calls she can hear the caller, but the caller cannot hear her",
+  "user_description": "I can hear people fine when they call, but they keep saying hello, hello, as if I'm not there. It's embarrassing with suppliers!",
+  "options": [
+    {
+      "text": "Turn the ringer volume up",
+      "correct": false,
+      "why": "The ringer is only the sound of incoming calls. It has nothing to do with what the caller hears."
+    },
+    {
+      "text": "Replace the handset",
+      "correct": false,
+      "why": "Check the simple causes first. A handset is rarely broken."
+    },
+    {
+      "text": "Ask callers to speak louder",
+      "correct": false,
+      "why": "The caller is not the problem: they cannot hear her at all."
+    },
+    {
+      "text": "Check whether the mute button's light is on, and check the coiled handset cord is clicked firmly into the handset and the phone, then make a test call",
+      "correct": true,
+      "why": "Mute stops the microphone, and a loose handset cord can cut the microphone too. A test call checks both directions."
+    }
+  ],
+  "hints": [
+    "She can hear them, but they cannot hear her. Which part is not working?",
+    "Is there a light on any of the phone's buttons?",
+    "How is the handset connected to the phone?"
+  ],
+  "real_world_tip": "One-way audio on a desk phone is very often the mute button or a loose handset cord. Always finish with a test call so you hear it working both ways.",
+  "hands_on": {
+    "faults": [
+      "phone_muted",
+      "handset_cord_loose"
+    ],
+    "goal": "phone_audio"
+  },
+  "reviewed": true
+}

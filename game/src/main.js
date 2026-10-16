@@ -7,7 +7,7 @@ import { FollowCamera } from './camera.js';
 import {
   benchAction,
   createSim, laptopAction, measure, moveToSpare, needsServerRoom, placesNeeded, printerAction, putBack, reportCoverage, reportPort,
-  projectorAction, reseat, reseatSwitchPort, spotsLeft, takeItem, test as testFix, tvAction,
+  phoneAction, projectorAction, reseat, reseatSwitchPort, setupAction, spotsLeft, takeItem, test as testFix, tvAction,
 } from './handson.js';
 import { createEmployees } from './employees.js';
 import { Input } from './input.js';
@@ -301,6 +301,7 @@ function start() {
       if (need.includes('repair_bench')) return 'Next: Repair bench';
       if (d.sim.bench.where === 'carried') return `Next: take the PC back to Desk ${byName.get(t.employee).desk}`;
     }
+    if (d?.sim?.station === 'setup' && !d.result) return placesNeeded(d.sim).length ? 'Next: Repair bench (new laptop)' : `Next: back to ${t.employee}`;
     if (d?.sim?.station === 'projector' && !d.result) return placesNeeded(d.sim).length ? 'Next: Meeting room projector' : `Next: back to ${t.employee}`;
     if (d?.sim?.station === 'tv' && !d.result) return placesNeeded(d.sim).length ? 'Next: Lounge TV' : `Next: back to ${t.employee}`;
     if (d?.sim?.station === 'printer' && !d.result) {
@@ -331,6 +332,10 @@ function start() {
         // While the PC is on the bench, the bench can always be opened (marker only when it is the next stop).
         if (d.sim.bench.where === 'bench' && !need.includes('repair_bench')) list.push({ ...benchVisit, quiet: true });
         return list;
+      }
+      if (d?.sim?.station === 'setup' && !d.result) {
+        const v = visit('setup', 'repair_bench', `Set up the new starter's laptop for ${ticket.employee}`);
+        return [placesNeeded(d.sim).length ? v : { ...v, quiet: true }];
       }
       if ((d?.sim?.station === 'projector' || d?.sim?.station === 'tv') && !d.result) {
         const kind = d.sim.station;
@@ -766,6 +771,8 @@ function start() {
       const step = benchAction({ ...detail.sim, carrying: carried }, part);
       simAction(detail, step);
       if (step.message) setCarried(step.sim.carrying);
+    } else if (detail.sim.station === 'phone') {
+      simAction(detail, phoneAction(detail.sim, part));
     } else if (detail.sim.station === 'laptop') {
       const step = laptopAction({ ...detail.sim, carrying: carried }, part, mode);
       simAction(detail, step);
@@ -854,6 +861,7 @@ function start() {
     if (stationKind === 'printer') ui.renderPrinterPanel(person, switchTicket, detail);
     else if (stationKind === 'bench') ui.renderBenchPanel(person, switchTicket, detail);
     else if (stationKind === 'projector') ui.renderProjectorPanel(person, switchTicket, detail);
+    else if (stationKind === 'setup') ui.renderSetupPanel(person, switchTicket, detail);
     else if (stationKind === 'tv') ui.renderTvPanel(person, switchTicket, detail);
     else ui.renderSwitchPanel(person, switchTicket, detail);
   }
@@ -868,6 +876,11 @@ function start() {
     if (action === 'move') simAction(detail, moveToSpare(detail.sim, arg));
     else if (action === 'report') simAction(detail, reportPort(detail.sim));
     else if (action === 'reseat') simAction(detail, reseatSwitchPort(detail.sim));
+    else if (action === 'setup') {
+      const step = setupAction(detail.sim, arg);
+      if (step.message && !step.changed && !step.sim.setup.done[arg]) sound.wrong(); // a refused shortcut or a step out of order
+      simAction(detail, step);
+    }
     else if (action === 'projector') simAction(detail, projectorAction(detail.sim, arg.action, arg.arg));
     else if (action === 'tv') simAction(detail, tvAction(detail.sim, arg.action, arg.arg));
     else if (action === 'printer') {
@@ -1308,7 +1321,7 @@ function start() {
     if (target.kind === 'arcade') return openArcade();
     if (target.kind === 'knock') return knockOnDoor();
     if (target.kind === 'badge') return tapBadge();
-    if (['switch', 'printer', 'bench', 'projector', 'tv'].includes(target.kind)) return openSwitch(target.ticket, target.kind);
+    if (['switch', 'printer', 'bench', 'projector', 'tv', 'setup'].includes(target.kind)) return openSwitch(target.ticket, target.kind);
     working = { ...target, t: 0 };
     player.face(target.place.markX, target.place.markZ);
     sound.click();
@@ -1420,7 +1433,7 @@ function start() {
   function setDeskView(view) {
     const detail = activeTicket && talkingTo && details.get(activeTicket.number);
     if (!detail?.sim || detail.result || detail.state !== 'ready') return;
-    if (view === 'desk' && !['desk', 'laptop', 'bench'].includes(detail.sim.station)) return; // printer and Wi-Fi work elsewhere
+    if (view === 'desk' && !['desk', 'laptop', 'bench', 'phone'].includes(detail.sim.station)) return; // printer and Wi-Fi work elsewhere
     detail.view = view;
     if (view === 'desk') detail.sim = { ...detail.sim, visited: true }; // the mission card moves on to "Fix it"
     refreshTicketPanel();
@@ -1723,6 +1736,8 @@ function start() {
       const spare = e.target.closest('[data-spare]');
       if (spare) return onSwitchAction('move', Number(spare.dataset.spare));
       if (e.target.closest('[data-reseat]')) return onSwitchAction('reseat');
+      const setupBtn = e.target.closest('[data-setup]');
+      if (setupBtn) return onSwitchAction('setup', setupBtn.dataset.setup);
       const proj = e.target.closest('[data-projector]');
       if (proj) return onSwitchAction('projector', { action: proj.dataset.projector, arg: proj.dataset.arg });
       const tvPart = e.target.closest('[data-tv]');

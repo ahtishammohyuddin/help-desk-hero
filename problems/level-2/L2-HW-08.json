@@ -1,0 +1,49 @@
+{
+  "id": "L2-HW-08",
+  "level": 2,
+  "category": "Hardware",
+  "title": "Set up a laptop for a new starter",
+  "character": {
+    "name": "Sana",
+    "department": "HR",
+    "personality": "organised, friendly",
+    "gender": "female"
+  },
+  "symptom": "A new employee starts tomorrow and needs a laptop ready on their first day",
+  "user_description": "We have a new starter joining tomorrow morning. There's a new laptop in its box by the repair bench. Can you get it ready so they can start working on day one?",
+  "options": [
+    {
+      "text": "Set it up quickly under your own admin account so it is ready",
+      "correct": false,
+      "why": "The new starter must sign in with their own account. Setting it up as you mixes your profile, files and access into their laptop."
+    },
+    {
+      "text": "Write their password on a sticky note on the laptop so they don't forget it",
+      "correct": false,
+      "why": "Anyone who picks up the laptop could sign in. Passwords are given privately and changed at first sign-in."
+    },
+    {
+      "text": "Skip Windows Update to save time and let it update later",
+      "correct": false,
+      "why": "An unpatched laptop starts with known security holes, and updates will interrupt their first day anyway."
+    },
+    {
+      "text": "Unbox and charge it, connect it to the office network, run Windows Update, install the standard apps from the company portal, check drive encryption is on, record the asset tag and serial number, then hand it over for them to sign in with their own account",
+      "correct": true,
+      "why": "Doing the steps in order means it is secure, up to date and tracked, and the new starter can work from their first morning."
+    }
+  ],
+  "hints": [
+    "What does the laptop need before it can get updates and apps?",
+    "Whose account should the new starter use?",
+    "How does the company keep track of its laptops?"
+  ],
+  "real_world_tip": "Steps differ between companies, and many set laptops up automatically with tools like Autopilot and Intune. Always follow your company's own setup checklist.",
+  "hands_on": {
+    "faults": [
+      "new_laptop_setup"
+    ],
+    "goal": "laptop_ready"
+  },
+  "reviewed": true
+}

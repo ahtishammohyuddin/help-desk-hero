@@ -26,6 +26,8 @@ def test_game_simulates_every_validator_fault():
         | _keys(source, "const BENCH_FAULTS")
         | _keys(source, "const PROJECTOR_FAULTS")
         | _keys(source, "const TV_FAULTS")
+        | _keys(source, "const PHONE_FAULTS")
+        | _keys(source, "const SETUP_FAULTS")
         | {"switch_port_dead", "switch_cable_loose", "wifi_weak_corner"}  # handled separately (switch port, survey)
     )
     assert simulated == set(HANDS_ON_FAULTS)

@@ -80,8 +80,8 @@ Everything a player does is saved **in their own browser, on their own device** 
 ## Put it online (free)
 
 1. **Game on GitHub Pages:** push to GitHub, then on GitHub open *Settings > Pages* and set *Source* to **GitHub Actions**. The `Publish game` workflow (`.github/workflows/pages.yml`) stamps the file versions and publishes the `game` folder on every push to `main`.
-2. **Backend on Render (free plan):** in Render choose *New > Blueprint* and pick this repo; `render.yaml` sets everything up. Optionally add `GEMINI_API_KEY` in the Render dashboard (never in a file). The free plan sleeps when unused, so the first visit can take up to a minute; the game shows *Waking up the office* meanwhile.
-3. Put the Render address in `game/config.js` (`apiBase`) and push. `ALLOWED_ORIGINS` in `render.yaml` only lets the game's own GitHub Pages site call the API.
+2. **Backend on Vercel (free Hobby plan, no card):** in Vercel choose *Add New > Project*, import this repo and deploy; `app.py` exposes the FastAPI app. In the project's *Settings > Environment Variables* set `ALLOWED_ORIGINS` to the GitHub Pages address (for example `https://ahtishammohyuddin.github.io`) and, optionally, `GEMINI_API_KEY` (never in a file). `render.yaml` is kept for anyone who prefers Render (its free plan asks for a card).
+3. Put the backend address in `game/config.js` (`apiBase`) and push. `ALLOWED_ORIGINS` only lets the game's own GitHub Pages site call the API.
 
 Before pushing changes to game files, run `python -m tools.stamp_version` (or `--check`) so browsers load the newest copies; the publish workflow also does it.
 

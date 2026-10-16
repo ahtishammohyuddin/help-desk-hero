@@ -532,9 +532,12 @@ function start() {
         await sleep(2000);
       }
     }
+    const local = ['localhost', '127.0.0.1', ''].includes(window.location.hostname);
     ui.bootMessage(
       'Cannot reach the help desk server',
-      `Tried <code>${ui.esc(API_BASE)}</code>.<br>Start the backend in another terminal:<br><code>uvicorn backend.main:app --reload</code>`,
+      local
+        ? `Tried <code>${ui.esc(API_BASE)}</code>.<br>Start the backend in another terminal:<br><code>uvicorn backend.main:app --reload</code>`
+        : 'The help desk server is not answering right now. It may still be waking up: please try again in a minute.',
       { error: true, retry: boot },
     );
   }

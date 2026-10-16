@@ -75,6 +75,17 @@ Sound is all made in code with the Web Audio API, so there are no audio files an
 
 Under the options on a question ticket, **Or answer in your own words** lets you type (or say) what you would do. `POST /problems/{id}/match` finds which listed option your words sound like: the AI is only given the option texts, never which one is correct, and without the AI a simple word match is used. You confirm the option, and `/check` marks it against the reviewed answer as usual, so the AI never decides what is right. Emails and long numbers are removed before matching. **Voice input** (Settings, off by default) uses the browser's speech-to-text; in Chrome that sends the audio to Google. The 🔊 button reads the person's message aloud, preferring a voice built into your computer.
 
+## Security and privacy
+
+- **No accounts, no personal data on the server.** Progress, name, look and settings stay in the player's own browser.
+- **Secrets:** the Gemini key lives only in the host's settings (Vercel environment variables), never in the code; `.env` is git-ignored and the public history has been checked for keys.
+- **Answers stay server-side:** the problem list and question endpoints never include which option is correct; `/check` decides using the reviewed files. The AI never decides correctness.
+- **AI limits:** per-player and daily caps on AI calls. Players are identified by the address the host reports (not one they can fake). On a serverless host these counters reset when the server restarts, so also keep the Gemini key on Google's free tier (no billing) so it can never run up a bill: at worst the AI hits its quota and the game falls back to pre-written text.
+- **What goes to Google's Gemini:** fictional ticket text, and what players type into "answer in your own words" or "ask the senior tech" (emails and long numbers are removed first). On the free tier Google may use this to improve its products and human reviewers may read it, so the game asks players not to type personal details.
+- **Safe display:** all text from players and the AI is escaped before it is shown, so it cannot inject code into the page.
+- **Locked-down API:** only the game's own website may call it from a browser (`ALLOWED_ORIGINS`), every request has size limits, and replies carry standard safety headers. Library versions are pinned in `requirements.txt`.
+- **Voice input** is off by default; in Chrome, speech-to-text sends audio to Google, and the setting says so.
+
 ## Phones and tablets
 
 On a touch screen the game shows a joystick (bottom left) to walk, pushed to the edge to walk faster, and a blue **E** button (bottom right) to talk, use and close; the *Tap E to...* prompt can be tapped too. Swipe on the office to turn the camera. Add `?touch=1` to the address to see the touch controls on a computer.

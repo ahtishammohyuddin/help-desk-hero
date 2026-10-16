@@ -600,7 +600,7 @@ function ownWordsHtml(detail) {
     <form data-form="own">
       <textarea id="own-input" maxlength="300" rows="2" placeholder="What would you do? For example: check the cable is plugged in at both ends">${esc(own.text ?? '')}</textarea>
       <div class="own-actions">${mic}<button class="btn" type="submit" ${own.matching ? 'disabled' : ''}>Match my answer</button></div>
-      <p class="own-note">Please don't type personal details. Your words are only used to find the matching option, and the reviewed answer still decides if it is right.</p>
+      <p class="own-note">Please don't type personal details: your words may be sent to Google's Gemini AI to find the matching option. The reviewed answer still decides if it is right.</p>
     </form>
     ${result}
   </details>`;
@@ -737,7 +737,7 @@ function seniorHtml(detail) {
              placeholder="${asked ? 'Ask a follow-up question' : 'For example: why is that the first thing to check?'}" ${detail.asking ? 'disabled' : ''}>
            <button type="submit" class="btn" ${detail.asking ? 'disabled' : ''}>Send</button>
          </form>
-         <div class="small">${left} question${left === 1 ? '' : 's'} left for this ticket. Press Esc to stop typing.</div>`
+         <div class="small">${left} question${left === 1 ? '' : 's'} left for this ticket. Press Esc to stop typing. Questions go to Google's Gemini AI: please don't type personal details.</div>`
       : '<div class="small">The senior tech has answered 3 questions on this ticket.</div>';
   return `<section class="senior"><h3>Senior tech</h3>${turns}${thinking}${form}</section>`;
 }

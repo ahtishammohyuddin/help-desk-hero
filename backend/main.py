@@ -111,10 +111,19 @@ def _ai_client_from_env() -> AIClient | None:
 
 
 def _client_id(request: Request) -> str:
-    # Behind a host like Render, the real player address is in X-Forwarded-For.
+    """Who is calling, for the per-player AI limit.
+
+    Hosts like Vercel set x-vercel-forwarded-for / x-real-ip themselves, so players cannot fake
+    them. In x-forwarded-for a player can add made-up addresses at the front, so only the last
+    one (added by the host) is trusted.
+    """
+    for header in ("x-vercel-forwarded-for", "x-real-ip"):
+        value = request.headers.get(header, "").strip()
+        if value:
+            return value.split(",")[0].strip()
     forwarded = request.headers.get("x-forwarded-for", "")
     if forwarded:
-        return forwarded.split(",")[0].strip()
+        return forwarded.split(",")[-1].strip()
     return request.client.host if request.client else "unknown"
 
 
@@ -138,6 +147,15 @@ def create_app(problems_dir: Path | None = None, ai_client: object = FROM_ENV) -
             daily_total=int(os.environ.get("AI_DAILY_LIMIT", 300)),
         ),
     )
+
+    @app.middleware("http")
+    async def security_headers(request: Request, call_next):
+        """Standard safety headers on every reply (the API only ever returns JSON)."""
+        response = await call_next(request)
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["Referrer-Policy"] = "no-referrer"
+        return response
 
     app.add_middleware(
         CORSMiddleware,
